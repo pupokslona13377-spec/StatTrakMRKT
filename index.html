@@ -2,126 +2,162 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>StatTrak Professional Market</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS2 Skins Market</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --bg: #0b0e14; --card: #151921; --accent: #0088cc; --text: #ffffff; --gray: #8e8e93; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; overflow-x: hidden; }
-        .nav-bar { display: flex; justify-content: space-around; background: #1c212a; position: fixed; bottom: 0; width: 100%; padding: 12px 0; border-top: 1px solid #2c3440; z-index: 100; }
-        .nav-item { background: none; border: none; color: var(--gray); font-size: 12px; cursor: pointer; transition: 0.3s; }
-        .nav-item.active { color: var(--accent); transform: scale(1.1); }
-        .page { display: none; padding: 20px; padding-bottom: 80px; animation: fadeIn 0.3s ease; }
-        .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .search-container { margin-bottom: 20px; display: flex; gap: 10px; }
-        input { background: #1c212a; border: 1px solid #2c3440; color: #fff; padding: 12px; border-radius: 10px; width: 100%; outline: none; }
-        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .skin-card { background: var(--card); border-radius: 15px; padding: 12px; text-align: center; border: 1px solid #2c3440; transition: 0.2s; }
-        .skin-card img { width: 100%; border-radius: 10px; margin-bottom: 10px; }
-        .skin-name { font-size: 14px; font-weight: 500; height: 35px; overflow: hidden; }
-        .price-tag { color: var(--accent); font-weight: bold; font-size: 16px; margin: 8px 0; }
-        .profile-info { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #2c3440; }
-        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; margin-bottom: 10px; }
-        .status-ok { background: #28a74533; color: #28a745; }
-        .status-err { background: #dc354533; color: #dc3545; }
+        /* [Вставь сюда стили из своего текстового файла, который прислала Claude] */
+        /* Я сократил их здесь для удобства, просто оставь те, что у тебя уже есть */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: sans-serif; background: #0b0e14; color: #fff; padding-bottom: 70px; }
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #151921; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #1f2937; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 20px; color: #6b7280; cursor: pointer; }
+        .nav-item.active { color: #0088cc; background: rgba(0, 136, 204, 0.1); border-radius: 12px; }
+        .page { display: none; padding: 20px; }
+        .page.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .items-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .item-card { background: #151921; border-radius: 16px; padding: 12px; border: 2px solid transparent; }
+        .item-image { width: 100%; height: auto; }
+        .item-price { color: #10b981; font-weight: 700; margin-top: 8px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: #151921; padding: 24px; border-radius: 20px; width: 90%; max-width: 400px; }
+        .form-input { width: 100%; padding: 12px; background: #0b0e14; border: 1px solid #1f2937; color: #fff; border-radius: 10px; margin: 10px 0; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }
+        .btn-primary { background: #0088cc; color: #fff; }
+        .btn-success { background: #10b981; color: #fff; }
     </style>
 </head>
 <body>
-    <div id="page-market" class="page active">
-        <h2 style="margin-top: 0;">Маркет</h2>
-        <div class="search-container">
-            <input type="text" id="search" placeholder="Поиск скинов..." oninput="filterSkins()">
-        </div>
-        <div class="market-grid" id="grid"></div>
+
+    <div id="marketPage" class="page active">
+        <h1>🛒 Маркет</h1>
+        <div class="items-grid" id="marketGrid"></div>
     </div>
-    <div id="page-profile" class="page">
-        <h2 style="margin-top: 0;">Профиль</h2>
-        <div class="profile-info">
-            <div id="link-status" class="status-badge status-err">Трейд-ссылка не настроена</div>
-            <label style="display: block; margin-bottom: 8px; font-size: 14px; color: var(--gray);">Trade URL Steam:</label>
-            <input type="text" id="trade-input" placeholder="https://steamcommunity.com/tradeoffer/new/..." oninput="updateTradeLink()">
-            <p style="font-size: 12px; color: var(--gray);">Ссылка сохраняется автоматически.</p>
+
+    <div id="sellPage" class="page">
+        <h1>💰 Продать</h1>
+        <div id="inventoryLoader" style="text-align: center; padding: 40px; display:none;">Загрузка...</div>
+        <div id="inventoryGrid" class="items-grid"></div>
+    </div>
+
+    <div id="profilePage" class="page">
+        <h1>👤 Профиль</h1>
+        <div style="background:#151921; padding:20px; border-radius:16px; margin-top:20px;">
+            <label>Ваш Trade URL:</label>
+            <input type="text" id="tradeUrlInput" class="form-input" placeholder="https://steamcommunity.com/tradeoffer/new/...">
+            <button class="btn btn-primary" onclick="saveTradeUrl()">💾 Сохранить</button>
+            <div id="tradeUrlStatus" style="margin-top:10px; font-size:12px;"></div>
         </div>
     </div>
+
+    <div id="sellModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalItemName"></h2>
+            <input type="number" id="priceInput" class="form-input" placeholder="Цена в ₽">
+            <div style="display:flex; gap:10px;">
+                <button class="btn" onclick="closeSellModal()">Отмена</button>
+                <button class="btn btn-success" onclick="confirmSell()">✅ Выставить</button>
+            </div>
+        </div>
+    </div>
+
     <nav class="nav-bar">
-        <button class="nav-item active" id="btn-market" onclick="switchPage('market')">🛒 Маркет</button>
-        <button class="nav-item" id="btn-profile" onclick="switchPage('profile')">👤 Профиль</button>
-    </nav>
+        <div class="nav-item active" onclick="switchPage('market')"><span>🛒</span><span>Маркет</span></div>
+        <div class="nav-item" onclick="switchPage('sell')"><span>💰</span><span>Продать</span></div>
+        <div class="nav-item" onclick="switchPage('profile')"><span>👤</span><span>Профиль</span></div>
+                                                                             </nav>
+
     <script>
-        let tg = window.Telegram.WebApp;
+        const tg = window.Telegram.WebApp;
+        tg.ready();
         tg.expand();
-        tg.MainButton.textColor = '#FFFFFF';
-        tg.MainButton.color = '#0088cc';
 
-        const SKINS = [
-            { id: 1, name: "AK-47 | Ледяной уголь", price: 950, img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJegJM6dO4q4yYmfPLP7LWnn9u5MRjjeyPpt2tjAex_0NtZ2_7I9SccVNoZAnR_lG5k-3vgpDuu5_Lz3Vgv3Mm4S7VzRfm0AYMMLLY9vW60Q/360fx360f" },
-            { id: 2, name: "M4A4 | Темари", price: 1200, img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1f_BYi5H49Kzh7-Dhfb9DL7VqWdY781lxOiS89SmiwXsr0Zla271cdXAdVNoYV_Q-lO4lb_vjJ_v7p7JyHBl63IgtmGdwUI97Y9f_A/360fx360f" },
-            { id: 3, name: "AWP | Фобос", price: 350, img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2G9S68hyj9bM8Ij8nVn6_EttY2ilLY-RdVA6YV_U-VS2k7u8h5S6us_InHdrvXNw7H_VzBy_1BlNcKUz16KZAnoB/360fx360f" }
-        ];
+        let currentItemName = null;
 
-        let currentSelection = null;
-
-        function switchPage(page) {
+        function switchPage(pageName) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-            document.getElementById('page-' + page).classList.add('active');
-            document.getElementById('btn-' + page).classList.add('active');
+            document.getElementById(pageName + 'Page').classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            if (pageName === 'sell') loadInventory();
+            if (pageName === 'market') loadMarketItems();
+            if (pageName === 'profile') loadTradeUrl();
         }
 
-        function renderSkins(list) {
-            const grid = document.getElementById('grid');
-            grid.innerHTML = list.map(skin => `
-                <div class="skin-card" onclick="selectSkin('${skin.name}', ${skin.price})">
-                    <img src="${skin.img}">
-                    <div class="skin-name">${skin.name}</div>
-                    <div class="price-tag">${skin.price} ₽</div>
+        function loadMarketItems() {
+            const grid = document.getElementById('marketGrid');
+            const items = [
+                { id: 1, name: 'AK-47 | Redline', price: 2500, img: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSrYmnjQO3-UdvZG_0LYGddlQ7Mg7S_1C8xue9h5Pu75iY1zI97bhKshWi/330x192' },
+                { id: 2, name: 'M4A4 | Howl', price: 15000, img: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJQJD_9W7m5a0mvLwOq7cqWdQ-sJ0teXI8oThxlKx-Uc9Zjv6cNPBdgU4YV3Q_lG9ye_ng5Pu6pXLwXVn7yEq4iuMgVXp1lNdQs2Y/330x192' }
+            ];
+            grid.innerHTML = items.map(i => `
+                <div class="item-card" onclick="tg.showAlert('Покупка скоро появится!')">
+                    <img src="${i.img}" class="item-image">
+                    <div>${i.name}</div>
+                    <div class="item-price">${i.price} ₽</div>
                 </div>
             `).join('');
         }
 
-        function filterSkins() {
-            const query = document.getElementById('search').value.toLowerCase();
-            const filtered = SKINS.filter(s => s.name.toLowerCase().includes(query));
-            renderSkins(filtered);
+        function loadInventory() {
+            const loader = document.getElementById('inventoryLoader');
+            const grid = document.getElementById('inventoryGrid');
+            loader.style.display = 'block'; grid.style.display = 'none';
+            setTimeout(() => {
+                const inv = [
+                    { name: 'AWP | Asiimov', img: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2GlTu8Ak2L2X89Wg2FHk-hJuYW_2LI6QcwQ3aFvY-1XvyOu6gJPpvZvAznth6yI8pSGKhQxgmCw/330x192' }
+                ];
+                grid.innerHTML = inv.map(i => `
+                    <div class="item-card" onclick="openSellModal('${i.name}')">
+                        <img src="${i.img}" class="item-image">
+                        <div>${i.name}</div>
+                        <button class="btn btn-primary" style="margin-top:5px; font-size:10px;">Продать</button>
+                    </div>
+                `).join('');
+                loader.style.display = 'none'; grid.style.display = 'grid';
+            }, 1000);
         }
 
-        function updateTradeLink() {
-            const val = document.getElementById('trade-input').value;
-            const status = document.getElementById('link-status');
-            if(val.includes('tradeoffer/new')) {
-                localStorage.setItem('trade_link', val);
-                status.innerText = "✅ Ссылка сохранена";
-                status.className = "status-badge status-ok";
+        function openSellModal(name) {
+            currentItemName = name;
+            document.getElementById('modalItemName').textContent = name;
+            document.getElementById('sellModal').classList.add('active');
+        }
+
+        function closeSellModal() { document.getElementById('sellModal').classList.remove('active'); }
+
+        function confirmSell() {
+            const price = document.getElementById('priceInput').value;
+            const tradeUrl = localStorage.getItem('tradeUrl');
+
+            if (!price || price <= 0) { tg.showAlert('Укажите цену!'); return; }
+            if (!tradeUrl) { tg.showAlert('Сначала укажите Trade URL в профиле!'); switchPage('profile'); closeSellModal(); return; }
+
+            // ОТПРАВКА ДАННЫХ БОТУ
+            const data = {
+                action: 'sell_order',
+                item: currentItemName,
+                price: price,
+                trade_link: tradeUrl
+            };
+            tg.sendData(JSON.stringify(data));
+            closeSellModal();
+        }
+        function loadTradeUrl() { document.getElementById('tradeUrlInput').value = localStorage.getItem('tradeUrl') || ''; }
+        function saveTradeUrl() {
+            const url = document.getElementById('tradeUrlInput').value;
+            if (url.includes('steamcommunity.com/tradeoffer')) {
+                localStorage.setItem('tradeUrl', url);
+                document.getElementById('tradeUrlStatus').innerHTML = '<span style="color:#10b981;">✅ Сохранено</span>';
             } else {
-                status.innerText = "❌ Неверная ссылка";
-                status.className = "status-badge status-err";
+                tg.showAlert('Неверный формат ссылки!');
             }
         }
 
-        function selectSkin(name, price) {
-            const link = localStorage.getItem('trade_link');
-            if(!link) {
-                tg.showAlert("Сначала укажите Trade-ссылку в профиле!");
-                switchPage('profile');
-                return;
-            }
-            currentSelection = { item: name, price: price, trade_link: link };
-            tg.MainButton.setText(`КУПИТЬ ${name.toUpperCase()}`);
-            tg.MainButton.show();
-        }
-
-        tg.MainButton.onClick(() => {
-            tg.sendData(JSON.stringify(currentSelection));
-            tg.close();
-        });
-
-        const savedLink = localStorage.getItem('trade_link');
-        if(savedLink) {
-            document.getElementById('trade-input').value = savedLink;
-            updateTradeLink();
-        }
-        renderSkins(SKINS);
+        loadMarketItems();
     </script>
 </body>
 </html>
