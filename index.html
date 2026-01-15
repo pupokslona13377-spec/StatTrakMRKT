@@ -3,60 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CS2 Market</title>
+    <title>StatTrak Market - P2P</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --bg: #0f111a; --card: #1a1d29; --text: #fff; --accent: #7b61ff; }
         body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 15px; margin: 0; }
+        h2 { text-align: center; color: var(--accent); }
         .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .skin-card { background: var(--card); border-radius: 12px; padding: 10px; text-align: center; border-bottom: 4px solid #4b69ff; }
+        .skin-card { background: var(--card); border-radius: 12px; padding: 10px; text-align: center; border-bottom: 4px solid var(--accent); }
         .skin-card img { width: 100%; border-radius: 8px; }
-        .buy-btn { background: var(--accent); color: #fff; border: none; padding: 10px; width: 100%; border-radius: 6px; margin-top: 10px; font-weight: bold; }
+        .seller-info { font-size: 0.8em; color: #888; margin-top: 5px; }
+        .buy-btn { background: var(--accent); color: #fff; border: none; padding: 10px; width: 100%; border-radius: 6px; margin-top: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-    <h2>CS2 Market</h2>
+    <h2>StatTrak P2P Market</h2>
+    
     <div class="market-grid">
         <div class="skin-card">
             <img src="https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1f_BYi5H49Kzh7-Dhfb9DL7VqWdY781lxOiS89SmiwXsr0Zla271cdXAdVNoYV_Q-lO4lb_vjJ_v7p7JyHBl63IgtmGdwUI97Y9f_A/360fx360f">
             <div>M4A4 | Темари</div>
-            <button class="buy-btn" onclick="selectItem('M4A4 Темари', 1200)">1 200 ₽</button>
+            <div class="seller-info">Продавец: @Dmitry_S</div>
+            <button class="buy-btn" onclick="selectItem('M4A4 Темари', 1200, '@Dmitry_S')">1 200 ₽</button>
         </div>
+
         <div class="skin-card">
             <img src="https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJegJM6dO4q4yYmfPLP7LWnn9u5MRjjeyPpt2tjAex_0NtZ2_7I9SccVNoZAnR_lG5k-3vgpDuu5_Lz3Vgv3Mm4S7VzRfm0AYMMLLY9vW60Q/360fx360f">
             <div>AK-47 | Ледяной уголь</div>
-            <button class="buy-btn" onclick="selectItem('AK-47 Ледяной уголь', 950)">950 ₽</button>
+            <div class="seller-info">Продавец: @Ivan_Trade</div>
+            <button class="buy-btn" onclick="selectItem('AK-47 Ледяной уголь', 950, '@Ivan_Trade')">950 ₽</button>
         </div>
     </div>
 
     <script>
-    let tg = window.Telegram.WebApp;
-    tg.expand();
+        let tg = window.Telegram.WebApp;
+        tg.expand();
 
-    // Переменная для хранения данных о выбранном товаре
-    let selectedProduct = null;
+        let selectedProduct = null;
 
-    function selectItem(name, price, sellerId) {
-        // Запоминаем данные товара при нажатии на кнопку в витрине
-        selectedProduct = {
-            item_name: name,
-            price: price,
-            seller_id: sellerId // ID того, кто продает (пока можно ставить 0)
-        };
-        
-        tg.MainButton.setText(`КУПИТЬ ${name.toUpperCase()} ЗА ${price}₽`);
-        tg.MainButton.show();
-    }
-
-    // ОБРАБОТЧИК НАЖАТИЯ НА СИНЮЮ КНОПКУ ТЕЛЕГРАМА
-    tg.MainButton.onClick(function() {
-        if (selectedProduct) {
-            // Отправляем боту не строку, а целый объект в формате JSON
-            tg.sendData(JSON.stringify(selectedProduct)); 
-            tg.close();
+        function selectItem(name, price, seller) {
+            // Сохраняем все данные о сделке в одну переменную
+            selectedProduct = {
+                item: name,
+                price: price,
+                seller: seller
+            };
+            
+            tg.MainButton.setText(`КУПИТЬ У ${seller}`);
+            tg.MainButton.show();
         }
-    });
-</script>
+
+        tg.MainButton.onClick(function() {
+            if (selectedProduct) {
+                // Превращаем данные в строку и отправляем боту
+                tg.sendData(JSON.stringify(selectedProduct)); 
+                tg.close();
+            }
+        });
+    </script>
 </body>
 </html>
-
