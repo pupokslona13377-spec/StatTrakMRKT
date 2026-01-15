@@ -30,19 +30,33 @@
     </div>
 
     <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();
+    let tg = window.Telegram.WebApp;
+    tg.expand();
 
-        function selectItem(name, price) {
-            tg.MainButton.setText(`КУПИТЬ ${name.toUpperCase()}`);
-            tg.MainButton.show();
+    // Переменная для хранения данных о выбранном товаре
+    let selectedProduct = null;
+
+    function selectItem(name, price, sellerId) {
+        // Запоминаем данные товара при нажатии на кнопку в витрине
+        selectedProduct = {
+            item_name: name,
+            price: price,
+            seller_id: sellerId // ID того, кто продает (пока можно ставить 0)
+        };
+        
+        tg.MainButton.setText(`КУПИТЬ ${name.toUpperCase()} ЗА ${price}₽`);
+        tg.MainButton.show();
+    }
+
+    // ОБРАБОТЧИК НАЖАТИЯ НА СИНЮЮ КНОПКУ ТЕЛЕГРАМА
+    tg.MainButton.onClick(function() {
+        if (selectedProduct) {
+            // Отправляем боту не строку, а целый объект в формате JSON
+            tg.sendData(JSON.stringify(selectedProduct)); 
+            tg.close();
         }
-
-        // ОБРАБОТЧИК НАЖАТИЯ НА СИНЮЮ КНОПКУ ТЕЛЕГРАМА
-        tg.MainButton.onClick(function() {
-            tg.sendData("order_complete"); // Отправляем сигнал боту
-            tg.close(); // Закрываем приложение
-        });
-    </script>
+    });
+</script>
 </body>
 </html>
+
