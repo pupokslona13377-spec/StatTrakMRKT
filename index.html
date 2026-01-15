@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS2 Market App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; }
+        .skin-card { border: 1px solid #333; border-radius: 10px; padding: 10px; margin: 10px; background: #252525; }
+        .price { color: #4caf50; font-weight: bold; }
+        button { background: #0088cc; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>CS2 MARKET APP</h2>
+    <div class="skin-card">
+        <img src="https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35cppBy2L2TrN-j2VHm8hU4amv2cY6SJgQ-N1iF_wS5l-u50MK-7Z3Oynpg63Ur7GGdwUIatB_xYQ/360fx360f" width="150"><br>
+        AK-47 | Сланцы<br>
+        <span class="price">500 руб.</span><br>
+        <button onclick="buy()">Купить</button>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand(); // Развернуть на весь экран
+
+        function buy() {
+            tg.sendData("buy_ak47"); // Отправляет данные обратно боту
+        }
+    </script>
+</body>
+</html>
