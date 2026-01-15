@@ -8,30 +8,38 @@
     <style>
         :root { --bg: #0f111a; --card: #1a1d29; --text: #fff; --accent: #7b61ff; }
         body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 15px; margin: 0; }
-        h2 { text-align: center; color: var(--accent); }
+        
+        /* Секция профиля */
+        .profile-box { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #333; }
+        .profile-box h3 { margin-top: 0; font-size: 16px; color: var(--accent); }
+        input { width: 100%; padding: 10px; box-sizing: border-box; border-radius: 6px; border: 1px solid #444; background: #000; color: #fff; margin-bottom: 10px; }
+        
         .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .skin-card { background: var(--card); border-radius: 12px; padding: 10px; text-align: center; border-bottom: 4px solid var(--accent); }
         .skin-card img { width: 100%; border-radius: 8px; }
-        .seller-info { font-size: 0.8em; color: #888; margin-top: 5px; }
         .buy-btn { background: var(--accent); color: #fff; border: none; padding: 10px; width: 100%; border-radius: 6px; margin-top: 10px; font-weight: bold; cursor: pointer; }
+        .status-msg { font-size: 12px; color: #888; margin-top: 5px; }
     </style>
 </head>
 <body>
-    <h2>StatTrak P2P Market</h2>
-    
+
+    <div class="profile-box">
+        <h3>Личный кабинет</h3>
+        <input type="text" id="tradeLink" placeholder="Вставьте Trade-ссылку Steam...">
+        <div id="saveStatus" class="status-msg">Ссылка не сохранена</div>
+    </div>
+
     <div class="market-grid">
         <div class="skin-card">
             <img src="https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1f_BYi5H49Kzh7-Dhfb9DL7VqWdY781lxOiS89SmiwXsr0Zla271cdXAdVNoYV_Q-lO4lb_vjJ_v7p7JyHBl63IgtmGdwUI97Y9f_A/360fx360f">
             <div>M4A4 | Темари</div>
-            <div class="seller-info">Продавец: @Dmitry_S</div>
-            <button class="buy-btn" onclick="selectItem('M4A4 Темари', 1200, '@Dmitry_S')">1 200 ₽</button>
+            <button class="buy-btn" onclick="checkAndSelect('M4A4 Темари', 1200)">1 200 ₽</button>
         </div>
 
         <div class="skin-card">
             <img src="https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJegJM6dO4q4yYmfPLP7LWnn9u5MRjjeyPpt2tjAex_0NtZ2_7I9SccVNoZAnR_lG5k-3vgpDuu5_Lz3Vgv3Mm4S7VzRfm0AYMMLLY9vW60Q/360fx360f">
             <div>AK-47 | Ледяной уголь</div>
-            <div class="seller-info">Продавец: @Ivan_Trade</div>
-            <button class="buy-btn" onclick="selectItem('AK-47 Ледяной уголь', 950, '@Ivan_Trade')">950 ₽</button>
+            <button class="buy-btn" onclick="checkAndSelect('AK-47 Ледяной уголь', 950)">950 ₽</button>
         </div>
     </div>
 
@@ -41,21 +49,29 @@
 
         let selectedProduct = null;
 
-        function selectItem(name, price, seller) {
-            // Сохраняем все данные о сделке в одну переменную
+        function checkAndSelect(name, price) {
+            const link = document.getElementById('tradeLink').value;
+            
+            // Простейшая проверка ссылки
+            if (!link.includes('steamcommunity.com/tradeoffer')) {
+                alert("ОШИБКА: Сначала вставьте корректную Trade-ссылку в кабинете!");
+                return;
+            }
+
+            // Если ссылка есть, формируем данные для бота
             selectedProduct = {
                 item: name,
                 price: price,
-                seller: seller
+                trade_link: link
             };
             
-            tg.MainButton.setText(`КУПИТЬ У ${seller}`);
+            tg.MainButton.setText(`КУПИТЬ ${name.toUpperCase()}`);
             tg.MainButton.show();
+            document.getElementById('saveStatus').innerText = "✅ Ссылка готова к отправке";
         }
 
         tg.MainButton.onClick(function() {
             if (selectedProduct) {
-                // Превращаем данные в строку и отправляем боту
                 tg.sendData(JSON.stringify(selectedProduct)); 
                 tg.close();
             }
