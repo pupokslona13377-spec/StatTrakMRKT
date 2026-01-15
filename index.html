@@ -6,85 +6,110 @@
     <title>CS2 Skins Market</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* [Вставь сюда стили из своего текстового файла, который прислала Claude] */
-        /* Я сократил их здесь для удобства, просто оставь те, что у тебя уже есть */
+        /* === СТИЛИ ИЗ ТВОЕГО ФАЙЛА (CLAUDE) === */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: sans-serif; background: #0b0e14; color: #fff; padding-bottom: 70px; }
-        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #151921; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #1f2937; z-index: 1000; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 20px; color: #6b7280; cursor: pointer; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0b0e14;
+            color: #ffffff;
+            padding-bottom: 70px;
+            overflow-x: hidden;
+        }
+        .nav-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: #151921; display: flex; justify-content: space-around;
+            padding: 12px 0; border-top: 1px solid #1f2937; z-index: 1000;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            padding: 8px 20px; cursor: pointer; color: #6b7280; transition: all 0.3s ease;
+        }
         .nav-item.active { color: #0088cc; background: rgba(0, 136, 204, 0.1); border-radius: 12px; }
-        .page { display: none; padding: 20px; }
-        .page.active { display: block; animation: fadeIn 0.4s ease; }
+        .page { display: none; padding: 20px; animation: fadeIn 0.4s ease; }
+        .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .items-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-        .item-card { background: #151921; border-radius: 16px; padding: 12px; border: 2px solid transparent; }
-        .item-image { width: 100%; height: auto; }
-        .item-price { color: #10b981; font-weight: 700; margin-top: 8px; }
-        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
+        
+        .items-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 15px; }
+        .item-card { 
+            background: #151921; border-radius: 16px; padding: 12px; 
+            border: 1px solid #1f2937; text-align: center;
+        }
+        .item-image { width: 100%; height: auto; margin-bottom: 8px; border-radius: 8px; }
+        .item-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #e5e7eb; }
+        .item-price { color: #10b981; font-weight: 700; margin-bottom: 8px; }
+
+        /* Стили модального окна */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85); z-index: 2000; align-items: center; justify-content: center; padding: 20px;
+        }
         .modal.active { display: flex; }
-        .modal-content { background: #151921; padding: 24px; border-radius: 20px; width: 90%; max-width: 400px; }
-        .form-input { width: 100%; padding: 12px; background: #0b0e14; border: 1px solid #1f2937; color: #fff; border-radius: 10px; margin: 10px 0; }
+        .modal-content { background: #151921; border-radius: 20px; padding: 24px; width: 100%; max-width: 400px; border: 1px solid #374151; }
+        .form-input {
+            width: 100%; padding: 12px; background: #0b0e14; border: 1px solid #374151;
+            border-radius: 10px; color: white; margin: 12px 0; outline: none;
+        }
         .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }
-        .btn-primary { background: #0088cc; color: #fff; }
-        .btn-success { background: #10b981; color: #fff; }
+        .btn-primary { background: #0088cc; color: white; }
+        .btn-success { background: #10b981; color: white; }
     </style>
 </head>
 <body>
 
     <div id="marketPage" class="page active">
-        <h1>🛒 Маркет</h1>
+        <h2 style="margin-bottom: 10px;">🛒 Маркет</h2>
         <div class="items-grid" id="marketGrid"></div>
     </div>
 
     <div id="sellPage" class="page">
-        <h1>💰 Продать</h1>
-        <div id="inventoryLoader" style="text-align: center; padding: 40px; display:none;">Загрузка...</div>
-        <div id="inventoryGrid" class="items-grid"></div>
+        <h2 style="margin-bottom: 10px;">💰 Ваши скины</h2>
+        <div id="inventoryLoader" style="text-align:center; padding:40px; color:#6b7280;">Загрузка инвентаря...</div>
+        <div id="inventoryGrid" class="items-grid" style="display:none;"></div>
     </div>
 
     <div id="profilePage" class="page">
-        <h1>👤 Профиль</h1>
-        <div style="background:#151921; padding:20px; border-radius:16px; margin-top:20px;">
-            <label>Ваш Trade URL:</label>
+        <h2 style="margin-bottom: 10px;">👤 Профиль</h2>
+        <div style="background:#151921; padding:20px; border-radius:16px;">
+            <p style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">Steam Trade URL:</p>
             <input type="text" id="tradeUrlInput" class="form-input" placeholder="https://steamcommunity.com/tradeoffer/new/...">
-            <button class="btn btn-primary" onclick="saveTradeUrl()">💾 Сохранить</button>
-            <div id="tradeUrlStatus" style="margin-top:10px; font-size:12px;"></div>
+            <button class="btn btn-primary" onclick="saveTradeUrl()">💾 Сохранить ссылку</button>
+            <div id="tradeUrlStatus" style="margin-top:10px; text-align: center;"></div>
         </div>
     </div>
 
     <div id="sellModal" class="modal">
         <div class="modal-content">
-            <h2 id="modalItemName"></h2>
+            <h3 id="modalItemName" style="margin-bottom: 5px;"></h3>
+            <p style="font-size: 12px; color: #9ca3af;">Укажите цену продажи</p>
             <input type="number" id="priceInput" class="form-input" placeholder="Цена в ₽">
             <div style="display:flex; gap:10px;">
-                <button class="btn" onclick="closeSellModal()">Отмена</button>
+                <button class="btn" style="background:#374151; color:white;" onclick="closeSellModal()">Отмена</button>
                 <button class="btn btn-success" onclick="confirmSell()">✅ Выставить</button>
             </div>
         </div>
     </div>
 
     <nav class="nav-bar">
-        <div class="nav-item active" onclick="switchPage('market')"><span>🛒</span><span>Маркет</span></div>
-        <div class="nav-item" onclick="switchPage('sell')"><span>💰</span><span>Продать</span></div>
-        <div class="nav-item" onclick="switchPage('profile')"><span>👤</span><span>Профиль</span></div>
-                                                                             </nav>
+        <div class="nav-item active" id="nav-market" onclick="switchPage('market')"><span>🛒</span><span style="font-size:10px;">Маркет</span></div>
+        <div class="nav-item" id="nav-sell" onclick="switchPage('sell')"><span>💰</span><span style="font-size:10px;">Продать</span></div>
+        <div class="nav-item" id="nav-profile" onclick="switchPage('profile')"><span>👤</span><span style="font-size:10px;">Профиль</span></div>
+    </nav>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
-        let currentItemName = null;
+        let selectedItemName = "";
 
-        function switchPage(pageName) {
+        function switchPage(page) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(pageName + 'Page').classList.add('active');
+            document.getElementById(page + 'Page').classList.add('active');
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             event.currentTarget.classList.add('active');
-
-            if (pageName === 'sell') loadInventory();
-            if (pageName === 'market') loadMarketItems();
-            if (pageName === 'profile') loadTradeUrl();
+            if(page === 'sell') loadInventory();
+            if(page === 'market') loadMarketItems();
+            if(page === 'profile') loadTradeUrl();
         }
 
         function loadMarketItems() {
@@ -94,10 +119,11 @@
                 { id: 2, name: 'M4A4 | Howl', price: 15000, img: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJQJD_9W7m5a0mvLwOq7cqWdQ-sJ0teXI8oThxlKx-Uc9Zjv6cNPBdgU4YV3Q_lG9ye_ng5Pu6pXLwXVn7yEq4iuMgVXp1lNdQs2Y/330x192' }
             ];
             grid.innerHTML = items.map(i => `
-                <div class="item-card" onclick="tg.showAlert('Покупка скоро появится!')">
+                <div class="item-card" onclick="tg.showAlert('Покупка будет доступна в следующем обновлении!')">
                     <img src="${i.img}" class="item-image">
-                    <div>${i.name}</div>
+                    <div class="item-name">${i.name}</div>
                     <div class="item-price">${i.price} ₽</div>
+                    <button class="btn btn-primary" style="padding: 5px; font-size: 12px;">Купить</button>
                 </div>
             `).join('');
         }
@@ -107,14 +133,15 @@
             const grid = document.getElementById('inventoryGrid');
             loader.style.display = 'block'; grid.style.display = 'none';
             setTimeout(() => {
-                const inv = [
-                    { name: 'AWP | Asiimov', img: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2GlTu8Ak2L2X89Wg2FHk-hJuYW_2LI6QcwQ3aFvY-1XvyOu6gJPpvZvAznth6yI8pSGKhQxgmCw/330x192' }
+                const myItems = [
+                    { name: 'AWP | Asiimov', img: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2GlTu8Ak2L2X89Wg2FHk-hJuYW_2LI6QcwQ3aFvY-1XvyOu6gJPpvZvAznth6yI8pSGKhQxgmCw/330x192' },
+                    { name: 'Glock-18 | Fade', img: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0Ob3djFN79fnzL-cluX4MrXVhGpT18l4jeHVu9-miVa2rhFvMD-nJYXGcwQ2ZlvX-FC5xOjqgpC8753Oz3Fr7CUrsX2OyQv330_vDjnbqQ/330x192' }
                 ];
-                grid.innerHTML = inv.map(i => `
+                grid.innerHTML = myItems.map(i => `
                     <div class="item-card" onclick="openSellModal('${i.name}')">
-                        <img src="${i.img}" class="item-image">
-                        <div>${i.name}</div>
-                        <button class="btn btn-primary" style="margin-top:5px; font-size:10px;">Продать</button>
+                    <img src="${i.img}" class="item-image">
+                        <div class="item-name">${i.name}</div>
+                        <button class="btn btn-success" style="padding: 5px; font-size: 12px; margin-top:5px;">💰 Продать</button>
                     </div>
                 `).join('');
                 loader.style.display = 'none'; grid.style.display = 'grid';
@@ -122,8 +149,8 @@
         }
 
         function openSellModal(name) {
-            currentItemName = name;
-            document.getElementById('modalItemName').textContent = name;
+            selectedItemName = name;
+            document.getElementById('modalItemName').innerText = name;
             document.getElementById('sellModal').classList.add('active');
         }
 
@@ -131,31 +158,28 @@
 
         function confirmSell() {
             const price = document.getElementById('priceInput').value;
-            const tradeUrl = localStorage.getItem('tradeUrl');
+            const link = localStorage.getItem('tradeUrl');
+            if(!price || price <= 0) { tg.showAlert('Введите корректную цену!'); return; }
+            if(!link) { tg.showAlert('Сначала укажите Trade URL в профиле!'); switchPage('profile'); closeSellModal(); return; }
 
-            if (!price || price <= 0) { tg.showAlert('Укажите цену!'); return; }
-            if (!tradeUrl) { tg.showAlert('Сначала укажите Trade URL в профиле!'); switchPage('profile'); closeSellModal(); return; }
-
-            // ОТПРАВКА ДАННЫХ БОТУ
-            const data = {
+            tg.sendData(JSON.stringify({
                 action: 'sell_order',
-                item: currentItemName,
+                item: selectedItemName,
                 price: price,
-                trade_link: tradeUrl
-            };
-            tg.sendData(JSON.stringify(data));
+                trade_link: link
+            }));
             closeSellModal();
         }
-        function loadTradeUrl() { document.getElementById('tradeUrlInput').value = localStorage.getItem('tradeUrl') || ''; }
+
         function saveTradeUrl() {
-            const url = document.getElementById('tradeUrlInput').value;
-            if (url.includes('steamcommunity.com/tradeoffer')) {
-                localStorage.setItem('tradeUrl', url);
-                document.getElementById('tradeUrlStatus').innerHTML = '<span style="color:#10b981;">✅ Сохранено</span>';
-            } else {
-                tg.showAlert('Неверный формат ссылки!');
-            }
+            const val = document.getElementById('tradeUrlInput').value;
+            if(val.includes('steamcommunity.com')) {
+                localStorage.setItem('tradeUrl', val);
+                document.getElementById('tradeUrlStatus').innerHTML = '<span style="color:#10b981; font-size:12px;">✅ Ссылка сохранена!</span>';
+            } else { tg.showAlert('Это не похоже на ссылку Steam Trade!'); }
         }
+
+        function loadTradeUrl() { document.getElementById('tradeUrlInput').value = localStorage.getItem('tradeUrl') || ''; }
 
         loadMarketItems();
     </script>
