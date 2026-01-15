@@ -6,109 +6,26 @@
     <title>CS2 Market</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --bg-color: #0f111a;
-            --card-bg: #1a1d29;
-            --text-main: #ffffff;
-            --accent: #7b61ff;
-            --rarity-rare: #4b69ff;
-            --rarity-legendary: #d32ce6;
-        }
-
-        body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .header {
-            width: 100%;
-            text-align: left;
-            margin-bottom: 20px;
-        }
-
-        .market-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            width: 100%;
-        }
-
-        .skin-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 10px;
-            text-align: center;
-            border-bottom: 4px solid var(--rarity-rare);
-            transition: transform 0.2s;
-        }
-
-        .skin-card:active { transform: scale(0.95); }
-
-        .skin-card img {
-            width: 100%;
-            height: auto;
-            margin-bottom: 10px;
-        }
-
-        .skin-name { font-size: 14px; font-weight: 500; height: 40px; overflow: hidden; }
-        .skin-price { color: #4caf50; font-weight: bold; margin: 10px 0; }
-
-        .buy-btn {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 6px;
-            width: 100%;
-            font-weight: bold;
-        }
-
-        .cart-status {
-            position: sticky;
-            top: 10px;
-            background: rgba(123, 97, 255, 0.9);
-            padding: 5px 15px;
-            border-radius: 20px;
-            margin-bottom: 15px;
-            display: none;
-        }
+        :root { --bg: #0f111a; --card: #1a1d29; --text: #fff; --accent: #7b61ff; }
+        body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 15px; margin: 0; }
+        .market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .skin-card { background: var(--card); border-radius: 12px; padding: 10px; text-align: center; border-bottom: 4px solid #4b69ff; }
+        .skin-card img { width: 100%; border-radius: 8px; }
+        .buy-btn { background: var(--accent); color: #fff; border: none; padding: 10px; width: 100%; border-radius: 6px; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
-
-    <div class="header">
-        <h1>CS2 Market</h1>
-        <p>Выберите лучшие скины</p>
-    </div>
-
-    <div id="cart-hint" class="cart-status">Товар добавлен!</div>
-
+    <h2>CS2 Market</h2>
     <div class="market-grid">
-        <div class="skin-card" style="border-color: var(--rarity-legendary);">
+        <div class="skin-card">
             <img src="https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1f_BYi5H49Kzh7-Dhfb9DL7VqWdY781lxOiS89SmiwXsr0Zla271cdXAdVNoYV_Q-lO4lb_vjJ_v7p7JyHBl63IgtmGdwUI97Y9f_A/360fx360f">
-            <div class="skin-name">M4A4 | Темари</div>
-            <div class="skin-price">1 200 ₽</div>
-            <button class="buy-btn" onclick="addToCart('M4A4 Темари', 1200)">В корзину</button>
+            <div>M4A4 | Темари</div>
+            <button class="buy-btn" onclick="selectItem('M4A4 Темари', 1200)">1 200 ₽</button>
         </div>
-
         <div class="skin-card">
             <img src="https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJegJM6dO4q4yYmfPLP7LWnn9u5MRjjeyPpt2tjAex_0NtZ2_7I9SccVNoZAnR_lG5k-3vgpDuu5_Lz3Vgv3Mm4S7VzRfm0AYMMLLY9vW60Q/360fx360f">
-            <div class="skin-name">AK-47 | Ледяной уголь</div>
-            <div class="skin-price">950 ₽</div>
-            <button class="buy-btn" onclick="addToCart('AK-47 Ледяной уголь', 950)">В корзину</button>
-        </div>
-
-        <div class="skin-card" style="border-color: #eb4b4b;">
-            <img src="https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfxPrCfTp9_8iJmYWPnuL5fe7VlT9Vv8B0j-qYpIn33Aew_0VvY2v2IdSXIQE3MF_UqFS9xe_v18S-u57AynVgurZ2_i6In0S_ghgebeM6m-veFwtZbe996Q/360fx360f">
-            <div class="skin-name">AWP | Хроматическая аберрация</div>
-            <div class="skin-price">3 500 ₽</div>
-            <button class="buy-btn" onclick="addToCart('AWP Аберрация', 3500)">В корзину</button>
+            <div>AK-47 | Ледяной уголь</div>
+            <button class="buy-btn" onclick="selectItem('AK-47 Ледяной уголь', 950)">950 ₽</button>
         </div>
     </div>
 
@@ -116,19 +33,15 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        function addToCart(name, price) {
-            // Показываем подсказку
-            const hint = document.getElementById('cart-hint');
-            hint.style.display = 'block';
-            setTimeout(() => { hint.style.display = 'none'; }, 2000);
-
-            // Отправляем данные боту (на будущее)
-            tg.MainButton.setText(`Купить ${name} за ${price}₽`);
+        function selectItem(name, price) {
+            tg.MainButton.setText(`КУПИТЬ ${name.toUpperCase()}`);
             tg.MainButton.show();
         }
 
-        tg.onEvent('mainButtonClicked', function() {
-            tg.sendData("order_complete"); 
+        // ОБРАБОТЧИК НАЖАТИЯ НА СИНЮЮ КНОПКУ ТЕЛЕГРАМА
+        tg.MainButton.onClick(function() {
+            tg.sendData("order_complete"); // Отправляем сигнал боту
+            tg.close(); // Закрываем приложение
         });
     </script>
 </body>
