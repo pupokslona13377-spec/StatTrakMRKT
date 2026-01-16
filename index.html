@@ -7,14 +7,10 @@
     <title>CS2 TON Market</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* === ТВОИ СТИЛИ === */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0b0e14;
-            color: #ffffff;
-            padding-bottom: 70px;
-            overflow-x: hidden;
+            background: #0b0e14; color: #ffffff; padding-bottom: 70px; overflow-x: hidden;
         }
         .nav-bar {
             position: fixed; bottom: 0; left: 0; right: 0;
@@ -52,13 +48,6 @@
         .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }
         .btn-primary { background: #0088cc; color: white; }
         .btn-success { background: #10b981; color: white; }
-        
-        /* Стиль для кнопки TON */
-        #ton-connect-button {
-            display: flex;
-            justify-content: center;
-            margin: 15px 0;
-        }
     </style>
 </head>
 <body>
@@ -70,32 +59,31 @@
 
     <div id="sellPage" class="page">
         <h2 style="margin-bottom: 10px;">💰 Ваши скины</h2>
-        <div id="inventoryLoader" style="text-align:center; padding:40px; color:#6b7280;">Загрузка инвентаря...</div>
+        <div id="inventoryLoader" style="text-align:center; padding:40px; color:#6b7280;">Введите SteamID в профиле</div>
         <div id="inventoryGrid" class="items-grid" style="display:none;"></div>
     </div>
 
     <div id="profilePage" class="page">
-    <h2 style="margin-bottom: 10px;">👤 Профиль</h2>
-    <div style="background:#151921; padding:20px; border-radius:16px;">
-        <p style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">Ваш SteamID64:</p>
-        <input type="text" id="steamIdInput" class="form-input" placeholder="76561198xxxxxxxxx">
-        
-        <p style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">Steam Trade URL:</p>
-        <input type="text" id="tradeUrlInput" class="form-input" placeholder="https://steamcommunity.com/tradeoffer/new/...">
-        
-        <button class="btn btn-primary" onclick="saveProfileData()">💾 Сохранить данные</button>
-        <div id="saveStatus" style="margin-top:10px; text-align: center;"></div>
-        
-        <hr style="border:0; border-top:1px solid #374151; margin:20px 0;">
-        <p style="text-align:center; color:#9ca3af; font-size:12px; margin-bottom:10px;">Кошелек для оплаты:</p>
-        <div id="ton-connect-button"></div>
+        <h2 style="margin-bottom: 10px;">👤 Профиль</h2>
+        <div style="background:#151921; padding:20px; border-radius:16px;">
+            <p style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">Ваш SteamID64:</p>
+            <input type="text" id="steamIdInput" class="form-input" placeholder="76561198xxxxxxxxx">
+            
+            <p style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">Steam Trade URL:</p>
+            <input type="text" id="tradeUrlInput" class="form-input" placeholder="https://steamcommunity.com/tradeoffer/new/...">
+            
+            <button class="btn btn-primary" onclick="saveProfileData()">💾 Сохранить данные</button>
+            <div id="saveStatus" style="margin-top:10px; text-align: center;"></div>
+            
+            <hr style="border:0; border-top:1px solid #374151; margin:20px 0;">
+            <p style="text-align:center; color:#9ca3af; font-size:12px; margin-bottom:10px;">Кошелек TON:</p>
+            <div id="ton-connect-button" style="display:flex; justify-content:center;"></div>
+        </div>
     </div>
-</div>
 
     <div id="sellModal" class="modal">
         <div class="modal-content">
             <h3 id="modalItemName" style="margin-bottom: 5px;"></h3>
-            <p style="font-size: 12px; color: #9ca3af;">Укажите цену продажи (в TON)</p>
             <input type="number" id="priceInput" class="form-input" placeholder="Цена в TON">
             <div style="display:flex; gap:10px;">
                 <button class="btn" style="background:#374151; color:white;" onclick="closeSellModal()">Отмена</button>
@@ -110,87 +98,69 @@
         <div class="nav-item" id="nav-profile" onclick="switchPage('profile')"><span>👤</span><span style="font-size:10px;">Профиль</span></div>
     </nav>
 
-   <script>
+    <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
-        // 1. Инициализация TON Connect
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://pupokslona13377-spec.github.io/StatTrakMRKT/tonconnect-manifest.json',
             buttonRootId: 'ton-connect-button'
         });
 
-        let selectedItemName = "";
-
-        // Функция переключения страниц
         function switchPage(page) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(page + 'Page').classList.add('active');
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             document.getElementById('nav-' + page).classList.add('active');
-            
             if(page === 'sell') loadInventory();
-            if(page === 'market') loadMarketItems();
-            if(page === 'profile') loadProfileData(); // Загружаем данные при входе в профиль
+            if(page === 'profile') loadProfileData();
         }
 
-        // --- НОВАЯ ФУНКЦИЯ ЗАГРУЗКИ ИНВЕНТАРЯ ---
         async function loadInventory() {
             const steamId = localStorage.getItem('steamId');
             const loader = document.getElementById('inventoryLoader');
             const grid = document.getElementById('inventoryGrid');
 
             if (!steamId) {
-                loader.innerHTML = '<div style="padding:20px;">Введите SteamID64 в профиле, чтобы увидеть свои скины</div>';
-                loader.style.display = 'block';
-                grid.style.display = 'none';
+                loader.innerHTML = 'Введите SteamID в профиле';
                 return;
             }
 
-            loader.style.display = 'block'; 
-            loader.innerHTML = 'Загрузка реального инвентаря Steam...';
+            loader.style.display = 'block';
+            loader.innerHTML = 'Загрузка...';
             grid.style.display = 'none';
 
             try {
-                // Используем прокси для обхода ограничений браузера (CORS)
-                const response = await fetch(`https://corsproxy.io/?https://steamcommunity.com/inventory/${steamId}/730/2?l=russian&count=100`);
-                const data = await response.json();
+                const steamUrl = `https://steamcommunity.com/inventory/${steamId}/730/2?l=russian&count=100`;
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(steamUrl)}`;
+                const response = await fetch(proxyUrl);
+                const result = await response.json();
+                const data = JSON.parse(result.contents);
 
                 if (!data || !data.descriptions) {
-                    loader.innerHTML = 'Инвентарь скрыт или произошла ошибка. Проверьте настройки приватности Steam.';
+                    loader.innerHTML = 'Инвентарь скрыт или ошибка Steam';
                     return;
                 }
 
-                // Собираем скины
-                grid.innerHTML = data.descriptions.map(desc => {
-                    const imageUrl = `https://community.akamai.steamstatic.com/economy/image/${desc.icon_url}/330x192`;
-                    return `
-                        <div class="item-card" onclick="openSellModal('${desc.market_name}')">
-                            <img src="${imageUrl}" class="item-image" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
-                            <div class="item-name">${desc.market_name}</div>
-                            <button class="btn btn-success" style="padding: 5px; font-size: 12px; margin-top:5px;">💰 Продать</button>
-                        </div>
-                    `;
-                }).join('');
-
-                loader.style.display = 'none'; 
+                grid.innerHTML = data.descriptions.map(desc => `
+                    <div class="item-card" onclick="openSellModal('${desc.market_name.replace(/'/g, "\\'")}')">
+                        <img src="https://community.akamai.steamstatic.com/economy/image/${desc.icon_url}/330x192" class="item-image">
+                        <div class="item-name">${desc.market_name}</div>
+                        <button class="btn btn-success" style="padding: 5px; font-size: 12px; margin-top:5px;">💰 Продать</button>
+                    </div>
+                `).join('');
+                loader.style.display = 'none';
                 grid.style.display = 'grid';
-
             } catch (e) {
-                loader.innerHTML = 'Ошибка сети. Попробуйте позже.';
-                console.error(e);
+                loader.innerHTML = 'Ошибка доступа. Попробуйте позже.';
             }
         }
 
-        // --- ФУНКЦИИ ПРОФИЛЯ ---
         function saveProfileData() {
-            const steamId = document.getElementById('steamIdInput').value;
-            const tradeUrl = document.getElementById('tradeUrlInput').value;
-            localStorage.setItem('steamId', steamId);
-            localStorage.setItem('tradeUrl', tradeUrl);
-            document.getElementById('saveStatus').innerHTML = '<span style="color:#10b981; font-size:12px;">✅ Данные сохранены!</span>';
-            setTimeout(() => { document.getElementById('saveStatus').innerHTML = ''; }, 3000);
+            localStorage.setItem('steamId', document.getElementById('steamIdInput').value);
+            localStorage.setItem('tradeUrl', document.getElementById('tradeUrlInput').value);
+            document.getElementById('saveStatus').innerHTML = '✅ Сохранено!';
         }
 
         function loadProfileData() {
@@ -198,26 +168,21 @@
             document.getElementById('tradeUrlInput').value = localStorage.getItem('tradeUrl') || '';
         }
 
-        // --- ОСТАЛЬНЫЕ ФУНКЦИИ (МАРКЕТ И МОДАЛКИ) ---
+        function openSellModal(name) {
+            document.getElementById('modalItemName').innerText = name;
+            document.getElementById('sellModal').classList.add('active');
+        }
+
+        function closeSellModal() { document.getElementById('sellModal').classList.remove('active'); }
+
         async function buyItem(name, price) {
-            if (!tonConnectUI.connected) {
-                tg.showAlert("Сначала подключите кошелек в профиле!");
-                switchPage('profile');
-                return;
-            }
+            if (!tonConnectUI.connected) { tg.showAlert("Подключите кошелек!"); return; }
             const transaction = {
                 validUntil: Math.floor(Date.now() / 1000) + 600,
-                messages: [{
-                    address: "ТВОЙ_АДРЕС_КОШЕЛЬКА", // ЗАМЕНИ НА СВОЙ
-                    amount: (price * 1000000000).toString() 
-                }]
+                messages: [{ address: "ТВОЙ_АДРЕС_КОШЕЛЬКА", amount: (price * 1000000000).toString() }]
             };
-            try {
-                await tonConnectUI.sendTransaction(transaction);
-                tg.showAlert("Запрос на оплату отправлен!");
-            } catch (e) {
-                tg.showAlert("Ошибка оплаты.");
-            }
+            try { await tonConnectUI.sendTransaction(transaction); tg.showAlert("Оплачено!"); } 
+            catch (e) { tg.showAlert("Ошибка!"); }
         }
 
         function loadMarketItems() {
@@ -235,29 +200,7 @@
                 </div>
             `).join('');
         }
-
-        function openSellModal(name) {
-            selectedItemName = name;
-            document.getElementById('modalItemName').innerText = name;
-            document.getElementById('sellModal').classList.add('active');
-        }
-
-        function closeSellModal() { document.getElementById('sellModal').classList.remove('active'); }
-
-        function confirmSell() {
-            const price = document.getElementById('priceInput').value;
-            const link = localStorage.getItem('tradeUrl');
-            if(!price || price <= 0) { tg.showAlert('Введите цену!'); return; }
-            if(!link) { tg.showAlert('Укажите Trade URL!'); switchPage('profile'); closeSellModal(); return; }
-            tg.sendData(JSON.stringify({ action: 'sell_order', item: selectedItemName, price: price, trade_link: link }));
-            closeSellModal();
-            tg.showAlert("Выставлено на продажу (демо)");
-        }
-
-        // Запуск при старте
         loadMarketItems();
     </script>
 </body>
 </html>
-
-
