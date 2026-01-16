@@ -8,45 +8,18 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0b0e14; color: #ffffff; padding-bottom: 80px; overflow-x: hidden;
-        }
-        /* Улучшенная навигация */
-        .nav-bar {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: #151921; display: flex; justify-content: space-around;
-            padding: 15px 0; border-top: 1px solid #1f2937; z-index: 1000;
-        }
-        .nav-item {
-            display: flex; flex-direction: column; align-items: center; gap: 5px;
-            flex: 1; cursor: pointer; color: #6b7280; transition: all 0.2s;
-        }
+        body { font-family: -apple-system, sans-serif; background: #0b0e14; color: #fff; padding-bottom: 80px; }
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #151921; display: flex; padding: 15px 0; border-top: 1px solid #1f2937; }
+        .nav-item { flex: 1; text-align: center; color: #6b7280; cursor: pointer; }
         .nav-item.active { color: #0088cc; }
-        .nav-icon { font-size: 20px; }
-        .nav-text { font-size: 11px; font-weight: 600; }
-
-        .page { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
+        .page { display: none; padding: 20px; }
         .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        .items-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px; }
-        .item-card { 
-            background: #151921; border-radius: 16px; padding: 12px; 
-            border: 1px solid #1f2937; text-align: center;
-        }
-        .item-image { width: 100%; height: auto; border-radius: 8px; background: #0b0e14; margin-bottom: 8px; }
-        .item-name { font-size: 13px; font-weight: 600; height: 32px; overflow: hidden; margin-bottom: 8px; color: #e5e7eb; }
-        .item-price { color: #0088cc; font-weight: 700; margin-bottom: 8px; }
-
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .items-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .item-card { background: #151921; border-radius: 16px; padding: 12px; border: 1px solid #1f2937; text-align: center; }
+        .item-image { width: 100%; border-radius: 8px; margin-bottom: 8px; }
+        .btn { width: 100%; padding: 10px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 5px; }
         .btn-primary { background: #0088cc; color: white; }
-        .btn-success { background: #10b981; color: white; }
-        
-        .form-input {
-            width: 100%; padding: 12px; background: #0b0e14; border: 1px solid #374151;
-            border-radius: 10px; color: white; margin: 8px 0 15px 0; outline: none;
-        }
+        .form-input { width: 100%; padding: 12px; background: #0b0e14; border: 1px solid #374151; border-radius: 10px; color: white; margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -57,45 +30,29 @@
     </div>
 
     <div id="sellPage" class="page">
-        <h2>💰 Ваши скины</h2>
-        <div id="inventoryStatus" style="text-align:center; padding:40px; color:#6b7280;">Введите SteamID в профиле</div>
-        <div id="inventoryGrid" class="items-grid"></div>
+        <h2>💰 Продать</h2>
+        <div id="inventoryStatus" style="text-align:center; padding:20px;"></div>
+        <div class="items-grid" id="inventoryGrid"></div>
     </div>
 
     <div id="profilePage" class="page">
         <h2>👤 Профиль</h2>
         <div style="background:#151921; padding:20px; border-radius:16px; margin-top:15px;">
-            <label style="font-size: 12px; color: #9ca3af;">SteamID64:</label>
-            <input type="text" id="steamIdInput" class="form-input" placeholder="76561198xxxxxxxxx">
-            
-            <label style="font-size: 12px; color: #9ca3af;">Trade URL:</label>
-            <input type="text" id="tradeUrlInput" class="form-input" placeholder="https://steamcommunity.com/tradeoffer/new/...">
-            
-            <button class="btn btn-primary" onclick="saveProfile()">💾 Сохранить настройки</button>
+            <input type="text" id="steamIdInput" class="form-input" placeholder="SteamID64">
+            <input type="text" id="tradeUrlInput" class="form-input" placeholder="Trade URL">
+            <button class="btn btn-primary" onclick="saveProfile()">💾 Сохранить</button>
             <div id="ton-connect-button" style="margin-top:20px; display:flex; justify-content:center;"></div>
         </div>
     </div>
 
     <nav class="nav-bar">
-        <div class="nav-item active" id="btn-market" onclick="switchPage('market')">
-            <span class="nav-icon">🛒</span><span class="nav-text">Маркет</span>
-        </div>
-        <div class="nav-item" id="btn-sell" onclick="switchPage('sell')">
-            <span class="nav-icon">💰</span><span class="nav-text">Продать</span>
-        </div>
-        <div class="nav-item" id="btn-profile" onclick="switchPage('profile')">
-            <span class="nav-icon">👤</span><span class="nav-text">Профиль</span>
-        </div>
+        <div class="nav-item active" id="btn-market" onclick="switchPage('market')">Маркет</div>
+        <div class="nav-item" id="btn-sell" onclick="switchPage('sell')">Продать</div>
+        <div class="nav-item" id="btn-profile" onclick="switchPage('profile')">Профиль</div>
     </nav>
 
     <script>
-        const tg = window.Telegram.WebApp;
         const API_URL = "https://stattrakmrkt.onrender.com";
-
-        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: 'https://pupokslona13377-spec.github.io/StatTrakMRKT/tonconnect-manifest.json',
-            buttonRootId: 'ton-connect-button'
-        });
 
         function switchPage(page) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -108,40 +65,24 @@
         function saveProfile() {
             localStorage.setItem('steamId', document.getElementById('steamIdInput').value);
             localStorage.setItem('tradeUrl', document.getElementById('tradeUrlInput').value);
-            tg.showAlert("Данные успешно сохранены!");
+            alert("Сохранено!");
         }
 
         async function loadInventory() {
             const steamId = localStorage.getItem('steamId');
             const grid = document.getElementById('inventoryGrid');
-            const status = document.getElementById('inventoryStatus');
-
-            if (!steamId) {
-                status.style.display = 'block';
-                status.innerText = "Укажите SteamID в профиле";
-                return;
-            }
-
-            status.innerText = "⏳ Загрузка инвентаря...";
-            grid.innerHTML = "";
-
+            if (!steamId) return;
+            grid.innerHTML = "⏳ Загрузка...";
             try {
                 const res = await fetch(`${API_URL}/api/inventory/${steamId}`);
                 const data = await res.json();
-
-                if (!data.descriptions) throw new Error();
-
-                status.style.display = 'none';
                 grid.innerHTML = data.descriptions.map(item => `
                     <div class="item-card">
-                        <img src="https://community.cloudflare.steamstatic.com/economy/image/${item.icon_url}/330x192" class="item-image">
-                        <div class="item-name">${item.market_name}</div>
-                        <button class="btn btn-success" style="padding: 6px; font-size: 12px;">Продать</button>
+                        <img src="${API_URL}/api/image/${item.icon_url}" class="item-image">
+                        <p style="font-size:12px;">${item.market_name}</p>
                     </div>
                 `).join('');
-            } catch (e) {
-                status.innerText = "Ошибка загрузки. Попробуйте позже.";
-            }
+            } catch (e) { grid.innerHTML = "Ошибка"; }
         }
 
         function loadMarket() {
@@ -152,15 +93,14 @@
             ];
             grid.innerHTML = items.map(i => `
                 <div class="item-card">
-                    <img src="https://community.cloudflare.steamstatic.com/economy/image/${i.hash}/330x192" class="item-image">
-                    <div class="item-name">${i.name}</div>
-                    <div class="item-price">${i.price} TON</div>
-                    <button class="btn btn-primary" style="padding: 6px; font-size: 12px;">Купить</button>
+                    <img src="${API_URL}/api/image/${i.hash}" class="item-image">
+                    <p style="font-size:12px;">${i.name}</p>
+                    <p style="color:#0088cc;">${i.price} TON</p>
+                    <button class="btn btn-primary">Купить</button>
                 </div>
             `).join('');
         }
 
-        // Инициализация данных при загрузке
         document.getElementById('steamIdInput').value = localStorage.getItem('steamId') || '';
         document.getElementById('tradeUrlInput').value = localStorage.getItem('tradeUrl') || '';
         loadMarket();
