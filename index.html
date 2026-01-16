@@ -8,18 +8,19 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, sans-serif; background: #0b0e14; color: #fff; padding-bottom: 80px; }
-        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #151921; display: flex; padding: 15px 0; border-top: 1px solid #1f2937; }
-        .nav-item { flex: 1; text-align: center; color: #6b7280; cursor: pointer; }
-        .nav-item.active { color: #0088cc; }
+        body { font-family: -apple-system, sans-serif; background: #0b0e14; color: #fff; padding-bottom: 90px; }
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #151921; display: flex; padding: 15px 0; border-top: 1px solid #1f2937; z-index: 1000; }
+        .nav-item { flex: 1; text-align: center; color: #6b7280; cursor: pointer; font-size: 12px; }
+        .nav-item.active { color: #0088cc; font-weight: bold; }
         .page { display: none; padding: 20px; }
         .page.active { display: block; }
         .items-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
         .item-card { background: #151921; border-radius: 16px; padding: 12px; border: 1px solid #1f2937; text-align: center; }
-        .item-image { width: 100%; border-radius: 8px; margin-bottom: 8px; }
+        .item-image { width: 100%; border-radius: 8px; margin-bottom: 8px; background: #000; }
         .btn { width: 100%; padding: 10px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 5px; }
         .btn-primary { background: #0088cc; color: white; }
-        .form-input { width: 100%; padding: 12px; background: #0b0e14; border: 1px solid #374151; border-radius: 10px; color: white; margin-bottom: 15px; }
+        .btn-success { background: #10b981; color: white; }
+        .form-input { width: 100%; padding: 12px; background: #0b0e14; border: 1px solid #374151; border-radius: 10px; color: white; margin-bottom: 15px; outline: none; }
     </style>
 </head>
 <body>
@@ -30,29 +31,34 @@
     </div>
 
     <div id="sellPage" class="page">
-        <h2>💰 Продать</h2>
-        <div id="inventoryStatus" style="text-align:center; padding:20px;"></div>
+        <h2>💰 Продать скины</h2>
+        <div id="inventoryStatus" style="text-align:center; padding:20px; color:#6b7280;"></div>
         <div class="items-grid" id="inventoryGrid"></div>
     </div>
 
     <div id="profilePage" class="page">
         <h2>👤 Профиль</h2>
         <div style="background:#151921; padding:20px; border-radius:16px; margin-top:15px;">
-            <input type="text" id="steamIdInput" class="form-input" placeholder="SteamID64">
-            <input type="text" id="tradeUrlInput" class="form-input" placeholder="Trade URL">
-            <button class="btn btn-primary" onclick="saveProfile()">💾 Сохранить</button>
+            <label style="font-size: 12px; color: #9ca3af;">SteamID64:</label>
+            <input type="text" id="steamIdInput" class="form-input" placeholder="76561198xxxxxxxxx">
+            
+            <label style="font-size: 12px; color: #9ca3af;">Trade URL:</label>
+            <input type="text" id="tradeUrlInput" class="form-input" placeholder="https://steamcommunity.com/tradeoffer/new/...">
+            
+            <button class="btn btn-primary" onclick="saveProfile()">💾 Сохранить настройки</button>
             <div id="ton-connect-button" style="margin-top:20px; display:flex; justify-content:center;"></div>
         </div>
     </div>
 
     <nav class="nav-bar">
-        <div class="nav-item active" id="btn-market" onclick="switchPage('market')">Маркет</div>
-        <div class="nav-item" id="btn-sell" onclick="switchPage('sell')">Продать</div>
-        <div class="nav-item" id="btn-profile" onclick="switchPage('profile')">Профиль</div>
+        <div class="nav-item active" id="btn-market" onclick="switchPage('market')"><div>🛒</div>Маркет</div>
+        <div class="nav-item" id="btn-sell" onclick="switchPage('sell')"><div>💰</div>Продать</div>
+        <div class="nav-item" id="btn-profile" onclick="switchPage('profile')"><div>👤</div>Профиль</div>
     </nav>
 
     <script>
         const API_URL = "https://stattrakmrkt.onrender.com";
+        const tg = window.Telegram.WebApp;
 
         function switchPage(page) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -65,24 +71,32 @@
         function saveProfile() {
             localStorage.setItem('steamId', document.getElementById('steamIdInput').value);
             localStorage.setItem('tradeUrl', document.getElementById('tradeUrlInput').value);
-            alert("Сохранено!");
+            alert("Настройки сохранены!");
         }
 
         async function loadInventory() {
             const steamId = localStorage.getItem('steamId');
             const grid = document.getElementById('inventoryGrid');
-            if (!steamId) return;
-            grid.innerHTML = "⏳ Загрузка...";
+            const status = document.getElementById('inventoryStatus');
+            if (!steamId) { status.innerText = "Укажите SteamID в профиле"; return; }
+            
+            status.innerText = "⏳ Загрузка инвентаря...";
+            grid.innerHTML = "";
+
             try {
                 const res = await fetch(`${API_URL}/api/inventory/${steamId}`);
                 const data = await res.json();
-                grid.innerHTML = data.descriptions.map(item => `
-                    <div class="item-card">
-                        <img src="${API_URL}/api/image/${item.icon_url}" class="item-image">
-                        <p style="font-size:12px;">${item.market_name}</p>
-                    </div>
-                `).join('');
-            } catch (e) { grid.innerHTML = "Ошибка"; }
+                status.innerText = "";
+                grid.innerHTML = data.descriptions.map(item => {
+                    const img = `https://images.weserv.nl/?url=community.cloudflare.steamstatic.com/economy/image/${item.icon_url}/330x192`;
+                    return `
+                        <div class="item-card">
+                            <img src="${img}" class="item-image">
+                            <div style="font-size:11px; height:30px; overflow:hidden;">${item.market_name}</div>
+                            <button class="btn btn-success" style="font-size:10px;">Продать</button>
+                        </div>`;
+                }).join('');
+            } catch (e) { status.innerText = "Ошибка загрузки"; }
         }
 
         function loadMarket() {
@@ -91,14 +105,16 @@
                 { name: 'AK-47 | Redline', price: 5, hash: '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSrYmnjQO3-UdvZG_0LYGddlQ7Mg7S_1C8xue9h5Pu75iY1zI97bhKshWi' },
                 { name: 'M4A4 | Howl', price: 150, hash: '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJQJD_9W7m5a0mvLwOq7cqWdQ-sJ0teXI8oThxlKx-Uc9Zjv6cNPBdgU4YV3Q_lG9ye_ng5Pu6pXLwXVn7yEq4iuMgVXp1lNdQs2Y' }
             ];
-            grid.innerHTML = items.map(i => `
-                <div class="item-card">
-                    <img src="${API_URL}/api/image/${i.hash}" class="item-image">
-                    <p style="font-size:12px;">${i.name}</p>
-                    <p style="color:#0088cc;">${i.price} TON</p>
-                    <button class="btn btn-primary">Купить</button>
-                </div>
-            `).join('');
+            grid.innerHTML = items.map(i => {
+                const img = `https://images.weserv.nl/?url=community.cloudflare.steamstatic.com/economy/image/${i.hash}/330x192`;
+                return `
+                    <div class="item-card">
+                        <img src="${img}" class="item-image">
+                        <div style="font-size:12px; font-weight:bold;">${i.name}</div>
+                        <div style="color:#0088cc; margin:5px 0;">${i.price} TON</div>
+                        <button class="btn btn-primary">Купить</button>
+                    </div>`;
+            }).join('');
         }
 
         document.getElementById('steamIdInput').value = localStorage.getItem('steamId') || '';
@@ -107,3 +123,4 @@
     </script>
 </body>
 </html>
+
