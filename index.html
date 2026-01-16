@@ -28,7 +28,7 @@
 
     <div id="marketPage" class="page active">
         <h2>🛒 Маркет</h2>
-        <div style="margin: 10px 0; color: #0088cc; font-weight: bold;">Баланс: <span id="m-balance">0.00</span> TON</div>
+        <div style="margin: 10px 0; color: #0088cc;">Баланс: <span id="m-balance">0.00</span> TON</div>
         <div class="items-grid" id="marketGrid"></div>
     </div>
 
@@ -40,17 +40,14 @@
 
     <div id="profilePage" class="page">
         <div class="balance-card">
-            <p style="font-size: 14px; opacity: 0.8;">Текущий баланс</p>
+            <p style="font-size: 14px; opacity: 0.8;">Баланс</p>
             <h1 id="p-balance">0.00 TON</h1>
             <button class="btn btn-success" style="margin-top:10px; width: 160px;" onclick="depositFunds()">➕ Пополнить</button>
         </div>
-
         <div style="background: #151921; padding: 15px; border-radius: 12px;">
-            <p style="font-size:12px; color:#6b7280; margin-bottom:5px;">SteamID64:</p>
-            <input type="text" id="steamIdInput" placeholder="7656119...">
-            <p style="font-size:12px; color:#6b7280; margin-bottom:5px;">Trade URL:</p>
-            <input type="text" id="tradeUrlInput" placeholder="https://steamcommunity.com/tradeoffer/new/...">
-            <button class="btn btn-buy" onclick="saveData()">💾 Сохранить настройки</button>
+            <input type="text" id="steamIdInput" placeholder="SteamID64">
+            <input type="text" id="tradeUrlInput" placeholder="Trade URL">
+            <button class="btn btn-buy" onclick="saveData()">💾 Сохранить</button>
             <div id="ton-connect-button" style="margin-top:20px; display:flex; justify-content:center;"></div>
         </div>
     </div>
@@ -90,72 +87,70 @@
         function saveData() {
             localStorage.setItem('sid', document.getElementById('steamIdInput').value);
             localStorage.setItem('turl', document.getElementById('tradeUrlInput').value);
-            tg.showAlert("Данные успешно сохранены!");
+            tg.showAlert("Сохранено!");
         }
 
-        async function depositFunds() {
-            const amount = prompt("Сумма пополнения (TON):", "1.0");
-            if (!amount || isNaN(amount)) return;
-            const transaction = {
-                validUntil: Math.floor(Date.now() / 1000) + 60,
-                messages: [{
-                    address: "ТВОЙ_АДРЕС_КОШЕЛЬКА", // ЗАМЕНИ НА СВОЙ
-                    amount: (parseFloat(amount) * 1000000000).toString()
-                }]
-            };
+        async function loadMarket() {
+            const grid = document.getElementById('marketGrid');
             try {
-                await tonConnectUI.sendTransaction(transaction);
-                userBalance += parseFloat(amount);
-                updateBalanceUI();
-                tg.showAlert("Баланс пополнен!");
-            } catch(e) { tg.showAlert("Отмена"); }
+                const res = await fetch(`${API_URL}/api/market`);
+                const items = await res.json();
+                grid.innerHTML = items.map(i => `
+                    <div class="item-card">
+                        <img src="https://community.cloudflare.steamstatic.com/economy/image/${i.hash}/120x80" class="item-image">
+                        <div style="font-size:11px; font-weight:bold;">${i.name}</div>
+                        <div style="color:#0088cc; margin:5px 0;">${i.price} TON</div>
+                        <button class="btn btn-buy" onclick="buyItem('${i.name}', ${i.price})">Купить</button>
+                    </div>
+                `).join('');
+            } catch (e) { grid.innerHTML = "Ошибка загрузки маркета"; }
+        }
+
+        async function listItemForSale(name, hash) {
+            const price = prompt(`Цена для ${name} (TON):`, "1.0");
+            if (!price || isNaN(price)) return;
+            try {
+                await fetch(`${API_URL}/api/market/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, price, hash, sellerSid: localStorage.getItem('sid') })
+                });
+                tg.showAlert("Выставлено!");
+                switchPage('market');
+            } catch (e) { tg.showAlert("Ошибка"); }
         }
 
         async function loadInv() {
             const sid = localStorage.getItem('sid');
             const grid = document.getElementById('inventoryGrid');
-            const status = document.getElementById('status');
-            if(!sid) { status.innerText = "Укажите SteamID"; return; }
-            status.innerText = "Загрузка...";
-            grid.innerHTML = "";
+            if(!sid) return;
+            grid.innerHTML = "Загрузка...";
             try {
                 const r = await fetch(`${API_URL}/api/inventory/${sid}`);
                 const d = await r.json();
-                status.innerText = "";
                 grid.innerHTML = d.descriptions.map(i => `
                     <div class="item-card">
-                        <img src="https://community.cloudflare.steamstatic.com/economy/image/${i.icon_url}/120x80" class="item-image" loading="lazy">
+                        <img src="https://community.cloudflare.steamstatic.com/economy/image/${i.icon_url}/120x80" class="item-image">
                         <div style="font-size:10px; height:24px; overflow:hidden;">${i.market_name}</div>
-                        <button class="btn btn-success" style="font-size:10px;">Продать</button>
+                        <button class="btn btn-success" onclick="listItemForSale('${i.market_name}', '${i.icon_url}')">Продать</button>
                     </div>
                 `).join('');
-            } catch(e) { status.innerText = "Ошибка"; }
-        }
-
-        function loadMarket() {
-            const grid = document.getElementById('marketGrid');
-            const items = [
-                { name: 'AK-47 | Redline', price: 5, h: '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSrYmnjQO3-UdvZG_0LYGddlQ7Mg7S_1C8xue9h5Pu75iY1zI97bhKshWi' },
-                { name: 'M4A4 | Howl', price: 150, h: '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJQJD_9W7m5a0mvLwOq7cqWdQ-sJ0teXI8oThxlKx-Uc9Zjv6cNPBdgU4YV3Q_lG9ye_ng5Pu6pXLwXVn7yEq4iuMgVXp1lNdQs2Y' }
-            ];
-            grid.innerHTML = items.map(i => `
-                <div class="item-card">
-                    <img src="https://community.cloudflare.steamstatic.com/economy/image/${i.h}/120x80" class="item-image" loading="lazy">
-                    <div style="font-size:11px; font-weight:bold;">${i.name}</div>
-                    <div style="color:#0088cc; margin:5px 0;">${i.price} TON</div>
-                    <button class="btn btn-buy" onclick="buyItem('${i.name}', ${i.price})">Купить</button>
-                </div>
-            `).join('');
+            } catch(e) { grid.innerHTML = "Ошибка"; }
         }
 
         function buyItem(name, price) {
             if (userBalance >= price) {
                 userBalance -= price;
                 updateBalanceUI();
-                tg.showAlert(`Успешно! ${name} куплен.`);
-            } else {
-                tg.showAlert("Недостаточно TON!");
-            }
+                tg.showAlert("Куплено!");
+            } else { tg.showAlert("Мало TON!"); }
+        }
+
+        async function depositFunds() {
+            const amount = prompt("Сумма (TON):", "1.0");
+            if (!amount) return;
+            const tx = { validUntil: Math.floor(Date.now()/1000)+60, messages: [{ address: "ВАШ_КОШЕЛЕК", amount: (amount*1000000000).toString() }] };
+            try { await tonConnectUI.sendTransaction(tx); userBalance += parseFloat(amount); updateBalanceUI(); } catch(e) {}
         }
 
         document.getElementById('steamIdInput').value = localStorage.getItem('sid') || '';
@@ -165,4 +160,3 @@
     </script>
 </body>
 </html>
-
