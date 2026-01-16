@@ -8,100 +8,54 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0b0e14; color: #ffffff; padding-bottom: 70px; overflow-x: hidden;
-        }
-        .nav-bar {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: #151921; display: flex; justify-content: space-around;
-            padding: 12px 0; border-top: 1px solid #1f2937; z-index: 1000;
-        }
-        .nav-item {
-            display: flex; flex-direction: column; align-items: center; gap: 4px;
-            padding: 8px 20px; cursor: pointer; color: #6b7280; transition: all 0.3s ease;
-        }
-        .nav-item.active { color: #0088cc; background: rgba(0, 136, 204, 0.1); border-radius: 12px; }
-        .page { display: none; padding: 20px; animation: fadeIn 0.4s ease; }
+        body { font-family: sans-serif; background: #0b0e14; color: #ffffff; padding-bottom: 70px; }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #151921; display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid #333; }
+        .nav-item { cursor: pointer; color: #6b7280; font-size: 12px; text-align: center; }
+        .nav-item.active { color: #0088cc; }
+        .page { display: none; padding: 20px; }
         .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .items-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 15px; }
-        .item-card { 
-            background: #151921; border-radius: 16px; padding: 12px; 
-            border: 1px solid #1f2937; text-align: center;
-        }
-        .item-image { width: 100%; height: auto; min-height: 80px; margin-bottom: 8px; border-radius: 8px; background: #0b0e14; }
-        .item-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #e5e7eb; height: 32px; overflow: hidden; }
-        .item-price { color: #0088cc; font-weight: 700; margin-bottom: 8px; }
-
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.85); z-index: 2000; align-items: center; justify-content: center; padding: 20px;
-        }
-        .modal.active { display: flex; }
-        .modal-content { background: #151921; border-radius: 20px; padding: 24px; width: 100%; max-width: 400px; border: 1px solid #374151; }
-        .form-input {
-            width: 100%; padding: 12px; background: #0b0e14; border: 1px solid #374151;
-            border-radius: 10px; color: white; margin: 12px 0; outline: none;
-        }
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }
-        .btn-primary { background: #0088cc; color: white; }
+        .items-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .item-card { background: #151921; border-radius: 12px; padding: 10px; text-align: center; border: 1px solid #222; }
+        .item-image { width: 100%; border-radius: 8px; margin-bottom: 8px; min-height: 100px; background: #000; }
+        .item-name { font-size: 12px; height: 35px; overflow: hidden; margin-bottom: 5px; }
+        .item-price { color: #0088cc; font-weight: bold; margin-bottom: 5px; }
+        .btn { width: 100%; padding: 8px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .btn-success { background: #10b981; color: white; }
+        .btn-primary { background: #0088cc; color: white; }
+        input { width: 100%; padding: 10px; margin: 10px 0; background: #1f2937; border: 1px solid #333; color: white; border-radius: 8px; }
     </style>
 </head>
 <body>
 
     <div id="marketPage" class="page active">
-        <h2 style="margin-bottom: 10px;">🛒 TON Market</h2>
+        <h2>🛒 Маркет</h2>
         <div class="items-grid" id="marketGrid"></div>
     </div>
 
     <div id="sellPage" class="page">
-        <h2 style="margin-bottom: 10px;">💰 Ваши скины</h2>
-        <div id="inventoryLoader" style="text-align:center; padding:40px; color:#6b7280;">Введите SteamID в профиле</div>
-        <div id="inventoryGrid" class="items-grid" style="display:none;"></div>
+        <h2>💰 Продать скины</h2>
+        <div id="inventoryStatus" style="text-align:center; padding:20px; color:#9ca3af;"></div>
+        <div class="items-grid" id="inventoryGrid"></div>
     </div>
 
     <div id="profilePage" class="page">
-        <h2 style="margin-bottom: 10px;">👤 Профиль</h2>
-        <div style="background:#151921; padding:20px; border-radius:16px;">
-            <p style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">Ваш SteamID64:</p>
-            <input type="text" id="steamIdInput" class="form-input" placeholder="76561198xxxxxxxxx">
-            
-            <p style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">Steam Trade URL:</p>
-            <input type="text" id="tradeUrlInput" class="form-input" placeholder="https://steamcommunity.com/tradeoffer/new/...">
-            
-            <button class="btn btn-primary" onclick="saveProfileData()">💾 Сохранить данные</button>
-            <div id="saveStatus" style="margin-top:10px; text-align: center;"></div>
-            
-            <hr style="border:0; border-top:1px solid #374151; margin:20px 0;">
-            <p style="text-align:center; color:#9ca3af; font-size:12px; margin-bottom:10px;">Кошелек TON:</p>
-            <div id="ton-connect-button" style="display:flex; justify-content:center;"></div>
-        </div>
-    </div>
-
-    <div id="sellModal" class="modal">
-        <div class="modal-content">
-            <h3 id="modalItemName" style="margin-bottom: 5px;"></h3>
-            <input type="number" id="priceInput" class="form-input" placeholder="Цена в TON">
-            <div style="display:flex; gap:10px;">
-                <button class="btn" style="background:#374151; color:white;" onclick="closeSellModal()">Отмена</button>
-                <button class="btn btn-success" onclick="confirmSell()">✅ Выставить</button>
-            </div>
+        <h2>👤 Профиль</h2>
+        <div style="background:#151921; padding:15px; border-radius:12px; margin-top:10px;">
+            <input type="text" id="steamIdInput" placeholder="Введите SteamID64">
+            <button class="btn btn-primary" onclick="saveProfile()">Сохранить ID</button>
+            <div id="ton-connect-button" style="margin-top:20px; display:flex; justify-content:center;"></div>
         </div>
     </div>
 
     <nav class="nav-bar">
-        <div class="nav-item active" id="nav-market" onclick="switchPage('market')"><span>🛒</span><span style="font-size:10px;">Маркет</span></div>
-        <div class="nav-item" id="nav-sell" onclick="switchPage('sell')"><span>💰</span><span style="font-size:10px;">Продать</span></div>
-        <div class="nav-item" id="nav-profile" onclick="switchPage('profile')"><span>👤</span><span style="font-size:10px;">Профиль</span></div>
+        <div class="nav-item active" onclick="switchPage('market')">Маркет</div>
+        <div class="nav-item" onclick="switchPage('sell')">Продать</div>
+        <div class="nav-item" onclick="switchPage('profile')">Профиль</div>
     </nav>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+        const API_URL = "https://stattrakmrkt.onrender.com";
 
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://pupokslona13377-spec.github.io/StatTrakMRKT/tonconnect-manifest.json',
@@ -111,99 +65,68 @@
         function switchPage(page) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(page + 'Page').classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            document.getElementById('nav-' + page).classList.add('active');
             if(page === 'sell') loadInventory();
-            if(page === 'profile') loadProfileData();
+        }
+
+        function saveProfile() {
+            const id = document.getElementById('steamIdInput').value;
+            localStorage.setItem('steamId', id);
+            alert('Сохранено!');
         }
 
         async function loadInventory() {
             const steamId = localStorage.getItem('steamId');
-            const loader = document.getElementById('inventoryLoader');
             const grid = document.getElementById('inventoryGrid');
+            const status = document.getElementById('inventoryStatus');
 
             if (!steamId) {
-                loader.innerHTML = 'Введите SteamID в профиле';
+                status.innerText = "Сначала введите SteamID в профиле";
                 return;
             }
 
-            loader.style.display = 'block';
-            loader.innerHTML = '⏳ Загрузка инвентаря...';
-            grid.style.display = 'none';
+            status.innerText = "⌛ Загрузка через сервер...";
+            grid.innerHTML = "";
 
             try {
-                // Используем стабильный прокси
-                const steamUrl = `https://steamcommunity.com/inventory/${steamId}/730/2?l=russian&count=50`;
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(steamUrl)}`;
-                
-                const response = await fetch(proxyUrl);
-                const result = await response.json();
-                const data = JSON.parse(result.contents);
+                const res = await fetch(`${API_URL}/api/inventory/${steamId}`);
+                const data = await res.json();
 
-                if (!data || !data.descriptions) {
-                    loader.innerHTML = 'Инвентарь скрыт или Steam занят. Проверьте настройки приватности.';
+                if (!data.descriptions || data.descriptions.length === 0) {
+                    status.innerText = "Инвентарь пуст или скрыт в Steam";
                     return;
                 }
 
-                grid.innerHTML = data.descriptions.map(desc => `
-                    <div class="item-card" onclick="openSellModal('${desc.market_name.replace(/'/g, "\\'")}')">
-                        <img src="https://community.cloudflare.steamstatic.com/economy/image/${desc.icon_url}/330x192" class="item-image" onerror="this.src='https://via.placeholder.com/150?text=CS2+Skin'">
-                        <div class="item-name">${desc.market_name}</div>
-                        <button class="btn btn-success" style="padding: 5px; font-size: 12px; margin-top:5px;">💰 Продать</button>
+                status.innerText = "";
+                grid.innerHTML = data.descriptions.map(item => `
+                    <div class="item-card">
+                        <img src="https://community.cloudflare.steamstatic.com/economy/image/${item.icon_url}/330x192" class="item-image">
+                        <div class="item-name">${item.market_name}</div>
+                        <button class="btn btn-success">Продать</button>
                     </div>
                 `).join('');
-                loader.style.display = 'none';
-                grid.style.display = 'grid';
             } catch (e) {
-                loader.innerHTML = 'Ошибка. Попробуйте еще раз через 10 секунд.';
+                status.innerText = "Ошибка: Сервер не отвечает. Попробуй через 30 сек.";
             }
         }
 
-        function saveProfileData() {
-            localStorage.setItem('steamId', document.getElementById('steamIdInput').value);
-            localStorage.setItem('tradeUrl', document.getElementById('tradeUrlInput').value);
-            document.getElementById('saveStatus').innerHTML = '✅ Данные сохранены!';
-        }
-
-        function loadProfileData() {
-            document.getElementById('steamIdInput').value = localStorage.getItem('steamId') || '';
-            document.getElementById('tradeUrlInput').value = localStorage.getItem('tradeUrl') || '';
-        }
-
-        function openSellModal(name) {
-            document.getElementById('modalItemName').innerText = name;
-            document.getElementById('sellModal').classList.add('active');
-        }
-
-        function closeSellModal() { document.getElementById('sellModal').classList.remove('active'); }
-
-        async function buyItem(name, price) {
-            if (!tonConnectUI.connected) { tg.showAlert("Подключите кошелек в Профиле!"); return; }
-            const transaction = {
-                validUntil: Math.floor(Date.now() / 1000) + 600,
-                messages: [{ address: "ТВОЙ_АДРЕС_КОШЕЛЬКА", amount: (price * 1000000000).toString() }]
-            };
-            try { await tonConnectUI.sendTransaction(transaction); tg.showAlert("Оплата отправлена!"); } 
-            catch (e) { tg.showAlert("Ошибка или отмена."); }
-        }
-
-        function loadMarketItems() {
+        function loadMarket() {
             const grid = document.getElementById('marketGrid');
-            // Обновленные ссылки на картинки
             const items = [
-                { id: 1, name: 'AK-47 | Redline', price: 5, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSrYmnjQO3-UdvZG_0LYGddlQ7Mg7S_1C8xue9h5Pu75iY1zI97bhKshWi/330x192' },
-                { id: 2, name: 'M4A4 | Howl', price: 150, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJQJD_9W7m5a0mvLwOq7cqWdQ-sJ0teXI8oThxlKx-Uc9Zjv6cNPBdgU4YV3Q_lG9ye_ng5Pu6pXLwXVn7yEq4iuMgVXp1lNdQs2Y/330x192' }
+                { name: 'AK-47 | Redline', price: 5, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSrYmnjQO3-UdvZG_0LYGddlQ7Mg7S_1C8xue9h5Pu75iY1zI97bhKshWi/330x192' },
+                { name: 'M4A4 | Howl', price: 150, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJQJD_9W7m5a0mvLwOq7cqWdQ-sJ0teXI8oThxlKx-Uc9Zjv6cNPBdgU4YV3Q_lG9ye_ng5Pu6pXLwXVn7yEq4iuMgVXp1lNdQs2Y/330x192' }
             ];
             grid.innerHTML = items.map(i => `
                 <div class="item-card">
-                    <img src="${i.img}" class="item-image" onerror="this.src='https://via.placeholder.com/150?text=CS2+Skin'">
+                    <img src="${i.img}" class="item-image">
                     <div class="item-name">${i.name}</div>
                     <div class="item-price">${i.price} TON</div>
-                    <button class="btn btn-primary" style="padding: 5px; font-size: 12px;" onclick="buyItem('${i.name}', ${i.price})">Купить</button>
+                    <button class="btn btn-primary">Купить</button>
                 </div>
             `).join('');
         }
-        loadMarketItems();
+
+        document.getElementById('steamIdInput').value = localStorage.getItem('steamId') || '';
+        loadMarket();
     </script>
 </body>
 </html>
