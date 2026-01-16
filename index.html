@@ -31,8 +31,8 @@
             background: #151921; border-radius: 16px; padding: 12px; 
             border: 1px solid #1f2937; text-align: center;
         }
-        .item-image { width: 100%; height: auto; margin-bottom: 8px; border-radius: 8px; }
-        .item-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #e5e7eb; }
+        .item-image { width: 100%; height: auto; min-height: 80px; margin-bottom: 8px; border-radius: 8px; background: #0b0e14; }
+        .item-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #e5e7eb; height: 32px; overflow: hidden; }
         .item-price { color: #0088cc; font-weight: 700; margin-bottom: 8px; }
 
         .modal {
@@ -128,24 +128,26 @@
             }
 
             loader.style.display = 'block';
-            loader.innerHTML = 'Загрузка...';
+            loader.innerHTML = '⏳ Загрузка инвентаря...';
             grid.style.display = 'none';
 
             try {
-                const steamUrl = `https://steamcommunity.com/inventory/${steamId}/730/2?l=russian&count=100`;
+                // Используем стабильный прокси
+                const steamUrl = `https://steamcommunity.com/inventory/${steamId}/730/2?l=russian&count=50`;
                 const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(steamUrl)}`;
+                
                 const response = await fetch(proxyUrl);
                 const result = await response.json();
                 const data = JSON.parse(result.contents);
 
                 if (!data || !data.descriptions) {
-                    loader.innerHTML = 'Инвентарь скрыт или ошибка Steam';
+                    loader.innerHTML = 'Инвентарь скрыт или Steam занят. Проверьте настройки приватности.';
                     return;
                 }
 
                 grid.innerHTML = data.descriptions.map(desc => `
                     <div class="item-card" onclick="openSellModal('${desc.market_name.replace(/'/g, "\\'")}')">
-                        <img src="https://community.akamai.steamstatic.com/economy/image/${desc.icon_url}/330x192" class="item-image">
+                        <img src="https://community.cloudflare.steamstatic.com/economy/image/${desc.icon_url}/330x192" class="item-image" onerror="this.src='https://via.placeholder.com/150?text=CS2+Skin'">
                         <div class="item-name">${desc.market_name}</div>
                         <button class="btn btn-success" style="padding: 5px; font-size: 12px; margin-top:5px;">💰 Продать</button>
                     </div>
@@ -153,14 +155,14 @@
                 loader.style.display = 'none';
                 grid.style.display = 'grid';
             } catch (e) {
-                loader.innerHTML = 'Ошибка доступа. Попробуйте позже.';
+                loader.innerHTML = 'Ошибка. Попробуйте еще раз через 10 секунд.';
             }
         }
 
         function saveProfileData() {
             localStorage.setItem('steamId', document.getElementById('steamIdInput').value);
             localStorage.setItem('tradeUrl', document.getElementById('tradeUrlInput').value);
-            document.getElementById('saveStatus').innerHTML = '✅ Сохранено!';
+            document.getElementById('saveStatus').innerHTML = '✅ Данные сохранены!';
         }
 
         function loadProfileData() {
@@ -176,24 +178,25 @@
         function closeSellModal() { document.getElementById('sellModal').classList.remove('active'); }
 
         async function buyItem(name, price) {
-            if (!tonConnectUI.connected) { tg.showAlert("Подключите кошелек!"); return; }
+            if (!tonConnectUI.connected) { tg.showAlert("Подключите кошелек в Профиле!"); return; }
             const transaction = {
                 validUntil: Math.floor(Date.now() / 1000) + 600,
                 messages: [{ address: "ТВОЙ_АДРЕС_КОШЕЛЬКА", amount: (price * 1000000000).toString() }]
             };
-            try { await tonConnectUI.sendTransaction(transaction); tg.showAlert("Оплачено!"); } 
-            catch (e) { tg.showAlert("Ошибка!"); }
+            try { await tonConnectUI.sendTransaction(transaction); tg.showAlert("Оплата отправлена!"); } 
+            catch (e) { tg.showAlert("Ошибка или отмена."); }
         }
 
         function loadMarketItems() {
             const grid = document.getElementById('marketGrid');
+            // Обновленные ссылки на картинки
             const items = [
-                { id: 1, name: 'AK-47 | Redline', price: 5, img: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSrYmnjQO3-UdvZG_0LYGddlQ7Mg7S_1C8xue9h5Pu75iY1zI97bhKshWi/330x192' },
-                { id: 2, name: 'M4A4 | Howl', price: 150, img: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJQJD_9W7m5a0mvLwOq7cqWdQ-sJ0teXI8oThxlKx-Uc9Zjv6cNPBdgU4YV3Q_lG9ye_ng5Pu6pXLwXVn7yEq4iuMgVXp1lNdQs2Y/330x192' }
+                { id: 1, name: 'AK-47 | Redline', price: 5, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSrYmnjQO3-UdvZG_0LYGddlQ7Mg7S_1C8xue9h5Pu75iY1zI97bhKshWi/330x192' },
+                { id: 2, name: 'M4A4 | Howl', price: 150, img: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJQJD_9W7m5a0mvLwOq7cqWdQ-sJ0teXI8oThxlKx-Uc9Zjv6cNPBdgU4YV3Q_lG9ye_ng5Pu6pXLwXVn7yEq4iuMgVXp1lNdQs2Y/330x192' }
             ];
             grid.innerHTML = items.map(i => `
                 <div class="item-card">
-                    <img src="${i.img}" class="item-image">
+                    <img src="${i.img}" class="item-image" onerror="this.src='https://via.placeholder.com/150?text=CS2+Skin'">
                     <div class="item-name">${i.name}</div>
                     <div class="item-price">${i.price} TON</div>
                     <button class="btn btn-primary" style="padding: 5px; font-size: 12px;" onclick="buyItem('${i.name}', ${i.price})">Купить</button>
