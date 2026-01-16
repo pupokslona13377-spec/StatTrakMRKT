@@ -139,12 +139,18 @@
         }
 
         function buyItem(name, price) {
-            if (userBalance >= price) {
+    if (userBalance >= price) {
+        tg.showConfirm(`Вы уверены, что хотите купить ${name} за ${price} TON?`, (ok) => {
+            if (ok) {
                 userBalance -= price;
                 updateBalanceUI();
-                tg.showAlert("Куплено!");
-            } else { tg.showAlert("Мало TON!"); }
-        }
+                tg.showAlert("✅ Поздравляем! Покупка совершена. Скин скоро будет отправлен.");
+            }
+        });
+    } else {
+        tg.showAlert("❌ Недостаточно средств на балансе.");
+    }
+}
 
         async function depositFunds() {
             const amount = prompt("Сумма (TON):", "1.0");
@@ -160,3 +166,4 @@
     </script>
 </body>
 </html>
+
