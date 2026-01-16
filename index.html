@@ -75,18 +75,22 @@
     </div>
 
     <div id="profilePage" class="page">
-        <h2 style="margin-bottom: 10px;">👤 Профиль</h2>
-        <div style="background:#151921; padding:20px; border-radius:16px;">
-            <p style="text-align:center; color:#9ca3af; font-size:12px; margin-bottom:10px;">Для покупок подключите кошелек:</p>
-            <div id="ton-connect-button"></div>
-            <hr style="border:0; border-top:1px solid #374151; margin:20px 0;">
-            
-            <p style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">Steam Trade URL:</p>
-            <input type="text" id="tradeUrlInput" class="form-input" placeholder="https://steamcommunity.com/tradeoffer/new/...">
-            <button class="btn btn-primary" onclick="saveTradeUrl()">💾 Сохранить ссылку</button>
-            <div id="tradeUrlStatus" style="margin-top:10px; text-align: center;"></div>
-        </div>
+    <h2 style="margin-bottom: 10px;">👤 Профиль</h2>
+    <div style="background:#151921; padding:20px; border-radius:16px;">
+        <p style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">Ваш SteamID64:</p>
+        <input type="text" id="steamIdInput" class="form-input" placeholder="76561198xxxxxxxxx">
+        
+        <p style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">Steam Trade URL:</p>
+        <input type="text" id="tradeUrlInput" class="form-input" placeholder="https://steamcommunity.com/tradeoffer/new/...">
+        
+        <button class="btn btn-primary" onclick="saveProfileData()">💾 Сохранить данные</button>
+        <div id="saveStatus" style="margin-top:10px; text-align: center;"></div>
+        
+        <hr style="border:0; border-top:1px solid #374151; margin:20px 0;">
+        <p style="text-align:center; color:#9ca3af; font-size:12px; margin-bottom:10px;">Кошелек для оплаты:</p>
+        <div id="ton-connect-button"></div>
     </div>
+</div>
 
     <div id="sellModal" class="modal">
         <div class="modal-content">
@@ -232,3 +236,4 @@
     </script>
 </body>
 </html>
+
