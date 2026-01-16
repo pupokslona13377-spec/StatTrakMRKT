@@ -7,30 +7,41 @@ const PORT = process.env.PORT || 10000;
 app.use(cors());
 app.use(express.json());
 
-// Проверка работы сервера
-app.get('/', (req, res) => {
-    res.send('Сервер StatTrakMRKT работает!');
+// Временная база данных в памяти сервера
+let marketItems = [
+    { id: 1, name: 'AK-47 | Redline', price: 5, hash: '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSrYmnjQO3-UdvZG_0LYGddlQ7Mg7S_1C8xue9h5Pu75iY1zI97bhKshWi' },
+];
+
+app.get('/', (req, res) => res.send('Сервер StatTrakMRKT онлайн!'));
+
+// Получить все товары в маркете
+app.get('/api/market', (req, res) => {
+    res.json(marketItems);
+});
+
+// Выставить товар на маркет
+app.post('/api/market/add', (req, res) => {
+    const { name, price, hash, sellerSid } = req.body;
+    const newItem = {
+        id: Date.now(),
+        name,
+        price: parseFloat(price),
+        hash,
+        sellerSid
+    };
+    marketItems.push(newItem);
+    res.json({ success: true, item: newItem });
 });
 
 // Получение инвентаря
 app.get('/api/inventory/:steamId', async (req, res) => {
-    const { steamId } = req.params;
-    console.log(`Запрос инвентаря для: ${steamId}`);
-    
     try {
-        const url = `https://steamcommunity.com/inventory/${steamId}/730/2?l=russian&count=100`;
-        const response = await axios.get(url, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            }
-        });
+        const url = `https://steamcommunity.com/inventory/${req.params.steamId}/730/2?l=russian&count=100`;
+        const response = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
         res.json(response.data);
     } catch (error) {
-        console.error('Ошибка Steam:', error.message);
-        res.status(500).json({ error: 'Steam API Error' });
+        res.status(500).json({ error: 'Steam Error' });
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Сервер запущен на порту ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
