@@ -4,123 +4,168 @@
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CS2 TON Market</title>
+    <title>StatTrakMRKT</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, sans-serif; background: #0b0e14; color: #fff; padding-bottom: 90px; }
-        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #151921; display: flex; padding: 15px 0; border-top: 1px solid #1f2937; z-index: 1000; }
-        .nav-item { flex: 1; text-align: center; color: #6b7280; cursor: pointer; font-size: 12px; }
+        body { font-family: sans-serif; background: #0b0e14; color: #fff; padding-bottom: 90px; }
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #151921; display: flex; padding: 15px 0; border-top: 1px solid #1f2937; }
+        .nav-item { flex: 1; text-align: center; color: #6b7280; cursor: pointer; font-size: 14px; }
         .nav-item.active { color: #0088cc; font-weight: bold; }
         .page { display: none; padding: 20px; }
         .page.active { display: block; }
-        .items-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
-        .item-card { background: #151921; border-radius: 16px; padding: 12px; border: 1px solid #1f2937; text-align: center; }
-        .item-image { width: 100%; border-radius: 8px; margin-bottom: 8px; background: #000; }
-        .btn { width: 100%; padding: 10px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 5px; }
-        .btn-primary { background: #0088cc; color: white; }
+        .items-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .item-card { background: #151921; border-radius: 12px; padding: 10px; text-align: center; border: 1px solid #1f2937; }
+        .item-image { width: 100%; border-radius: 8px; margin-bottom: 5px; min-height: 80px; background: #222; }
+        .btn { width: 100%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .btn-buy { background: #0088cc; color: white; }
         .btn-success { background: #10b981; color: white; }
-        .form-input { width: 100%; padding: 12px; background: #0b0e14; border: 1px solid #374151; border-radius: 10px; color: white; margin-bottom: 15px; outline: none; }
+        input { width: 100%; padding: 12px; background: #1f2937; border: 1px solid #333; border-radius: 8px; color: #fff; margin-bottom: 10px; }
+        .balance-card { background: linear-gradient(135deg, #0088cc, #004466); padding: 20px; border-radius: 16px; margin-bottom: 20px; text-align: center; }
     </style>
 </head>
 <body>
 
     <div id="marketPage" class="page active">
         <h2>🛒 Маркет</h2>
-        <div class="items-grid" id="marketGrid"></div>
+        <div style="margin-bottom: 15px; color: #0088cc;">Ваш баланс: <span id="m-balance">0.00</span> TON</div>
+        <div class="items-grid">
+            <div class="item-card">
+                <div class="item-image" style="display:flex; align-items:center; justify-content:center;">AK-47</div>
+                <div style="font-size:12px;">AK-47 | Redline</div>
+                <div style="color:#0088cc; margin:5px 0;">5 TON</div>
+                <button class="btn btn-buy" onclick="buyItem('AK-47 | Redline', 5)">Купить</button>
+            </div>
+            <div class="item-card">
+                <div class="item-image" style="display:flex; align-items:center; justify-content:center;">M4A4</div>
+                <div style="font-size:12px;">M4A4 | Howl</div>
+                <div style="color:#0088cc; margin:5px 0;">150 TON</div>
+                <button class="btn btn-buy" onclick="buyItem('M4A4 | Howl', 150)">Купить</button>
+            </div>
+        </div>
     </div>
 
     <div id="sellPage" class="page">
-        <h2>💰 Продать скины</h2>
-        <div id="inventoryStatus" style="text-align:center; padding:20px; color:#6b7280;"></div>
-        <div class="items-grid" id="inventoryGrid"></div>
+        <h2>💰 Ваш инвентарь</h2>
+        <div id="status" style="text-align:center; color:#6b7280; margin:10px 0;"></div>
+        <div id="inventoryGrid" class="items-grid"></div>
     </div>
 
     <div id="profilePage" class="page">
-        <h2>👤 Профиль</h2>
-        <div style="background:#151921; padding:20px; border-radius:16px; margin-top:15px;">
-            <label style="font-size: 12px; color: #9ca3af;">SteamID64:</label>
-            <input type="text" id="steamIdInput" class="form-input" placeholder="76561198xxxxxxxxx">
-            
-            <label style="font-size: 12px; color: #9ca3af;">Trade URL:</label>
-            <input type="text" id="tradeUrlInput" class="form-input" placeholder="https://steamcommunity.com/tradeoffer/new/...">
-            
-            <button class="btn btn-primary" onclick="saveProfile()">💾 Сохранить настройки</button>
+        <div class="balance-card">
+            <p style="font-size: 14px; opacity: 0.8;">Текущий баланс</p>
+            <h1 id="p-balance">0.00 TON</h1>
+            <button class="btn btn-success" style="margin-top:10px; width: 150px;" onclick="depositFunds()">➕ Пополнить</button>
+        </div>
+
+        <div style="background: #151921; padding: 15px; border-radius: 12px;">
+            <p style="font-size:12px; color:#6b7280;">SteamID64:</p>
+            <input type="text" id="steamIdInput" placeholder="7656119...">
+            <p style="font-size:12px; color:#6b7280;">Trade URL:</p>
+            <input type="text" id="tradeUrlInput" placeholder="https://steamcommunity.com/tradeoffer/new/...">
+            <button class="btn btn-buy" onclick="saveData()">💾 Сохранить настройки</button>
             <div id="ton-connect-button" style="margin-top:20px; display:flex; justify-content:center;"></div>
         </div>
     </div>
 
     <nav class="nav-bar">
-        <div class="nav-item active" id="btn-market" onclick="switchPage('market')"><div>🛒</div>Маркет</div>
-        <div class="nav-item" id="btn-sell" onclick="switchPage('sell')"><div>💰</div>Продать</div>
-        <div class="nav-item" id="btn-profile" onclick="switchPage('profile')"><div>👤</div>Профиль</div>
+        <div class="nav-item active" id="n-market" onclick="switchPage('market')">Маркет</div>
+        <div class="nav-item" id="n-sell" onclick="switchPage('sell')">Продать</div>
+        <div class="nav-item" id="n-profile" onclick="switchPage('profile')">Профиль</div>
     </nav>
 
     <script>
         const API_URL = "https://stattrakmrkt.onrender.com";
         const tg = window.Telegram.WebApp;
+        
+        // Инициализация баланса
+        let userBalance = parseFloat(localStorage.getItem('balance')) || 0;
 
-        function switchPage(page) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            document.getElementById(page + 'Page').classList.add('active');
-            document.getElementById('btn-' + page).classList.add('active');
-            if(page === 'sell') loadInventory();
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://pupokslona13377-spec.github.io/StatTrakMRKT/tonconnect-manifest.json',
+            buttonRootId: 'ton-connect-button'
+        });
+
+        function updateBalanceUI() {
+            document.getElementById('m-balance').innerText = userBalance.toFixed(2);
+            document.getElementById('p-balance').innerText = userBalance.toFixed(2) + " TON";
+            localStorage.setItem('balance', userBalance);
         }
 
-        function saveProfile() {
-            localStorage.setItem('steamId', document.getElementById('steamIdInput').value);
-            localStorage.setItem('tradeUrl', document.getElementById('tradeUrlInput').value);
-            alert("Настройки сохранены!");
+        function switchPage(p) {
+            document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(ni => ni.classList.remove('active'));
+            document.getElementById(p + 'Page').classList.add('active');
+            document.getElementById('n-' + p).classList.add('active');
+            if(p === 'sell') loadInv();
+            updateBalanceUI();
         }
 
-        async function loadInventory() {
-            const steamId = localStorage.getItem('steamId');
-            const grid = document.getElementById('inventoryGrid');
-            const status = document.getElementById('inventoryStatus');
-            if (!steamId) { status.innerText = "Укажите SteamID в профиле"; return; }
-            
-            status.innerText = "⏳ Загрузка инвентаря...";
-            grid.innerHTML = "";
+        function saveData() {
+            localStorage.setItem('sid', document.getElementById('steamIdInput').value);
+            localStorage.setItem('turl', document.getElementById('tradeUrlInput').value);
+            tg.showAlert("Данные сохранены!");
+        }
+
+        // Логика покупки со счета
+        function buyItem(name, price) {
+            if (userBalance >= price) {
+                userBalance -= price;
+                updateBalanceUI();
+                tg.showConfirm(`Вы купили ${name}! Отправить скин на ваш Trade URL?`, (ok) => {
+                    if(ok) alert("Заявка на вывод скина создана!");
+                });
+            } else {
+                tg.showAlert("Недостаточно TON на балансе! Пополните счет в профиле.");
+            }
+        }
+
+        // Логика пополнения (через кошелек)
+        async function depositFunds() {
+            const amount = prompt("Введите сумму пополнения в TON:", "1.0");
+            if (!amount || isNaN(amount)) return;
+
+            const transaction = {
+                validUntil: Math.floor(Date.now() / 1000) + 60,
+                messages: [{
+                    address: "UQByN_...ТВОЙ_АДРЕС...", // ЗАМЕНИ НА СВОЙ АДРЕС TON
+                    amount: (parseFloat(amount) * 1000000000).toString()
+                }]
+            };
 
             try {
-                const res = await fetch(`${API_URL}/api/inventory/${steamId}`);
-                const data = await res.json();
-                status.innerText = "";
-                grid.innerHTML = data.descriptions.map(item => {
-                    const img = `https://images.weserv.nl/?url=community.cloudflare.steamstatic.com/economy/image/${item.icon_url}/330x192`;
-                    return `
-                        <div class="item-card">
-                            <img src="${img}" class="item-image">
-                            <div style="font-size:11px; height:30px; overflow:hidden;">${item.market_name}</div>
-                            <button class="btn btn-success" style="font-size:10px;">Продать</button>
-                        </div>`;
-                }).join('');
-            } catch (e) { status.innerText = "Ошибка загрузки"; }
+                await tonConnectUI.sendTransaction(transaction);
+                // В реальном боте мы бы ждали подтверждения от блокчейна,
+                // но для теста сразу зачислим баланс
+                userBalance += parseFloat(amount);
+                updateBalanceUI();
+                tg.showAlert("Баланс успешно пополнен!");
+            } catch(e) {
+                tg.showAlert("Ошибка транзакции");
+            }
         }
 
-        function loadMarket() {
-            const grid = document.getElementById('marketGrid');
-            const items = [
-                { name: 'AK-47 | Redline', price: 5, hash: '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSrYmnjQO3-UdvZG_0LYGddlQ7Mg7S_1C8xue9h5Pu75iY1zI97bhKshWi' },
-                { name: 'M4A4 | Howl', price: 150, hash: '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJQJD_9W7m5a0mvLwOq7cqWdQ-sJ0teXI8oThxlKx-Uc9Zjv6cNPBdgU4YV3Q_lG9ye_ng5Pu6pXLwXVn7yEq4iuMgVXp1lNdQs2Y' }
-            ];
-            grid.innerHTML = items.map(i => {
-                const img = `https://images.weserv.nl/?url=community.cloudflare.steamstatic.com/economy/image/${i.hash}/330x192`;
-                return `
+        async function loadInv() {
+            const sid = localStorage.getItem('sid');
+            const grid = document.getElementById('inventoryGrid');
+            if(!sid) return;
+            grid.innerHTML = "Загрузка...";
+            try {
+                const r = await fetch(`${API_URL}/api/inventory/${sid}`);
+                const d = await r.json();
+                grid.innerHTML = d.descriptions.map(i => `
                     <div class="item-card">
-                        <img src="${img}" class="item-image">
-                        <div style="font-size:12px; font-weight:bold;">${i.name}</div>
-                        <div style="color:#0088cc; margin:5px 0;">${i.price} TON</div>
-                        <button class="btn btn-primary">Купить</button>
-                    </div>`;
-            }).join('');
+                        <img src="https://community.cloudflare.steamstatic.com/economy/image/${i.icon_url}/120x80" class="item-image">
+                        <div style="font-size:10px;">${i.market_name}</div>
+                        <button class="btn btn-success" style="font-size:10px;">Продать</button>
+                    </div>
+                `).join('');
+            } catch(e) { grid.innerHTML = "Ошибка"; }
         }
 
-        document.getElementById('steamIdInput').value = localStorage.getItem('steamId') || '';
-        document.getElementById('tradeUrlInput').value = localStorage.getItem('tradeUrl') || '';
-        loadMarket();
+        document.getElementById('steamIdInput').value = localStorage.getItem('sid') || '';
+        document.getElementById('tradeUrlInput').value = localStorage.getItem('turl') || '';
+        updateBalanceUI();
     </script>
 </body>
 </html>
-
