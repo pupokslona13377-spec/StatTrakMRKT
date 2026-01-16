@@ -4,10 +4,10 @@
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CS2 Skins Market</title>
+    <title>CS2 TON Market</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* === СТИЛИ ИЗ ТВОЕГО ФАЙЛА (CLAUDE) === */
+        /* === ТВОИ СТИЛИ === */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -37,9 +37,8 @@
         }
         .item-image { width: 100%; height: auto; margin-bottom: 8px; border-radius: 8px; }
         .item-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #e5e7eb; }
-        .item-price { color: #10b981; font-weight: 700; margin-bottom: 8px; }
+        .item-price { color: #0088cc; font-weight: 700; margin-bottom: 8px; }
 
-        /* Стили модального окна */
         .modal {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0, 0, 0, 0.85); z-index: 2000; align-items: center; justify-content: center; padding: 20px;
@@ -53,15 +52,19 @@
         .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }
         .btn-primary { background: #0088cc; color: white; }
         .btn-success { background: #10b981; color: white; }
+        
+        /* Стиль для кнопки TON */
+        #ton-connect-button {
+            display: flex;
+            justify-content: center;
+            margin: 15px 0;
+        }
     </style>
 </head>
 <body>
-    <div id="profile-section">
-    <h2>Ваш профиль</h2>
-    <div id="ton-connect-button"></div> </div>
 
     <div id="marketPage" class="page active">
-        <h2 style="margin-bottom: 10px;">🛒 Маркет</h2>
+        <h2 style="margin-bottom: 10px;">🛒 TON Market</h2>
         <div class="items-grid" id="marketGrid"></div>
     </div>
 
@@ -74,6 +77,10 @@
     <div id="profilePage" class="page">
         <h2 style="margin-bottom: 10px;">👤 Профиль</h2>
         <div style="background:#151921; padding:20px; border-radius:16px;">
+            <p style="text-align:center; color:#9ca3af; font-size:12px; margin-bottom:10px;">Для покупок подключите кошелек:</p>
+            <div id="ton-connect-button"></div>
+            <hr style="border:0; border-top:1px solid #374151; margin:20px 0;">
+            
             <p style="font-size: 14px; color: #9ca3af; margin-bottom: 8px;">Steam Trade URL:</p>
             <input type="text" id="tradeUrlInput" class="form-input" placeholder="https://steamcommunity.com/tradeoffer/new/...">
             <button class="btn btn-primary" onclick="saveTradeUrl()">💾 Сохранить ссылку</button>
@@ -84,8 +91,8 @@
     <div id="sellModal" class="modal">
         <div class="modal-content">
             <h3 id="modalItemName" style="margin-bottom: 5px;"></h3>
-            <p style="font-size: 12px; color: #9ca3af;">Укажите цену продажи</p>
-            <input type="number" id="priceInput" class="form-input" placeholder="Цена в ₽">
+            <p style="font-size: 12px; color: #9ca3af;">Укажите цену продажи (в TON)</p>
+            <input type="number" id="priceInput" class="form-input" placeholder="Цена в TON">
             <div style="display:flex; gap:10px;">
                 <button class="btn" style="background:#374151; color:white;" onclick="closeSellModal()">Отмена</button>
                 <button class="btn btn-success" onclick="confirmSell()">✅ Выставить</button>
@@ -104,30 +111,66 @@
         tg.ready();
         tg.expand();
 
+        // 1. Инициализация TON Connect
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://pupokslona13377-spec.github.io/StatTrakMRKT/tonconnect-manifest.json',
+            buttonRootId: 'ton-connect-button'
+        });
+
         let selectedItemName = "";
 
         function switchPage(page) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(page + 'Page').classList.add('active');
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            
+            // Находим нажатый элемент через id навигации
+            document.getElementById('nav-' + page).classList.add('active');
+            
             if(page === 'sell') loadInventory();
             if(page === 'market') loadMarketItems();
             if(page === 'profile') loadTradeUrl();
         }
 
+        // Функция оплаты
+        async function buyItem(name, price) {
+            if (!tonConnectUI.connected) {
+                tg.showAlert("Сначала подключите кошелек в профиле!");
+                switchPage('profile');
+                return;
+            }
+
+            const transaction = {
+                validUntil: Math.floor(Date.now() / 1000) + 600,
+                messages: [
+                    {
+                        address: "ТВОЙ_АДРЕС_КОШЕЛЬКА", // ЗАМЕНИ НА СВОЙ АДРЕС TON
+                        amount: (price * 1000000000).toString() 
+                    }
+                ]
+            };
+
+            try {
+                await tonConnectUI.sendTransaction(transaction);
+                tg.showAlert("Оплата " + price + " TON принята! Бот отправит " + name + " в течение 5 минут.");
+            } catch (e) {
+                console.error(e);
+                tg.showAlert("Оплата не была завершена.");
+            }
+        }
+
         function loadMarketItems() {
             const grid = document.getElementById('marketGrid');
             const items = [
-                { id: 1, name: 'AK-47 | Redline', price: 2500, img: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSrYmnjQO3-UdvZG_0LYGddlQ7Mg7S_1C8xue9h5Pu75iY1zI97bhKshWi/330x192' },
-                { id: 2, name: 'M4A4 | Howl', price: 15000, img: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJQJD_9W7m5a0mvLwOq7cqWdQ-sJ0teXI8oThxlKx-Uc9Zjv6cNPBdgU4YV3Q_lG9ye_ng5Pu6pXLwXVn7yEq4iuMgVXp1lNdQs2Y/330x192' }
+                { id: 1, name: 'AK-47 | Redline', price: 5, img: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSrYmnjQO3-UdvZG_0LYGddlQ7Mg7S_1C8xue9h5Pu75iY1zI97bhKshWi/330x192' },
+                { id: 2, name: 'M4A4 | Howl', price: 150, img: 'https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJQJD_9W7m5a0mvLwOq7cqWdQ-sJ0teXI8oThxlKx-Uc9Zjv6cNPBdgU4YV3Q_lG9ye_ng5Pu6pXLwXVn7yEq4iuMgVXp1lNdQs2Y/330x192' }
             ];
             grid.innerHTML = items.map(i => `
-                <div class="item-card" onclick="tg.showAlert('Покупка будет доступна в следующем обновлении!')">
+                <div class="item-card">
                     <img src="${i.img}" class="item-image">
                     <div class="item-name">${i.name}</div>
-                    <div class="item-price">${i.price} ₽</div>
-                    <button class="btn btn-primary" style="padding: 5px; font-size: 12px;">Купить</button>
+                    <div class="item-price">${i.price} TON</div>
+                    <button class="btn btn-primary" style="padding: 5px; font-size: 12px;" onclick="buyItem('${i.name}', ${i.price})">Купить</button>
                 </div>
             `).join('');
         }
@@ -189,5 +232,3 @@
     </script>
 </body>
 </html>
-
-
