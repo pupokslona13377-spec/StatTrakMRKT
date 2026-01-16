@@ -6,23 +6,79 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StatTrakMRKT</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, sans-serif; background: #0b0e14; color: #fff; padding-bottom: 90px; }
-        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #151921; display: flex; padding: 15px 0; border-top: 1px solid #1f2937; z-index: 1000; }
-        .nav-item { flex: 1; text-align: center; color: #6b7280; cursor: pointer; font-size: 14px; }
-        .nav-item.active { color: #0088cc; font-weight: bold; }
-        .page { display: none; padding: 20px; }
-        .page.active { display: block; }
-        .items-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .item-card { background: #151921; border-radius: 12px; padding: 10px; text-align: center; border: 1px solid #1f2937; }
-        .item-image { width: 100%; border-radius: 8px; margin-bottom: 5px; min-height: 80px; background: #222; }
-        .btn { width: 100%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 5px; }
-        .btn-buy { background: #0088cc; color: white; }
-        .btn-success { background: #10b981; color: white; }
-        input { width: 100%; padding: 12px; background: #1f2937; border: 1px solid #333; border-radius: 8px; color: #fff; margin-bottom: 10px; outline: none; }
-        .balance-card { background: linear-gradient(135deg, #0088cc, #004466); padding: 20px; border-radius: 16px; margin-bottom: 20px; text-align: center; }
-    </style>
+   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #0b0e14; color: #fff; overflow-x: hidden; }
+
+    /* Анимация переключения страниц */
+    .page { 
+        display: none; 
+        padding: 20px; 
+        animation: slideIn 0.3s ease-out; 
+    }
+    .page.active { display: block; }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Красивое нижнее меню */
+    .nav-bar { 
+        position: fixed; 
+        bottom: 0; left: 0; right: 0; 
+        background: rgba(21, 25, 33, 0.95); 
+        backdrop-filter: blur(10px);
+        display: flex; 
+        justify-content: space-around;
+        padding: 10px 0 25px 0; /* Увеличил отступ снизу для красоты */
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        z-index: 1000;
+    }
+
+    .nav-item { 
+        flex: 1; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        color: #6b7280; 
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 11px;
+        gap: 4px;
+    }
+
+    .nav-item i { font-size: 22px; margin-bottom: 2px; transition: 0.3s; }
+    
+    /* Эффект активной кнопки */
+    .nav-item.active { color: #0088cc; transform: translateY(-3px); }
+    .nav-item.active i { transform: scale(1.2); filter: drop-shadow(0 0 8px #0088cc); }
+
+    /* Карточки товаров стали аккуратнее */
+    .item-card { 
+        background: #151921; 
+        border-radius: 20px; 
+        padding: 12px; 
+        text-align: center; 
+        border: 1px solid #1f2937;
+        transition: 0.2s;
+    }
+    .item-card:active { transform: scale(0.96); background: #1c222d; }
+
+    /* Кнопки */
+    .btn { 
+        width: 100%; padding: 12px; border: none; border-radius: 12px; 
+        font-weight: bold; cursor: pointer; transition: 0.2s; 
+    }
+    .btn-buy { background: linear-gradient(135deg, #0088cc, #00aaff); color: white; box-shadow: 0 4px 15px rgba(0, 136, 204, 0.3); }
+    
+    /* Баланс в профиле */
+    .balance-card { 
+        background: linear-gradient(135deg, #1d2633 0%, #0b0e14 100%);
+        padding: 25px; border-radius: 24px; border: 1px solid rgba(0, 136, 204, 0.2);
+        margin-bottom: 25px; text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+</style>
 </head>
 <body>
 
@@ -166,4 +222,5 @@
     </script>
 </body>
 </html>
+
 
