@@ -213,26 +213,28 @@
     } catch (e) { tg.showAlert("Ошибка"); }
 }
 
-        async function loadInv() {
-            const sid = localStorage.getItem('sid');
-            const grid = document.getElementById('inventoryGrid');
-            if(!sid) return;
-            grid.innerHTML = "Загрузка...";
-            try {
-                const r = await fetch(`${API_URL}/api/inventory/${sid}`);
-                const d = await r.json();
-               grid.innerHTML = d.descriptions.map(i => {
-    const rarityClass = getRarityClass(i); // Определяем цвет
-    return `
-        <div class="item-card ${rarityClass}">
-            <img src="https://community.cloudflare.steamstatic.com/economy/image/${i.icon_url}/120x80" class="item-image">
-            <div style="font-size:10px; height:24px; overflow:hidden;">${i.market_name}</div>
-            <button class="btn btn-success" style="font-size:10px;" onclick="listItemForSale('${i.market_name}', '${i.icon_url}', '${rarityClass}')">Продать</button>
-        </div>
-    `;
-}).join('');
-            } catch(e) { grid.innerHTML = "Ошибка"; }
-        }
+       async function loadInv() {
+    const sid = localStorage.getItem('sid');
+    const grid = document.getElementById('inventoryGrid');
+    if(!sid) return;
+    grid.innerHTML = "Загрузка...";
+    try {
+        const r = await fetch(`${API_URL}/api/inventory/${sid}`);
+        const d = await r.json();
+        
+        grid.innerHTML = d.descriptions.map(i => {
+            const rarityClass = getRarityClass(i); 
+            console.log("Найден предмет:", i.market_name, "Класс:", rarityClass);
+            return `
+                <div class="item-card ${rarityClass}">
+                    <img src="https://community.cloudflare.steamstatic.com/economy/image/${i.icon_url}/120x80" class="item-image">
+                    <div style="font-size:10px; height:24px; overflow:hidden;">${i.market_name}</div>
+                    <button class="btn btn-success" style="font-size:10px;" onclick="listItemForSale('${i.market_name.replace(/'/g, "\\'")}', '${i.icon_url}', '${rarityClass}')">Продать</button>
+                </div>
+            `;
+        }).join('');
+    } catch(e) { grid.innerHTML = "Ошибка"; }
+}
 
         function buyItem(name, price) {
     if (userBalance >= price) {
@@ -319,6 +321,7 @@ async function removeItem(id) {
     </script>
 </body>
 </html>
+
 
 
 
