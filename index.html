@@ -295,6 +295,49 @@
         // Здесь позже добавим логику формирования счета для оплаты
     }
 }
+        async function buyItem(name, price) {
+    // 1. Проверяем, хватает ли денег на внутреннем балансе
+    if (userBalance < price) {
+        showToast(`❌ Недостаточно TON! У вас ${userBalance.toFixed(2)}, а нужно ${price}`, "#ef4444");
+        return;
+    }
+
+    // 2. Подтверждение покупки
+    if (!confirm(`Вы уверены, что хотите купить ${name} за ${price} TON?`)) {
+        return;
+    }
+
+    try {
+        showToast("Обработка покупки...", "#667eea");
+
+        // 3. Отправляем запрос на твой бэкенд на Render
+        const response = await fetch(`${API_URL}/api/market/buy`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                [cite_start]userId: userId, // ID пользователя из Telegram [cite: 79]
+                itemName: name,
+                price: price
+            })
+        });
+
+        if (response.ok) {
+            // 4. Если сервер подтвердил, вычитаем деньги локально и обновляем UI
+            userBalance -= price;
+            updateUI(); 
+            showToast("✅ Покупка успешна! Проверьте инвентарь.", "#10b981");
+            loadMarket(); // Обновляем список товаров
+        } else {
+            const error = await response.json();
+            showToast(`Ошибка: ${error.message || 'Не удалось купить'}`, "#ef4444");
+        }
+    } catch (e) {
+        console.error(e);
+        showToast("Ошибка связи с сервером", "#ef4444");
+    }
+}
 
         window.onload = () => {
             document.getElementById('steamIdInput').value = localStorage.getItem('sid') || '';
@@ -303,6 +346,7 @@
     </script>
 </body>
 </html>
+
 
 
 
