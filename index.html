@@ -113,6 +113,29 @@
         margin-bottom: 25px; text-align: center;
         box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
+       .toast {
+    background: rgba(31, 41, 55, 0.95);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    margin-top: 10px;
+    border-left: 4px solid #0088cc;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    font-size: 14px;
+    animation: slideUp 0.3s ease, fadeOut 0.5s ease 2.5s forwards;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+    to { opacity: 0; transform: translateY(-20px); }
+}
 </style>
 </head>
 <body>
@@ -375,6 +398,7 @@ async function removeItem(id) {
     <div id="toast-container" style="position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; pointer-events: none;"></div>
 </body>
 </html>
+
 
 
 
