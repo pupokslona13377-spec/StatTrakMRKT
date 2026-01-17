@@ -288,6 +288,13 @@
                 showToast("Ошибка при удалении", "#ef4444");
             }
         }
+        function depositFunds() {
+    const amount = prompt("Сколько TON вы хотите внести на баланс?", "1.0");
+    if (amount && !isNaN(amount)) {
+        showToast(`Заявка на пополнение ${amount} TON создана!`);
+        // Здесь позже добавим логику формирования счета для оплаты
+    }
+}
 
         window.onload = () => {
             document.getElementById('steamIdInput').value = localStorage.getItem('sid') || '';
@@ -296,6 +303,7 @@
     </script>
 </body>
 </html>
+
 
 
 
