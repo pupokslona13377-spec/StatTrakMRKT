@@ -99,28 +99,33 @@ app.post('/api/market/buy', (req, res) => {
 
 // Получение инвентаря
 app.get('/api/inventory/:steamId', async (req, res) => {
-    try {
-        const { steamId } = req.params;
-        // Используем более стабильную ссылку Steam API
-        const url = `https://steamcommunity.com/inventory/${steamId}/730/2?l=russian&count=75`;
-        
-        const response = await axios.get(url, { 
-            headers: { 
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'
-            },
-            timeout: 10000 // Ждем максимум 10 секунд
-        });
-        
-        if (response.data && response.data.descriptions) {
-            res.json(response.data);
-        } else {
-            res.status(404).json({ error: 'Инвентарь пуст или скрыт' });
+    const { steamId } = req.params;
+    
+    // Список ссылок для проверки (основная и запасная)
+    const urls = [
+        `https://steamcommunity.com/inventory/${steamId}/730/2?l=russian&count=75`,
+        `https://steamcommunity.com/profiles/${steamId}/inventory/json/730/2`
+    ];
+
+    for (let url of urls) {
+        try {
+            console.log(`Пробую загрузить: ${url}`);
+            const response = await axios.get(url, { 
+                headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36' },
+                timeout: 7000 
+            });
+
+            // Проверяем структуру (у разных ссылок она чуть разная)
+            const data = response.data;
+            if (data && (data.descriptions || data.rgDescriptions)) {
+                return res.json(data);
+            }
+        } catch (error) {
+            console.log(`Ошибка по ссылке ${url}: ${error.message}`);
         }
-    } catch (error) {
-        console.error('Steam API Error:', error.message);
-        res.status(500).json({ error: 'Steam не отвечает или блокирует запрос' });
     }
+
+    res.status(500).json({ error: 'Steam заблокировал запрос. Попробуйте обновить страницу позже.' });
 });
 
 app.delete('/api/market/:id', (req, res) => {
