@@ -280,9 +280,25 @@ async function removeItem(id) {
         }
     });
 }
+        function getRarityClass(item) {
+    // Ищем цвет в тегах предмета (Steam присылает его там)
+    const colorTag = item.tags ? item.tags.find(t => t.category === "Rarity") : null;
+    const color = colorTag ? colorTag.color : "";
+
+    if (color === "b0c3d9") return "rarity-common";
+    if (color === "5e98d9") return "rarity-uncommon";
+    if (color === "4b69ff") return "rarity-rare";
+    if (color === "8847ff") return "rarity-mythical";
+    if (color === "d32ce6") return "rarity-legendary";
+    if (color === "eb4b4b") return "rarity-ancient";
+    if (color === "e4ae39") return "rarity-immortal";
+    
+    return ""; // Если цвет не найден
+}
     </script>
 </body>
 </html>
+
 
 
 
