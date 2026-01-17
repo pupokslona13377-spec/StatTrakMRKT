@@ -142,202 +142,106 @@
     </div>
 
     <script>
-        const API_URL = "https://stattrakmrkt.onrender.com";
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+    const API_URL = "https://stattrakmrkt.onrender.com";
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
 
-        let userBalance = parseFloat(localStorage.getItem('balance')) || 0;
+    // Получаем ID пользователя
+    const user = tg.initDataUnsafe?.user || { id: 123456, first_name: "Demo" };
+    const userId = user.id;
 
-        function showToast(text, color = '#667eea') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.style.borderLeftColor = color;
-            toast.textContent = text;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
+    // Внутреннее состояние баланса (будет обновляться с сервера)
+    let userBalance = 0;
 
-        function switchSection(section) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(section + 'Section').classList.add('active');
-            
-            if(section === 'market') { loadMarket(); document.querySelectorAll('.nav-btn')[0].classList.add('active'); }
-            if(section === 'inventory') { loadInventory(); document.querySelectorAll('.nav-btn')[1].classList.add('active'); }
-            if(section === 'profile') { loadMyItems(); document.querySelectorAll('.nav-btn')[2].classList.add('active'); }
+    function showToast(text, color = '#667eea') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.style.borderLeftColor = color;
+        toast.textContent = text;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Обновление цифр на экране
+    function updateUI() {
+        const mBal = document.getElementById('m-balance');
+        const pBal = document.getElementById('p-balance');
+        if(mBal) mBal.innerText = userBalance.toFixed(2);
+        if(pBal) pBal.innerText = userBalance.toFixed(2) + " TON";
+    }
+
+    // Синхронизация баланса с сервером
+    async function syncBalance() {
+        try {
+            const res = await fetch(`${API_URL}/api/user/${userId}`);
+            const data = await res.json();
+            userBalance = data.balance;
             updateUI();
-        }
+        } catch (e) { console.error("Ошибка баланса", e); }
+    }
 
-        function updateUI() {
-            document.getElementById('m-balance').innerText = userBalance.toFixed(2);
-            document.getElementById('p-balance').innerText = userBalance.toFixed(2) + " TON";
-            localStorage.setItem('balance', userBalance);
-        }
+    async function loadMarket() {
+        const grid = document.getElementById('marketGrid');
+        grid.innerHTML = "<div class='loader'><div class='spinner'></div></div>";
+        try {
+            const res = await fetch(`${API_URL}/api/market`);
+            const items = await res.json();
+            grid.innerHTML = items.map(i => `
+                <div class="item-card ${i.rarity || ''}">
+                    <img src="https://community.cloudflare.steamstatic.com/economy/image/${i.hash}/512fx512f">
+                    <div class="item-name">${i.name}</div>
+                    <div class="item-price">${i.price} TON</div>
+                    <button class="btn btn-success" onclick="buyItem('${i.id}', ${i.price}, '${i.name}')">Купить</button>
+                </div>
+            `).join('');
+        } catch (e) { showToast("Ошибка загрузки маркета", "#ef4444"); }
+    }
 
-        async function loadMarket() {
-            const grid = document.getElementById('marketGrid');
-            try {
-                const res = await fetch(`${API_URL}/api/market`);
-                const items = await res.json();
-                grid.innerHTML = items.map(i => `
-                    <div class="item-card ${i.rarity || ''}">
-                        <img src="https://community.cloudflare.steamstatic.com/economy/image/${i.hash}//512fx512f">
-                        <div class="item-name">${i.name}</div>
-                        <div style="color:#10b981; font-weight:bold;">${i.price} TON</div>
-                        <button class="btn btn-success" onclick="buyItem('${i.name}', ${i.price})">Купить</button>
-                    </div>
-                `).join('');
-            } catch (e) { showToast("Ошибка загрузки маркета", "#ef4444"); }
+    async function buyItem(itemId, price, name) {
+        if (userBalance < price) {
+            showToast("❌ Недостаточно TON на балансе!", "#ef4444");
+            return;
         }
+        if (!confirm(`Купить ${name} за ${price} TON?`)) return;
 
-        async function loadInventory() {
-            const sid = localStorage.getItem('sid');
-            const grid = document.getElementById('inventoryGrid');
-            if(!sid) { showToast("Укажите SteamID в профиле!", "#e4ae39"); return; }
-            grid.innerHTML = "<div style='grid-column:1/-1; text-align:center;'>Загрузка...</div>";
-            try {
-                const r = await fetch(`${API_URL}/api/inventory/${sid}`);
-                const d = await r.json();
-                grid.innerHTML = d.descriptions.map(i => {
-                    const rarity = getRarityClass(i);
-                    return `
-                        <div class="item-card ${rarity}">
-                            <img src="https://community.cloudflare.steamstatic.com/economy/image/${i.icon_url}/120x80">
-                            <div class="item-name">${i.market_name}</div>
-                            <button class="btn btn-primary" onclick="listItemForSale('${i.market_name.replace(/'/g, "\\'")}', '${i.icon_url}', '${rarity}')">Продать</button>
-                        </div>
-                    `;
-                }).join('');
-            } catch(e) { grid.innerHTML = "Ошибка инвентаря"; }
-        }
-
-        async function listItemForSale(name, hash, rarity) {
-            const price = prompt(`Цена для ${name} (TON):`, "1.0");
-            if (!price || isNaN(price)) return;
-            try {
-                const res = await fetch(`${API_URL}/api/market/add`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, price, hash, rarity, sellerSid: localStorage.getItem('sid') })
-                });
-                if (res.ok) { showToast("✅ Выставлено на продажу!", "#10b981"); switchSection('market'); }
-            } catch (e) { showToast("Ошибка при выставлении", "#ef4444"); }
-        }
-
-        function getRarityClass(item) {
-            const colorTag = item.tags ? item.tags.find(t => t.category === "Rarity") : null;
-            const color = colorTag ? colorTag.color : "";
-            const colors = { "b0c3d9": "rarity-common", "5e98d9": "rarity-uncommon", "4b69ff": "rarity-rare", "8847ff": "rarity-mythical", "d32ce6": "rarity-legendary", "eb4b4b": "rarity-ancient", "e4ae39": "rarity-immortal" };
-            return colors[color] || "";
-        }
-
-        function filterMarket() {
-            const q = document.getElementById('searchInput').value.toLowerCase();
-            document.querySelectorAll('#marketGrid .item-card').forEach(card => {
-                card.style.display = card.innerText.toLowerCase().includes(q) ? 'block' : 'none';
+        try {
+            const res = await fetch(`${API_URL}/api/market/buy`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: userId, itemId: itemId })
             });
-        }
-
-        function saveData() {
-            localStorage.setItem('sid', document.getElementById('steamIdInput').value);
-            showToast("💾 Настройки сохранены!");
-        }
-        // ============ ЗАГРУЗКА ПРОФИЛЯ ============
-        async function loadProfile() {
-            const balanceEl = document.getElementById('profileBalance');
-            balanceEl.textContent = userBalance.toFixed(2) + " TON";
-            
-            const listingsGrid = document.getElementById('myListings');
-            listingsGrid.innerHTML = "<div class='loader'><div class='spinner'></div></div>";
-
-            try {
-                const res = await fetch(`${API_URL}/api/market`);
-                const items = await res.json();
-                // Фильтруем товары по вашему ID (в базе это sellerSid или userId)
-                const myItems = items.filter(i => i.sellerSid == userId);
-
-                if (myItems.length === 0) {
-                    listingsGrid.innerHTML = "<div class='empty-state'>У вас нет активных объявлений</div>";
-                    return;
-                }
-
-                listingsGrid.innerHTML = myItems.map(i => `
-                    <div class="my-listing">
-                        <div class="my-listing-info">
-                            <div class="my-listing-name">${i.name}</div>
-                            <div class="my-listing-price">${i.price} TON</div>
-                        </div>
-                        <button class="btn btn-danger" style="width: auto; margin-top: 0;" onclick="removeItem(${i.id})">Снять</button>
-                    </div>
-                `).join('');
-            } catch (e) {
-                listingsGrid.innerHTML = "Ошибка загрузки объявлений";
+            const data = await res.json();
+            if (res.ok) {
+                userBalance = data.newBalance;
+                updateUI();
+                showToast("✅ Успешно куплено!", "#10b981");
+                loadMarket();
+            } else {
+                showToast(data.message, "#ef4444");
             }
-        }
-
-        async function removeItem(id) {
-            if (!confirm("Снять скин с продажи?")) return;
-            try {
-                const res = await fetch(`${API_URL}/api/market/${id}`, { method: 'DELETE' });
-                if (res.ok) {
-                    showToast("✅ Товар снят с продажи", "#10b981");
-                    loadProfile();
-                }
-            } catch (e) {
-                showToast("Ошибка при удалении", "#ef4444");
-            }
-        }
-        function depositFunds() {
-    const amount = prompt("Сколько TON вы хотите внести на баланс?", "1.0");
-    if (amount && !isNaN(amount)) {
-        showToast(`Заявка на пополнение ${amount} TON создана!`);
-        // Здесь позже добавим логику формирования счета для оплаты
-    }
-}
-        async function buyItem(name, price) {
-    // 1. Проверяем, хватает ли денег на внутреннем балансе
-    if (userBalance < price) {
-        showToast(`❌ Недостаточно TON! У вас ${userBalance.toFixed(2)}, а нужно ${price}`, "#ef4444");
-        return;
+        } catch (e) { showToast("Ошибка сервера", "#ef4444"); }
     }
 
-    // 2. Подтверждение покупки
-    if (!confirm(`Вы уверены, что хотите купить ${name} за ${price} TON?`)) {
-        return;
+    function switchSection(section) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        
+        const target = document.getElementById(section + 'Section');
+        if (target) target.classList.add('active');
+
+        if(section === 'market') { loadMarket(); document.querySelectorAll('.nav-btn')[0].classList.add('active'); }
+        if(section === 'inventory') { loadInventory(); document.querySelectorAll('.nav-btn')[1].classList.add('active'); }
+        if(section === 'profile') { syncBalance(); document.querySelectorAll('.nav-btn')[2].classList.add('active'); }
     }
 
-    try {
-        showToast("Обработка покупки...", "#667eea");
-
-        // 3. Отправляем запрос на твой бэкенд на Render
-        const response = await fetch(`${API_URL}/api/market/buy`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                [cite_start]userId: userId, // ID пользователя из Telegram [cite: 79]
-                itemName: name,
-                price: price
-            })
-        });
-
-        if (response.ok) {
-            // 4. Если сервер подтвердил, вычитаем деньги локально и обновляем UI
-            userBalance -= price;
-            updateUI(); 
-            showToast("✅ Покупка успешна! Проверьте инвентарь.", "#10b981");
-            loadMarket(); // Обновляем список товаров
-        } else {
-            const error = await response.json();
-            showToast(`Ошибка: ${error.message || 'Не удалось купить'}`, "#ef4444");
-        }
-    } catch (e) {
-        console.error(e);
-        showToast("Ошибка связи с сервером", "#ef4444");
-    }
-}
+    // Инициализация при загрузке
+    window.onload = () => {
+        syncBalance();
+        loadMarket();
+    };
+</script>
 
         window.onload = () => {
             document.getElementById('steamIdInput').value = localStorage.getItem('sid') || '';
@@ -346,6 +250,7 @@
     </script>
 </body>
 </html>
+
 
 
 
