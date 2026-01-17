@@ -62,20 +62,25 @@ app.post('/api/market/buy', (req, res) => {
 // --- ИНВЕНТАРЬ (С ОБХОДОМ БЛОКИРОВКИ) ---
 app.get('/api/inventory/:steamId', async (req, res) => {
     const { steamId } = req.params;
+    // Используем прокси AllOrigins с параметром disableCache, чтобы всегда получать свежие данные
     const targetUrl = `https://steamcommunity.com/inventory/${steamId}/730/2?l=russian&count=75`;
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}&disableCache=true`;
 
     try {
         const response = await axios.get(proxyUrl);
-        const steamData = JSON.parse(response.data.contents);
+        // AllOrigins возвращает данные в строке .contents, парсим её вручную
+        const rawData = response.data.contents;
+        const steamData = JSON.parse(rawData);
         
         if (steamData && steamData.descriptions) {
             res.json(steamData);
         } else {
-            res.status(404).json({ error: 'Инвентарь скрыт или пуст' });
+            // Если Steam вернул "null" или ошибку приватности
+            res.status(404).json({ error: 'Инвентарь скрыт' });
         }
     } catch (error) {
-        res.status(500).json({ error: 'Ошибка Steam API' });
+        console.error('Steam Proxy Error:', error.message);
+        res.status(500).json({ error: 'Steam заблокировал соединение' });
     }
 });
 
