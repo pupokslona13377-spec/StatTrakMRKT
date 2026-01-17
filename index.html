@@ -94,6 +94,11 @@
     <div id="marketPage" class="page active">
         <h2>🛒 Маркет</h2>
         <div style="margin: 10px 0; color: #0088cc;">Баланс: <span id="m-balance">0.00</span> TON</div>
+        <div style="padding: 10px;">
+    <input type="text" id="searchInput" placeholder="🔍 Поиск скина по названию..." 
+           oninput="filterMarket()" 
+           style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #374151; background: #1f2937; color: white; outline: none;">
+</div>
         <div class="items-grid" id="marketGrid"></div>
     </div>
 
@@ -325,6 +330,7 @@ async function removeItem(id) {
     </script>
 </body>
 </html>
+
 
 
 
