@@ -327,9 +327,28 @@ async function removeItem(id) {
     
     return ""; // Если цвет не найден
 }
+        function filterMarket() {
+    // Получаем текст из поиска и переводим в нижний регистр
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    // Находим все карточки товаров в маркете
+    const items = document.querySelectorAll('#marketGrid .item-card');
+
+    items.forEach(item => {
+        // Берем название скина из карточки
+        const name = item.querySelector('div').innerText.toLowerCase();
+        
+        // Если название содержит поисковый запрос, показываем, иначе скрываем
+        if (name.includes(query)) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
     </script>
 </body>
 </html>
+
 
 
 
