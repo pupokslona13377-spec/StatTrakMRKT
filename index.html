@@ -138,28 +138,35 @@
             } catch (e) { showToast("Ошибка загрузки маркета"); }
         }
 
-        async function loadInventory() {
-            const sid = localStorage.getItem('sid');
-            const grid = document.getElementById('inventoryGrid');
-            if (!sid) { showToast("Укажите SteamID в профиле!"); switchSection('profile'); return; }
+       async function loadInventory() {
+    const sid = localStorage.getItem('sid');
+    const grid = document.getElementById('inventoryGrid');
+    if (!sid) { showToast("Укажите SteamID в профиле!"); switchSection('profile'); return; }
 
-            grid.innerHTML = "<div class='loader'><div class='spinner'></div></div>";
-            try {
-                const res = await fetch(`${API_URL}/api/inventory/${sid}`);
-                const data = await res.json();
-                grid.innerHTML = data.descriptions.map(item => {
-                    const rarity = getRarityClass(item);
-                    return `
-                        <div class="item-card ${rarity}">
-                            <img src="https://community.cloudflare.steamstatic.com/economy/image/${item.icon_url}/200fx200f">
-                            <div class="item-name">${item.market_name}</div>
-                            <button class="btn btn-primary" onclick="listItem('${item.market_name}', '${item.icon_url}', '${rarity}')">Продать</button>
-                        </div>
-                    `;
-                }).join('');
-            } catch (e) { grid.innerHTML = "<div class='empty-state'>Ошибка Steam или скрытый профиль</div>"; }
+    grid.innerHTML = "<div class='loader'><div class='spinner'></div><p>Связываюсь со Steam...</p></div>";
+    try {
+        const res = await fetch(`${API_URL}/api/inventory/${sid}`);
+        const data = await res.json();
+
+        if (res.ok && data.descriptions) {
+            grid.innerHTML = data.descriptions.map(item => {
+                const rarity = getRarityClass(item);
+                return `
+                    <div class="item-card ${rarity}">
+                        <img src="https://community.cloudflare.steamstatic.com/economy/image/${item.icon_url}/200fx200f">
+                        <div class="item-name">${item.market_name}</div>
+                        <button class="btn btn-primary" onclick="listItem('${item.market_name.replace(/'/g, "\\'")}', '${item.icon_url}', '${rarity}')">Продать</button>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            grid.innerHTML = `<div style="text-align:center; padding:20px;">${data.error || 'Ошибка доступа'}<br><small style="color:#94a3b8">Проверьте настройки приватности инвентаря</small></div>`;
         }
-
+    } catch (e) { 
+        console.error(e);
+        grid.innerHTML = "<div class='empty-state'>Сервер не отвечает</div>"; 
+    }
+}
         function getRarityClass(item) {
             if (!item.tags) return "";
             const tag = item.tags.find(t => t.category === "Rarity");
@@ -228,6 +235,7 @@
     </script>
 </body>
 </html>
+
 
 
 
