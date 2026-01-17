@@ -100,11 +100,26 @@ app.post('/api/market/buy', (req, res) => {
 // Получение инвентаря
 app.get('/api/inventory/:steamId', async (req, res) => {
     try {
-        const url = `https://steamcommunity.com/inventory/${req.params.steamId}/730/2?l=russian&count=100`;
-        const response = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-        res.json(response.data);
+        const { steamId } = req.params;
+        // Используем более стабильную ссылку Steam API
+        const url = `https://steamcommunity.com/inventory/${steamId}/730/2?l=russian&count=75`;
+        
+        const response = await axios.get(url, { 
+            headers: { 
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'
+            },
+            timeout: 10000 // Ждем максимум 10 секунд
+        });
+        
+        if (response.data && response.data.descriptions) {
+            res.json(response.data);
+        } else {
+            res.status(404).json({ error: 'Инвентарь пуст или скрыт' });
+        }
     } catch (error) {
-        res.status(500).json({ error: 'Steam Error' });
+        console.error('Steam API Error:', error.message);
+        res.status(500).json({ error: 'Steam не отвечает или блокирует запрос' });
     }
 });
 
