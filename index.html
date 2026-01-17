@@ -181,19 +181,25 @@
             } catch (e) { grid.innerHTML = "Ошибка загрузки маркета"; }
         }
 
-        async function listItemForSale(name, hash) {
-            const price = prompt(`Цена для ${name} (TON):`, "1.0");
-            if (!price || isNaN(price)) return;
-            try {
-                await fetch(`${API_URL}/api/market/add`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, price, hash, sellerSid: localStorage.getItem('sid') })
-                });
-                tg.showAlert("Выставлено!");
-                switchPage('market');
-            } catch (e) { tg.showAlert("Ошибка"); }
-        }
+        async function listItemForSale(name, hash, rarity) {
+    const price = prompt(`Цена для ${name} (TON):`, "1.0");
+    if (!price || isNaN(price)) return;
+    try {
+        await fetch(`${API_URL}/api/market/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                name, 
+                price, 
+                hash, 
+                rarity, // Добавляем цвет лота
+                sellerSid: localStorage.getItem('sid') 
+            })
+        });
+        tg.showAlert("Выставлено!");
+        switchPage('market');
+    } catch (e) { tg.showAlert("Ошибка"); }
+}
 
         async function loadInv() {
             const sid = localStorage.getItem('sid');
@@ -301,6 +307,7 @@ async function removeItem(id) {
     </script>
 </body>
 </html>
+
 
 
 
