@@ -193,24 +193,31 @@
     }
 }
 
-        async function listItemForSale(name, hash, rarity) {
+       async function listItemForSale(name, hash, rarity) {
     const price = prompt(`Цена для ${name} (TON):`, "1.0");
     if (!price || isNaN(price)) return;
+    
+    console.log("Отправляем на сервер:", { name, price, hash, rarity });
+
     try {
-        await fetch(`${API_URL}/api/market/add`, {
+        const res = await fetch(`${API_URL}/api/market/add`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 name, 
                 price, 
                 hash, 
-                rarity, // Добавляем цвет лота
+                rarity: rarity, // Убеждаемся, что поле называется именно rarity
                 sellerSid: localStorage.getItem('sid') 
             })
         });
-        tg.showAlert("Выставлено!");
-        switchPage('market');
-    } catch (e) { tg.showAlert("Ошибка"); }
+        if (res.ok) {
+            tg.showAlert("Выставлено!");
+            switchPage('market');
+        }
+    } catch (e) { 
+        tg.showAlert("Ошибка при отправке"); 
+    }
 }
 
        async function loadInv() {
@@ -321,6 +328,7 @@ async function removeItem(id) {
     </script>
 </body>
 </html>
+
 
 
 
