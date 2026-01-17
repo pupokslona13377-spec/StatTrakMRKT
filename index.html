@@ -166,20 +166,19 @@
         }
 
         async function loadMarket() {
-            const grid = document.getElementById('marketGrid');
-            try {
-                const res = await fetch(`${API_URL}/api/market`);
-                const items = await res.json();
-                grid.innerHTML = items.map(i => `
-                    <div class="item-card">
-                        <img src="https://community.cloudflare.steamstatic.com/economy/image/${i.hash}/120x80" class="item-image">
-                        <div style="font-size:11px; font-weight:bold;">${i.name}</div>
-                        <div style="color:#0088cc; margin:5px 0;">${i.price} TON</div>
-                        <button class="btn btn-buy" onclick="buyItem('${i.name}', ${i.price})">Купить</button>
-                    </div>
-                `).join('');
-            } catch (e) { grid.innerHTML = "Ошибка загрузки маркета"; }
-        }
+    const grid = document.getElementById('marketGrid');
+    try {
+        const res = await fetch(`${API_URL}/api/market`);
+        const items = await res.json();
+        grid.innerHTML = items.map(i => `
+            <div class="item-card ${i.rarity || ''}"> <img src="https://community.cloudflare.steamstatic.com/economy/image/${i.hash}/120x80" class="item-image">
+                <div style="font-size:11px; font-weight:bold;">${i.name}</div>
+                <div style="color:#0088cc; margin:5px 0;">${i.price} TON</div>
+                <button class="btn btn-buy" onclick="buyItem('${i.name}', ${i.price})">Купить</button>
+            </div>
+        `).join('');
+    } catch (e) { grid.innerHTML = "Ошибка загрузки маркета"; }
+}
 
         async function listItemForSale(name, hash, rarity) {
     const price = prompt(`Цена для ${name} (TON):`, "1.0");
@@ -307,6 +306,7 @@ async function removeItem(id) {
     </script>
 </body>
 </html>
+
 
 
 
