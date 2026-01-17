@@ -242,6 +242,51 @@
             localStorage.setItem('sid', document.getElementById('steamIdInput').value);
             showToast("💾 Настройки сохранены!");
         }
+        // ============ ЗАГРУЗКА ПРОФИЛЯ ============
+        async function loadProfile() {
+            const balanceEl = document.getElementById('profileBalance');
+            balanceEl.textContent = userBalance.toFixed(2) + " TON";
+            
+            const listingsGrid = document.getElementById('myListings');
+            listingsGrid.innerHTML = "<div class='loader'><div class='spinner'></div></div>";
+
+            try {
+                const res = await fetch(`${API_URL}/api/market`);
+                const items = await res.json();
+                // Фильтруем товары по вашему ID (в базе это sellerSid или userId)
+                const myItems = items.filter(i => i.sellerSid == userId);
+
+                if (myItems.length === 0) {
+                    listingsGrid.innerHTML = "<div class='empty-state'>У вас нет активных объявлений</div>";
+                    return;
+                }
+
+                listingsGrid.innerHTML = myItems.map(i => `
+                    <div class="my-listing">
+                        <div class="my-listing-info">
+                            <div class="my-listing-name">${i.name}</div>
+                            <div class="my-listing-price">${i.price} TON</div>
+                        </div>
+                        <button class="btn btn-danger" style="width: auto; margin-top: 0;" onclick="removeItem(${i.id})">Снять</button>
+                    </div>
+                `).join('');
+            } catch (e) {
+                listingsGrid.innerHTML = "Ошибка загрузки объявлений";
+            }
+        }
+
+        async function removeItem(id) {
+            if (!confirm("Снять скин с продажи?")) return;
+            try {
+                const res = await fetch(`${API_URL}/api/market/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast("✅ Товар снят с продажи", "#10b981");
+                    loadProfile();
+                }
+            } catch (e) {
+                showToast("Ошибка при удалении", "#ef4444");
+            }
+        }
 
         window.onload = () => {
             document.getElementById('steamIdInput').value = localStorage.getItem('sid') || '';
@@ -250,3 +295,4 @@
     </script>
 </body>
 </html>
+
