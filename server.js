@@ -43,5 +43,18 @@ app.get('/api/inventory/:steamId', async (req, res) => {
         res.status(500).json({ error: 'Steam Error' });
     }
 });
+// Удалить товар из маркета (Снять с продажи)
+app.delete('/api/market/:id', (req, res) => {
+    const { id } = req.params;
+    const initialLength = marketItems.length;
+    // Оставляем только те товары, ID которых не совпадает с удаляемым
+    marketItems = marketItems.filter(item => item.id.toString() !== id.toString());
+    
+    if (marketItems.length < initialLength) {
+        res.json({ success: true });
+    } else {
+        res.status(404).json({ error: 'Товар не найден' });
+    }
+});
 
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
