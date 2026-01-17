@@ -6,104 +6,28 @@
     <title>StatTrak Market</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* Вставляем новый дизайн от Opus */
+        /* Базовые стили из твоего файла */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0f172a;
-            color: white;
-            padding-bottom: 80px;
-            overflow-x: hidden;
-        }
-
-        .header {
-            background: #1e293b;
-            padding: 15px 20px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        }
-
-        .header h1 {
-            font-size: 24px;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .search-box {
-            width: 100%;
-            padding: 12px 16px;
-            background: #0f172a;
-            border: 2px solid #334155;
-            border-radius: 12px;
-            color: white;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-
-        .section { display: none; padding: 20px; animation: fadeIn 0.3s; }
+        body { font-family: sans-serif; background: #0f172a; color: white; padding-bottom: 80px; }
+        .header { background: #1e293b; padding: 15px 20px; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .header h1 { font-size: 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .search-box { width: 100%; padding: 12px; background: #0f172a; border: 2px solid #334155; border-radius: 12px; color: white; margin-top: 10px; }
+        .section { display: none; padding: 20px; }
         .section.active { display: block; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .items-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .item-card {
-            background: #1e293b;
-            border-radius: 12px;
-            padding: 15px;
-            text-align: center;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-            border-bottom: 4px solid #475569;
-        }
-
-        .item-card:active { transform: scale(0.95); }
-
-        .item-card img {
-            width: 100%;
-            max-width: 100px;
-            height: auto;
-            margin: 0 auto 10px;
-            display: block;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-        }
-
-        /* Цвета редкости */
-        .rarity-common { border-bottom-color: #b0c3d9; box-shadow: 0 4px 15px rgba(176, 195, 217, 0.2); }
-        .rarity-uncommon { border-bottom-color: #5e98d9; box-shadow: 0 4px 15px rgba(94, 152, 217, 0.3); }
-        .rarity-rare { border-bottom-color: #4b69ff; box-shadow: 0 4px 15px rgba(75, 105, 255, 0.3); }
-        .rarity-mythical { border-bottom-color: #8847ff; box-shadow: 0 4px 15px rgba(136, 71, 255, 0.3); }
-        .rarity-legendary { border-bottom-color: #d32ce6; box-shadow: 0 4px 15px rgba(211, 44, 230, 0.3); }
-        .rarity-ancient { border-bottom-color: #eb4b4b; box-shadow: 0 4px 15px rgba(235, 75, 75, 0.3); }
-        .rarity-immortal { border-bottom-color: #e4ae39; box-shadow: 0 4px 20px rgba(228, 174, 57, 0.4); }
-
-        .btn {
-            padding: 10px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 8px;
-        }
+        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
+        .item-card { background: #1e293b; border-radius: 12px; padding: 15px; text-align: center; border-bottom: 4px solid #475569; }
+        .item-card img { width: 100%; max-width: 100px; height: auto; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); }
+        .item-price { color: #10b981; font-weight: bold; margin: 5px 0; }
+        .btn { padding: 10px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; }
         .btn-success { background: #10b981; color: white; }
         .btn-primary { background: #667eea; color: white; }
-
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: #1e293b; display: flex; justify-content: space-around;
-            padding: 10px 0 25px 0; z-index: 1000;
-        }
-        .nav-btn { background: none; border: none; color: #94a3b8; font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #1e293b; display: flex; justify-content: space-around; padding: 10px 0 25px 0; }
+        .nav-btn { background: none; border: none; color: #94a3b8; font-size: 12px; display: flex; flex-direction: column; align-items: center; }
         .nav-btn.active { color: #667eea; }
-
-        .toast-container { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; }
-        .toast { background: #1e293b; color: white; padding: 12px 20px; border-radius: 12px; border-left: 4px solid #667eea; animation: slideIn 0.3s; }
-        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .toast-container { position: fixed; bottom: 90px; left: 20px; right: 20px; z-index: 10000; }
+        .toast { background: #1e293b; color: white; padding: 12px; border-radius: 8px; border-left: 4px solid #667eea; margin-top: 5px; }
+        /* Цвета редкостей */
+        .rarity-ancient { border-bottom-color: #eb4b4b; box-shadow: 0 4px 15px rgba(235, 75, 75, 0.3); }
     </style>
 </head>
 <body>
@@ -127,130 +51,119 @@
         <div style="background: #1e293b; padding: 20px; border-radius: 15px; text-align: center;">
             <h2 id="p-balance">0.00 TON</h2>
             <p style="color: #94a3b8; font-size: 12px;">Ваш баланс</p>
-            <button class="btn btn-success" onclick="depositFunds()">➕ Пополнить баланс (TON)</button>
-            <input type="text" id="steamIdInput" placeholder="SteamID64" style="width:100%; margin-top:15px; padding:10px; border-radius:8px; background:#0f172a; border:1px solid #334155; color:white;">
-            <button class="btn btn-primary" onclick="saveData()">💾 Сохранить ID</button>
+            <button class="btn btn-success" onclick="depositFunds()" style="margin: 15px 0;">➕ Пополнить баланс</button>
+            <input type="text" id="steamIdInput" placeholder="SteamID64" style="width:100%; padding:10px; border-radius:8px; background:#0f172a; border:1px solid #334155; color:white; margin-top:10px;">
+            <button class="btn btn-primary" onclick="saveData()" style="margin-top:10px;">💾 Сохранить ID</button>
         </div>
-        <h3 style="margin-top:20px;">📦 Мои товары</h3>
-        <div id="myListings" class="items-grid"></div>
     </div>
 
-    <div class="bottom-nav">
-        <button class="nav-btn active" onclick="switchSection('market')"><span>🛒</span>Маркет</button>
-        <button class="nav-btn" onclick="switchSection('inventory')"><span>🎒</span>Инвентарь</button>
-        <button class="nav-btn" onclick="switchSection('profile')"><span>👤</span>Профиль</button>
-    </div>
+    <nav class="bottom-nav">
+        <button class="nav-btn active" onclick="switchSection('market')">🛒<span>Маркет</span></button>
+        <button class="nav-btn" onclick="switchSection('inventory')">🎒<span>Инвентарь</span></button>
+        <button class="nav-btn" onclick="switchSection('profile')">👤<span>Профиль</span></button>
+    </nav>
 
     <script>
-    const API_URL = "https://stattrakmrkt.onrender.com";
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
+        const API_URL = "https://stattrakmrkt.onrender.com";
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
 
-    // Получаем ID пользователя
-    const user = tg.initDataUnsafe?.user || { id: 123456, first_name: "Demo" };
-    const userId = user.id;
+        const userId = tg.initDataUnsafe?.user?.id || 12345;
+        let userBalance = 0;
 
-    // Внутреннее состояние баланса (будет обновляться с сервера)
-    let userBalance = 0;
-
-    function showToast(text, color = '#667eea') {
-        const container = document.getElementById('toastContainer');
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.style.borderLeftColor = color;
-        toast.textContent = text;
-        container.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-    }
-
-    // Обновление цифр на экране
-    function updateUI() {
-        const mBal = document.getElementById('m-balance');
-        const pBal = document.getElementById('p-balance');
-        if(mBal) mBal.innerText = userBalance.toFixed(2);
-        if(pBal) pBal.innerText = userBalance.toFixed(2) + " TON";
-    }
-
-    // Синхронизация баланса с сервером
-    async function syncBalance() {
-        try {
-            const res = await fetch(`${API_URL}/api/user/${userId}`);
-            const data = await res.json();
-            userBalance = data.balance;
-            updateUI();
-        } catch (e) { console.error("Ошибка баланса", e); }
-    }
-
-    async function loadMarket() {
-        const grid = document.getElementById('marketGrid');
-        grid.innerHTML = "<div class='loader'><div class='spinner'></div></div>";
-        try {
-            const res = await fetch(`${API_URL}/api/market`);
-            const items = await res.json();
-            grid.innerHTML = items.map(i => `
-                <div class="item-card ${i.rarity || ''}">
-                    <img src="https://community.cloudflare.steamstatic.com/economy/image/${i.hash}/512fx512f">
-                    <div class="item-name">${i.name}</div>
-                    <div class="item-price">${i.price} TON</div>
-                    <button class="btn btn-success" onclick="buyItem('${i.id}', ${i.price}, '${i.name}')">Купить</button>
-                </div>
-            `).join('');
-        } catch (e) { showToast("Ошибка загрузки маркета", "#ef4444"); }
-    }
-
-    async function buyItem(itemId, price, name) {
-        if (userBalance < price) {
-            showToast("❌ Недостаточно TON на балансе!", "#ef4444");
-            return;
+        function showToast(text) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = text;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
         }
-        if (!confirm(`Купить ${name} за ${price} TON?`)) return;
 
-        try {
+        async function syncBalance() {
+            try {
+                const res = await fetch(`${API_URL}/api/user/${userId}`);
+                const data = await res.json();
+                userBalance = data.balance;
+                document.getElementById('m-balance').innerText = userBalance.toFixed(2);
+                document.getElementById('p-balance').innerText = userBalance.toFixed(2) + " TON";
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadMarket() {
+            const grid = document.getElementById('marketGrid');
+            grid.innerHTML = "Загрузка...";
+            try {
+                const res = await fetch(`${API_URL}/api/market`);
+                const items = await res.json();
+                grid.innerHTML = items.map(i => `
+                    <div class="item-card ${i.rarity || ''}">
+                        <img src="https://community.cloudflare.steamstatic.com/economy/image/${i.hash}/200fx200f">
+                        <div class="item-name" style="font-size:12px; margin:5px 0;">${i.name}</div>
+                        <div class="item-price">${i.price} TON</div>
+                        <button class="btn btn-success" onclick="buyItem('${i.id}', ${i.price}, '${i.name}')">Купить</button>
+                    </div>
+                `).join('');
+            } catch (e) { showToast("Ошибка загрузки"); }
+        }
+
+        async function buyItem(itemId, price, name) {
+            if (userBalance < price) {
+                showToast("Недостаточно средств!");
+                return;
+            }
+            if (!confirm(`Купить ${name}?`)) return;
+
             const res = await fetch(`${API_URL}/api/market/buy`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: userId, itemId: itemId })
             });
-            const data = await res.json();
+            
             if (res.ok) {
-                userBalance = data.newBalance;
-                updateUI();
-                showToast("✅ Успешно куплено!", "#10b981");
+                showToast("Куплено!");
+                syncBalance();
                 loadMarket();
             } else {
-                showToast(data.message, "#ef4444");
+                const err = await res.json();
+                showToast(err.message);
             }
-        } catch (e) { showToast("Ошибка сервера", "#ef4444"); }
-    }
+        }
 
-    function switchSection(section) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        
-        const target = document.getElementById(section + 'Section');
-        if (target) target.classList.add('active');
+        async function depositFunds() {
+            const amount = prompt("Сумма пополнения (тест):", "10");
+            if (!amount) return;
+            await fetch(`${API_URL}/api/user/deposit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: userId, amount: amount })
+            });
+            syncBalance();
+            showToast("Баланс пополнен!");
+        }
 
-        if(section === 'market') { loadMarket(); document.querySelectorAll('.nav-btn')[0].classList.add('active'); }
-        if(section === 'inventory') { loadInventory(); document.querySelectorAll('.nav-btn')[1].classList.add('active'); }
-        if(section === 'profile') { syncBalance(); document.querySelectorAll('.nav-btn')[2].classList.add('active'); }
-    }
+        function switchSection(section) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(section + 'Section').classList.add('active');
+            if (section === 'market') loadMarket();
+            if (section === 'profile') syncBalance();
+        }
 
-    // Инициализация при загрузке
-    window.onload = () => {
-        syncBalance();
-        loadMarket();
-    };
-</script>
+        function saveData() {
+            localStorage.setItem('sid', document.getElementById('steamIdInput').value);
+            showToast("ID сохранен!");
+        }
 
         window.onload = () => {
             document.getElementById('steamIdInput').value = localStorage.getItem('sid') || '';
-            switchSection('market');
+            syncBalance();
+            loadMarket();
         };
     </script>
 </body>
 </html>
-
 
 
 
