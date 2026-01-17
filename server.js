@@ -9,7 +9,13 @@ app.use(express.json());
 
 // Временная база данных в памяти сервера
 let marketItems = [
-    { id: 1, name: 'AK-47 | Redline', price: 5, hash: '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSrYmnjQO3-UdvZG_0LYGddlQ7Mg7S_1C8xue9h5Pu75iY1zI97bhKshWi' },
+    { 
+        id: 1, 
+        name: 'AK-47 | Redline', 
+        price: 5, 
+        hash: '-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSrYmnjQO3-UdvZG_0LYGddlQ7Mg7S_1C8xue9h5Pu75iY1zI97bhKshWi',
+        rarity: 'rarity-ancient' // Добавил редкость дефолтному предмету
+    },
 ];
 
 app.get('/', (req, res) => res.send('Сервер StatTrakMRKT онлайн!'));
@@ -21,14 +27,18 @@ app.get('/api/market', (req, res) => {
 
 // Выставить товар на маркет
 app.post('/api/market/add', (req, res) => {
-    const { name, price, hash, sellerSid } = req.body;
+    // ДОБАВИЛ rarity сюда 👇
+    const { name, price, hash, sellerSid, rarity } = req.body;
+    
     const newItem = {
         id: Date.now(),
         name,
         price: parseFloat(price),
         hash,
-        sellerSid
+        sellerSid,
+        rarity: rarity || '' // СОХРАНЯЕМ редкость в объект предмета
     };
+    
     marketItems.push(newItem);
     res.json({ success: true, item: newItem });
 });
@@ -43,11 +53,11 @@ app.get('/api/inventory/:steamId', async (req, res) => {
         res.status(500).json({ error: 'Steam Error' });
     }
 });
+
 // Удалить товар из маркета (Снять с продажи)
 app.delete('/api/market/:id', (req, res) => {
     const { id } = req.params;
     const initialLength = marketItems.length;
-    // Оставляем только те товары, ID которых не совпадает с удаляемым
     marketItems = marketItems.filter(item => item.id.toString() !== id.toString());
     
     if (marketItems.length < initialLength) {
