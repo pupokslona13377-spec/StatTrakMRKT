@@ -11,13 +11,30 @@
     body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #0b0e14; color: #fff; overflow-x: hidden; }
        /* Цвета редкости */
 
-.rarity-common { border-bottom: 4px solid #b0c3d9 !important; background: rgba(176, 195, 217, 0.05); }
-.rarity-uncommon { border-bottom: 4px solid #5e98d9 !important; background: rgba(94, 152, 217, 0.05); }
-.rarity-rare { border-bottom: 4px solid #4b69ff !important; background: rgba(75, 105, 255, 0.05); }
-.rarity-mythical { border-bottom: 4px solid #8847ff !important; background: rgba(136, 71, 255, 0.05); }
-.rarity-legendary { border-bottom: 4px solid #d32ce6 !important; background: rgba(211, 44, 230, 0.05); }
-.rarity-ancient { border-bottom: 4px solid #eb4b4b !important; background: rgba(235, 75, 75, 0.05); }
-.rarity-immortal { border-bottom: 4px solid #e4ae39 !important; background: rgba(228, 174, 57, 0.05); }
+/* Основной стиль карточки с анимацией */
+.item-card {
+    background: #1f2937;
+    border-radius: 12px;
+    padding: 10px;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease; /* Плавность */
+    position: relative;
+    overflow: hidden;
+}
+
+/* Эффект при нажатии */
+.item-card:active {
+    transform: scale(0.95); /* Сжимается при клике */
+}
+
+/* Добавляем свечение для каждого типа редкости */
+.rarity-common { border-bottom: 4px solid #b0c3d9 !important; box-shadow: 0 4px 15px -5px rgba(176, 195, 217, 0.3); }
+.rarity-uncommon { border-bottom: 4px solid #5e98d9 !important; box-shadow: 0 4px 15px -5px rgba(94, 152, 217, 0.3); }
+.rarity-rare { border-bottom: 4px solid #4b69ff !important; box-shadow: 0 4px 15px -5px rgba(75, 105, 255, 0.3); }
+.rarity-mythical { border-bottom: 4px solid #8847ff !important; box-shadow: 0 4px 15px -5px rgba(136, 71, 255, 0.3); }
+.rarity-legendary { border-bottom: 4px solid #d32ce6 !important; box-shadow: 0 4px 15px -5px rgba(211, 44, 230, 0.3); }
+.rarity-ancient { border-bottom: 4px solid #eb4b4b !important; box-shadow: 0 4px 15px -5px rgba(235, 75, 75, 0.3); }
+.rarity-immortal { border-bottom: 4px solid #e4ae39 !important; box-shadow: 0 4px 20px -5px rgba(228, 174, 57, 0.5); }
 
     /* Анимация переключения страниц */
     .page { 
@@ -348,6 +365,7 @@ async function removeItem(id) {
     </script>
 </body>
 </html>
+
 
 
 
