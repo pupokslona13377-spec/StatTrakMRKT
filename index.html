@@ -181,7 +181,7 @@
                 const items = await res.json();
                 grid.innerHTML = items.map(i => `
                     <div class="item-card ${i.rarity || ''}">
-                        <img src="https://community.cloudflare.steamstatic.com/economy/image/${i.hash}/120x80">
+                        <img src="https://community.cloudflare.steamstatic.com/economy/image/${i.hash}//512fx512f">
                         <div class="item-name">${i.name}</div>
                         <div style="color:#10b981; font-weight:bold;">${i.price} TON</div>
                         <button class="btn btn-success" onclick="buyItem('${i.name}', ${i.price})">Купить</button>
@@ -295,4 +295,5 @@
     </script>
 </body>
 </html>
+
 
