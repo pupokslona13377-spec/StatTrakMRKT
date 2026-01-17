@@ -42,6 +42,15 @@
         padding: 20px; 
         animation: slideIn 0.3s ease-out; 
     }
+       .item-image {
+    width: 100%;
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+}
+
+.item-card:hover .item-image {
+    transform: translateY(-5px); /* Картинка чуть всплывает при наведении */
+}
     .page.active { display: block; }
 
     @keyframes slideIn {
@@ -365,6 +374,7 @@ async function removeItem(id) {
     </script>
 </body>
 </html>
+
 
 
 
