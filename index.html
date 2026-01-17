@@ -394,10 +394,25 @@ async function removeItem(id) {
         }
     });
 }
+        function showToast(text, color = '#0088cc') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.style.borderLeftColor = color;
+    toast.innerHTML = `<span>${text}</span>`;
+    
+    container.appendChild(toast);
+    
+    // Удаляем элемент из кода после завершения анимации
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
     </script>
     <div id="toast-container" style="position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; pointer-events: none;"></div>
 </body>
 </html>
+
 
 
 
