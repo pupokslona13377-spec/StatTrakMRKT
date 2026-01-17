@@ -10,13 +10,14 @@
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #0b0e14; color: #fff; overflow-x: hidden; }
        /* Цвета редкости */
-.rarity-common { border-bottom: 4px solid #b0c3d9 !important; } /* Ширпотреб */
-.rarity-uncommon { border-bottom: 4px solid #5e98d9 !important; } /* Промышленное */
-.rarity-rare { border-bottom: 4px solid #4b69ff !important; } /* Армейское */
-.rarity-mythical { border-bottom: 4px solid #8847ff !important; } /* Запрещенное */
-.rarity-legendary { border-bottom: 4px solid #d32ce6 !important; } /* Засекреченное */
-.rarity-ancient { border-bottom: 4px solid #eb4b4b !important; } /* Тайное */
-.rarity-immortal { border-bottom: 4px solid #e4ae39 !important; } /* Золотое/Ножи */
+
+.rarity-common { border-bottom: 4px solid #b0c3d9 !important; background: rgba(176, 195, 217, 0.05); }
+.rarity-uncommon { border-bottom: 4px solid #5e98d9 !important; background: rgba(94, 152, 217, 0.05); }
+.rarity-rare { border-bottom: 4px solid #4b69ff !important; background: rgba(75, 105, 255, 0.05); }
+.rarity-mythical { border-bottom: 4px solid #8847ff !important; background: rgba(136, 71, 255, 0.05); }
+.rarity-legendary { border-bottom: 4px solid #d32ce6 !important; background: rgba(211, 44, 230, 0.05); }
+.rarity-ancient { border-bottom: 4px solid #eb4b4b !important; background: rgba(235, 75, 75, 0.05); }
+.rarity-immortal { border-bottom: 4px solid #e4ae39 !important; background: rgba(228, 174, 57, 0.05); }
 
     /* Анимация переключения страниц */
     .page { 
@@ -328,6 +329,7 @@ async function removeItem(id) {
     </script>
 </body>
 </html>
+
 
 
 
