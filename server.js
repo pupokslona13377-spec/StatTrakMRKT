@@ -100,20 +100,25 @@ app.post('/api/market/buy', (req, res) => {
 // Получение инвентаря
 app.get('/api/inventory/:steamId', async (req, res) => {
     const { steamId } = req.params;
-    
-    // Список ссылок для проверки (основная и запасная)
-    const urls = [
-        `https://steamcommunity.com/inventory/${steamId}/730/2?l=russian&count=75`,
-        `https://steamcommunity.com/profiles/${steamId}/inventory/json/730/2`
-    ];
+    // Используем API AllOrigins, чтобы обойти блокировку IP
+    const targetUrl = `https://steamcommunity.com/inventory/${steamId}/730/2?l=russian&count=75`;
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
 
-    for (let url of urls) {
-        try {
-            console.log(`Пробую загрузить: ${url}`);
-            const response = await axios.get(url, { 
-                headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36' },
-                timeout: 7000 
-            });
+    try {
+        const response = await axios.get(proxyUrl);
+        // AllOrigins возвращает данные в поле .contents в виде строки, парсим её
+        const steamData = JSON.parse(response.data.contents);
+        
+        if (steamData && steamData.descriptions) {
+            res.json(steamData);
+        } else {
+            res.status(404).json({ error: 'Инвентарь скрыт или пуст' });
+        }
+    } catch (error) {
+        console.error('Proxy Error:', error.message);
+        res.status(500).json({ error: 'Steam все еще недоступен. Проверьте приватность профиля.' });
+    }
+});
 
             // Проверяем структуру (у разных ссылок она чуть разная)
             const data = response.data;
