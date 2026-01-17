@@ -230,9 +230,52 @@
         document.getElementById('tradeUrlInput').value = localStorage.getItem('turl') || '';
         loadMarket();
         updateBalanceUI();
+        // Показать товары текущего пользователя
+async function showMyItems() {
+    const sid = localStorage.getItem('sid');
+    const container = document.getElementById('myItemsList');
+    if (!sid) { tg.showAlert("Сначала укажите SteamID"); return; }
+
+    try {
+        const res = await fetch(`${API_URL}/api/market`);
+        const allItems = await res.json();
+        // Фильтруем товары, чтобы показать только те, где sellerSid совпадает с нашим
+        const myItems = allItems.filter(item => item.sellerSid === sid);
+
+        if (myItems.length === 0) {
+            container.innerHTML = "<p style='grid-column: 1/3; color: #6b7280;'>У вас нет активных объявлений</p>";
+            return;
+        }
+
+        container.innerHTML = myItems.map(i => `
+            <div class="item-card" id="my-item-${i.id}">
+                <img src="https://community.cloudflare.steamstatic.com/economy/image/${i.hash}/120x80" class="item-image">
+                <div style="font-size:10px;">${i.name}</div>
+                <div style="color:#0088cc; margin:5px 0;">${i.price} TON</div>
+                <button class="btn" style="background:#ef4444; font-size:10px;" onclick="removeItem(${i.id})">Снять</button>
+            </div>
+        `).join('');
+    } catch (e) { tg.showAlert("Ошибка загрузки ваших товаров"); }
+}
+
+// Удалить товар
+async function removeItem(id) {
+    tg.showConfirm("Вы уверены, что хотите снять товар с продажи?", async (ok) => {
+        if (ok) {
+            try {
+                const res = await fetch(`${API_URL}/api/market/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    tg.showAlert("Товар снят с продажи!");
+                    showMyItems(); // Обновляем список
+                }
+            } catch (e) { tg.showAlert("Ошибка при удалении"); }
+        }
+    });
+}
     </script>
 </body>
 </html>
+
 
 
 
