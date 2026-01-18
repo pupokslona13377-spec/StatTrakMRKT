@@ -819,6 +819,17 @@ function startCartAnimation() {
     });
 }
 
+function closeSuccessModal() {
+    const successModal = document.getElementById('success-modal');
+    // Плавный уход вниз
+    successModal.classList.remove('active');
+    
+    // Через 400мс (время анимации CSS) очищаем состояние
+    setTimeout(() => {
+        backToInput(); // Возвращаем модалку продажи в первый шаг
+    }, 400);
+}
+
     // 3. Список легендарных скинов (те самые ссылки, которые всегда грузятся)
     const premiumSkins = [
         'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09Kzm7-FmP7mDLfYkWNF18lwmO7Eu4_xiVXg_0s_Ym3xctXAdVBoZlvR-FfsxL3ph5S9v53AmCc17id253_VyxSygBtMcKUx0iC9f_7E/200fx200f',
@@ -872,6 +883,7 @@ function startCartAnimation() {
     </script>
 </body>
 </html>
+
 
 
 
