@@ -2,314 +2,446 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>StatTrak Market</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>StatTrak Market | TON</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        /* ============================================================
+           ПОЛНЫЙ ДИЗАЙН-КОД (UI/UX)
+           ============================================================ */
         :root {
             --accent: #00D2FF;
-            --bg: #F8F9FA;
-            --card-bg: #FFFFFF;
-            --text: #212529;
-            --ton-color: #0088CC;
-            --error: #e74c3c;
-            --success: #2ecc71;
+            --ton-blue: #0088CC;
+            --bg-dark: #0F172A;
+            --card-bg: #1E293B;
+            --text-main: #F8FAFC;
+            --text-dim: #94A3B8;
+            --success: #10B981;
+            --danger: #EF4444;
+            --border: rgba(255, 255, 255, 0.08);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding-bottom: 100px;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.5;
+            overflow-x: hidden;
+            padding-bottom: 100px; /* Место под навигацию */
         }
 
-        /* LOADER */
-        .loader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.8); display: none;
-            justify-content: center; align-items: center; z-index: 9999;
+        /* АНИМАЦИИ */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* УВЕДОМЛЕНИЯ */
+        #toast-container {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 9999; width: 90%; pointer-events: none;
+        }
+        .toast {
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            color: white; padding: 12px 20px; border-radius: 12px;
+            margin-bottom: 10px; font-weight: 600; font-size: 14px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            display: flex; align-items: center; gap: 10px;
+            animation: slideUp 0.3s ease;
+        }
+
+        /* ЛОАДЕР */
+        #main-loader {
+            position: fixed; inset: 0; background: var(--bg-dark);
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; z-index: 10000; transition: 0.5s;
         }
         .spinner {
-            width: 40px; height: 40px; border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite;
+            width: 40px; height: 40px; border: 3px solid rgba(0, 210, 255, 0.1);
+            border-top: 3px solid var(--accent); border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* NOTIFICATIONS */
-        .notification {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
-            padding: 12px 24px; border-radius: 50px; color: white; font-weight: 600;
-            transition: 0.4s; z-index: 10000; box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-        }
-        .notification.show { transform: translateX(-50%) translateY(0); }
-        .notification-error { background: var(--error); }
-        .notification-success { background: var(--success); }
-
         /* HEADER */
-        .header {
-            background: var(--card-bg); padding: 15px 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        header {
+            padding: 20px; background: var(--bg-dark);
             position: sticky; top: 0; z-index: 100;
+            border-bottom: 1px solid var(--border);
         }
-        .header h1 { font-size: 20px; font-weight: 800; }
-        .header-accent { color: var(--accent); }
+        .logo-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .logo { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; }
+        .logo span { color: var(--accent); }
 
-        /* SECTIONS */
-        .section { display: none; padding: 15px; animation: fadeIn 0.3s ease; }
-        .section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .search-wrapper { position: relative; }
+        .search-input {
+            width: 100%; background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 12px; padding: 12px 15px 12px 40px; color: white;
+            font-size: 15px; outline: none; transition: 0.3s;
+        }
+        .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0, 210, 255, 0.1); }
+        .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); opacity: 0.5; }
 
-        /* CARDS */
-        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+        /* СЕКЦИИ */
+        .page { display: none; padding: 15px; animation: fadeIn 0.4s ease; }
+        .page.active { display: block; }
+
+        /* ГРИД ПРЕДМЕТОВ */
+        .items-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+        }
         .item-card {
             background: var(--card-bg); border-radius: 16px; padding: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03); text-align: center;
+            border: 1px solid var(--border); transition: 0.2s;
         }
-        .item-image { width: 100%; height: 100px; object-fit: contain; margin-bottom: 8px; }
-        .item-name { font-size: 12px; font-weight: 600; height: 32px; overflow: hidden; margin-bottom: 8px; }
-        .item-price { font-size: 15px; font-weight: 800; color: var(--ton-color); margin-bottom: 10px; }
+        .item-card:active { transform: scale(0.97); }
+        .item-img-container {
+            background: rgba(0,0,0,0.2); border-radius: 10px;
+            height: 120px; display: flex; align-items: center; justify-content: center;
+            margin-bottom: 10px; position: relative;
+        }
+        .item-img { max-width: 90%; max-height: 90%; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5)); }
+        .item-name { font-size: 13px; font-weight: 700; height: 38px; overflow: hidden; margin-bottom: 5px; }
+        .item-price-row { display: flex; align-items: center; gap: 5px; color: var(--accent); font-weight: 800; font-size: 16px; }
+        .ton-icon { width: 16px; height: 16px; }
 
-        /* INPUTS & BUTTONS */
-        .search-box {
-            width: 100%; padding: 12px; border: 1px solid #E9ECEF;
-            border-radius: 12px; font-size: 14px; margin-bottom: 15px; background: #fff;
+        .btn-action {
+            width: 100%; padding: 10px; border-radius: 10px; border: none;
+            background: var(--accent); color: var(--bg-dark); font-weight: 800;
+            font-size: 13px; margin-top: 10px; cursor: pointer;
         }
-        .btn {
-            width: 100%; padding: 12px; border: none; border-radius: 12px;
-            font-weight: 700; cursor: pointer; transition: 0.2s;
-        }
-        .btn-buy { background: var(--accent); color: white; }
-        .btn-ton { background: var(--ton-color); color: white; }
 
-        /* PROFILE */
-        .profile-card {
+        /* ПРОФИЛЬ */
+        .user-card {
             background: linear-gradient(135deg, #00D2FF 0%, #0088CC 100%);
-            border-radius: 20px; padding: 25px; color: white; margin-bottom: 20px;
+            border-radius: 24px; padding: 25px; margin-bottom: 20px;
+            box-shadow: 0 15px 30px rgba(0, 136, 204, 0.3);
         }
-        .balance-value { font-size: 32px; font-weight: 800; margin: 5px 0 15px; }
-        .wallet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn-wallet {
-            background: rgba(255,255,255,0.2); border: none; color: white;
-            padding: 10px; border-radius: 10px; font-weight: 600;
-        }
-
-        .profile-tabs {
-            display: flex; background: #E9ECEF; border-radius: 12px; padding: 4px; margin-bottom: 20px;
-        }
-        .p-tab {
-            flex: 1; text-align: center; padding: 10px; border-radius: 10px;
-            font-size: 13px; font-weight: 700; color: #6C757D; cursor: pointer;
-        }
-        .p-tab.active { background: white; color: var(--text); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-
-        /* GAME HUB BLUR */
-        .game-hub { position: relative; border-radius: 20px; overflow: hidden; background: #fff; min-height: 200px; }
-        .blur-box { filter: blur(10px); padding: 20px; opacity: 0.4; pointer-events: none; }
-        .lock-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 5;
+        .wallet-label { font-size: 13px; font-weight: 600; opacity: 0.8; text-transform: uppercase; }
+        .balance-main { font-size: 38px; font-weight: 900; margin: 5px 0 20px; }
+        .wallet-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .w-btn {
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
+            color: white; padding: 12px; border-radius: 14px; font-weight: 700;
+            backdrop-filter: blur(5px);
         }
 
-        /* NAVIGATION */
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0; background: #fff;
-            display: flex; justify-content: space-around; padding: 12px 0 25px;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.05); border-radius: 20px 20px 0 0;
+        .steam-box {
+            background: var(--card-bg); border-radius: 20px; padding: 20px;
+            margin-bottom: 20px; border: 1px solid var(--border);
         }
-        .nav-item { flex: 1; text-align: center; color: #ADB5BD; font-size: 11px; font-weight: 700; }
+        .input-dark {
+            width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border);
+            padding: 12px; border-radius: 12px; color: white; margin: 10px 0;
+        }
+
+        /* ТАБЫ В ПРОФИЛЕ */
+        .profile-nav {
+            display: flex; background: var(--card-bg); border-radius: 14px;
+            padding: 5px; margin-bottom: 15px; border: 1px solid var(--border);
+        }
+        .p-nav-btn {
+            flex: 1; padding: 10px; text-align: center; border-radius: 10px;
+            font-size: 13px; font-weight: 700; color: var(--text-dim);
+        }
+        .p-nav-btn.active { background: var(--accent); color: var(--bg-dark); }
+
+        /* GAME HUB */
+        .hub-banner {
+            height: 200px; border-radius: 20px; overflow: hidden;
+            position: relative; margin-bottom: 20px;
+            background: url('https://rare-gallery.com/uploads/posts/301308-csgo-counter-strike-global-offensive-video-game.jpg') center/cover;
+        }
+        .hub-overlay {
+            position: absolute; inset: 0; background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(8px); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; text-align: center;
+        }
+
+        /* BOTTOM NAVIGATION */
+        .nav-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border); display: flex;
+            justify-content: space-around; padding: 10px 10px 30px; z-index: 1000;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            color: var(--text-dim); text-decoration: none; font-size: 10px; font-weight: 700;
+        }
         .nav-item.active { color: var(--accent); }
-        .nav-icon { font-size: 20px; display: block; margin-bottom: 2px; }
+        .nav-item svg { width: 24px; height: 24px; margin-bottom: 4px; }
+
+        /* ТЕКСТОВЫЕ КЛАССЫ */
+        .empty-msg { text-align: center; color: var(--text-dim); padding: 40px 20px; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <div id="loader" class="loader"><div class="spinner"></div></div>
-    <div id="notif" class="notification"></div>
+    <div id="main-loader"><div class="spinner"></div><p style="margin-top:15px; font-weight:700; font-size:12px; color:var(--accent)">STATTRAK LOADING...</p></div>
+    <div id="toast-container"></div>
 
-    <div class="header">
-        <h1>💎 <span class="header-accent">StatTrak</span> Market</h1>
-    </div>
-
-    <div class="section active" id="market">
-        <div class="items-grid" id="marketGrid"></div>
-    </div>
-
-    <div class="section" id="gameHub">
-        <div class="game-hub">
-            <div class="lock-overlay">
-                <span style="font-size: 40px;">🎮</span>
-                <h3>Игровой Хаб</h3>
-                <p style="font-size: 12px; color: #666;">Скоро открытие</p>
+    <header>
+        <div class="logo-row">
+            <div class="logo">STAT<span>TRAK</span></div>
+            <div id="tg-user" style="font-size: 12px; font-weight: 700; background: var(--card-bg); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border);">
+                User
             </div>
-            <div class="blur-box">
-                <div class="items-grid">
-                    <div class="item-card" style="height:120px;"></div>
-                    <div class="item-card" style="height:120px;"></div>
+        </div>
+        <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" id="globalSearch" placeholder="Поиск скинов...">
+        </div>
+    </header>
+
+    <main id="page-market" class="page active">
+        <div class="items-grid" id="market-list">
+            </div>
+    </main>
+
+    <section id="page-hub" class="page">
+        <div class="hub-banner">
+            <div class="hub-overlay">
+                <h2 style="font-size: 24px;">GAME HUB</h2>
+                <p style="font-size: 13px; color: var(--accent); font-weight: 700;">СКОРО ОТКРЫТИЕ</p>
+                <div style="margin-top: 15px; background: var(--accent); color: var(--bg-dark); padding: 5px 15px; border-radius: 20px; font-weight: 900; font-size: 10px;">CS2 CASE SIMULATOR</div>
+            </div>
+        </div>
+        <div style="opacity: 0.3; pointer-events: none;">
+            <div class="items-grid">
+                <div class="item-card"><div class="item-img-container"></div></div>
+                <div class="item-card"><div class="item-img-container"></div></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="page-profile" class="page">
+        <div class="user-card">
+            <p class="wallet-label">Доступно к выводу</p>
+            <div class="balance-main" id="user-balance">0.00 TON</div>
+            <div class="wallet-btns">
+                <button class="w-btn" onclick="showToast('Пополнение через бот...')">ПОПОЛНИТЬ</button>
+                <button class="w-btn" onclick="showToast('Вывод временно закрыт')">ВЫВЕСТИ</button>
+            </div>
+        </div>
+
+        <div class="steam-box">
+            <p style="font-size: 14px; font-weight: 800; margin-bottom: 5px;">STEAM ACCOUNT</p>
+            <p style="font-size: 11px; color: var(--text-dim); margin-bottom: 10px;">Для продажи скинов привяжите SteamID64</p>
+            <input type="text" id="steamInput" class="input-dark" placeholder="76561198...">
+            <button class="btn-action" onclick="saveSteam()">ПРИВЯЗАТЬ АККАУНТ</button>
+        </div>
+
+        <div class="profile-nav">
+            <div id="tab-inv" class="p-nav-btn active" onclick="setProfileTab('inv')">ИНВЕНТАРЬ</div>
+            <div id="tab-hist" class="p-nav-btn" onclick="setProfileTab('hist')">ИСТОРИЯ</div>
+        </div>
+
+        <div id="content-inv" class="p-content">
+            <div class="items-grid" id="inv-list">
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section" id="profile">
-        <div class="profile-card">
-            <p style="font-size: 12px; opacity: 0.8;">Мой баланс</p>
-            <div class="balance-value" id="balanceDisplay">0.00 TON</div>
-            <div class="wallet-actions">
-                <button class="btn-wallet" onclick="showNotif('Пополнение временно через бота')">➕ Пополнить</button>
-                <button class="btn-wallet" onclick="showNotif('Вывод от 1 TON')">➖ Вывести</button>
-            </div>
         </div>
 
-        <div style="background: white; padding: 15px; border-radius: 16px; margin-bottom: 15px;">
-            <h3 style="font-size: 14px; margin-bottom: 10px;">Привязка Steam</h3>
-            <input type="text" id="steamIdInput" class="search-box" style="margin-bottom:10px;" placeholder="SteamID64 (7656...)">
-            <button class="btn btn-buy" onclick="handleSaveSteamId()">Сохранить данные</button>
+        <div id="content-hist" class="p-content" style="display: none;">
+            <div class="empty-msg">История транзакций пуста</div>
         </div>
+    </section>
 
-        <div class="profile-tabs">
-            <div class="p-tab active" id="tab-inv" onclick="switchProfileTab('inventory')">Инвентарь</div>
-            <div class="p-tab" id="tab-hist" onclick="switchProfileTab('history')">История</div>
-        </div>
-
-        <div id="inventorySection">
-            <div class="items-grid" id="inventoryGrid"></div>
-        </div>
-
-        <div id="historySection" style="display:none;">
-            <p style="text-align:center; padding:20px; color:#999; font-size:12px;">История операций пуста</p>
-        </div>
-    </div>
-
-    <nav class="bottom-nav">
-        <div class="nav-item active" id="nav-market" onclick="switchMainTab('market')">
-            <span class="nav-icon">🛒</span>Маркет
-        </div>
-        <div class="nav-item" id="nav-gameHub" onclick="switchMainTab('gameHub')">
-            <span class="nav-icon">🎮</span>Хаб
-        </div>
-        <div class="nav-item" id="nav-profile" onclick="switchMainTab('profile')">
-            <span class="nav-icon">👤</span>Профиль
-        </div>
+    <nav class="nav-bar">
+        <a href="#" class="nav-item active" onclick="showPage('market', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+            МАРКЕТ
+        </a>
+        <a href="#" class="nav-item" onclick="showPage('hub', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"></rect><path d="M6 12h4M8 10v4M15 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path></svg>
+            ХАБ
+        </a>
+        <a href="#" class="nav-item" onclick="showPage('profile', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            ПРОФИЛЬ
+        </a>
     </nav>
 
     <script>
-        const API_BASE = 'https://stattrakmrkt.onrender.com';
+        const API_URL = 'https://stattrakmrkt.onrender.com';
         const tg = window.Telegram.WebApp;
-        tg.expand();
 
-        let user = {
-            id: tg.initDataUnsafe?.user?.id || 'DEVELOPER',
-            steamId: localStorage.getItem('steamId64') || '',
-            balance: 0
+        let state = {
+            user: null,
+            steamId: localStorage.getItem('steam_id_64') || '',
+            balance: 0,
+            currentTab: 'market'
         };
 
-        // --- ИНИЦИАЛИЗАЦИЯ ---
+        // Инициализация
         document.addEventListener('DOMContentLoaded', () => {
-            if (user.steamId) document.getElementById('steamIdInput').value = user.steamId;
+            tg.ready();
+            tg.expand();
+            
+            // Настройка юзера из ТГ
+            if (tg.initDataUnsafe?.user) {
+                state.user = tg.initDataUnsafe.user;
+                document.getElementById('tg-user').innerText = state.user.first_name;
+            }
+
+            if (state.steamId) document.getElementById('steamInput').value = state.steamId;
+
             loadMarket();
-            syncBalance();
+            refreshBalance();
+            
+            // Скрыть лоадер
+            setTimeout(() => {
+                document.getElementById('main-loader').style.opacity = '0';
+                setTimeout(() => document.getElementById('main-loader').style.display = 'none', 500);
+            }, 1200);
         });
 
-        async function syncBalance() {
+        // Навигация
+        function showPage(pageId, el) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById('page-' + pageId).classList.add('active');
+            el.classList.add('active');
+            
+            tg.HapticFeedback.impactOccurred('light');
+            
+            if (pageId === 'profile') loadInventory();
+            if (pageId === 'market') loadMarket();
+        }
+
+        // Профиль табы
+        function setProfileTab(tab) {
+            document.getElementById('tab-inv').classList.toggle('active', tab === 'inv');
+            document.getElementById('tab-hist').classList.toggle('active', tab === 'hist');
+            document.getElementById('content-inv').style.display = (tab === 'inv') ? 'block' : 'none';
+            document.getElementById('content-hist').style.display = (tab === 'hist') ? 'block' : 'none';
+        }
+
+        // Баланс
+        async function refreshBalance() {
+            if (!state.user) return;
             try {
-                const res = await fetch(`${API_BASE}/api/user/${user.id}`);
+                const res = await fetch(`${API_URL}/api/user/${state.user.id}`);
                 const data = await res.json();
-                user.balance = data.balance || 0;
-                document.getElementById('balanceDisplay').innerText = `${user.balance.toFixed(2)} TON`;
-            } catch (e) { console.error("Balance error"); }
+                state.balance = data.balance || 0;
+                document.getElementById('user-balance').innerText = `${state.balance.toFixed(2)} TON`;
+            } catch (e) { console.error("Balance sync error"); }
         }
 
+        // Маркет
         async function loadMarket() {
-            toggleLoader(true);
+            const list = document.getElementById('market-list');
             try {
-                const res = await fetch(`${API_BASE}/api/market`);
+                const res = await fetch(`${API_URL}/api/market`);
                 const items = await res.json();
-                const grid = document.getElementById('marketGrid');
-                grid.innerHTML = items.length ? items.map(i => `
+                
+                if (!items.length) {
+                    list.innerHTML = '<div class="empty-msg">Товары не найдены</div>';
+                    return;
+                }
+
+                list.innerHTML = items.map(item => `
                     <div class="item-card">
-                        <img class="item-image" src="${i.image}">
-                        <div class="item-name">${i.name}</div>
-                        <div class="item-price">${parseFloat(i.price).toFixed(2)} TON</div>
-                        <button class="btn btn-buy" onclick="buyItem('${i.id}', ${i.price})">Купить</button>
+                        <div class="item-img-container">
+                            <img src="${item.image}" class="item-img" alt="">
+                        </div>
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-price-row">
+                            <svg class="ton-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 24C5.373 24 0 18.627 0 12S5.373 0 12 0s12 5.373 12 12-5.373 12-12 12zM5.535 8.121l4.828 10.343c.48.91 1.642.91 2.122 0l4.828-10.343c.42-.796-.134-1.741-1.032-1.741H6.567c-.898 0-1.452.945-1.032 1.741z"/></svg>
+                            ${parseFloat(item.price).toFixed(2)}
+                        </div>
+                        <button class="btn-action" onclick="buyItem('${item.id}', ${item.price})">КУПИТЬ</button>
                     </div>
-                `).join('') : '<p style="grid-column:1/-1; text-align:center;">Маркет пуст</p>';
-            } catch (e) { showNotif("Ошибка сервера", "error"); }
-            toggleLoader(false);
+                `).join('');
+            } catch (e) {
+                list.innerHTML = '<div class="empty-msg">Ошибка подключения к серверу</div>';
+            }
         }
 
-        // --- ИСПРАВЛЕННЫЙ ИНВЕНТАРЬ ---
+        // Инвентарь
         async function loadInventory() {
-            if (!user.steamId) {
-                document.getElementById('inventoryGrid').innerHTML = '<p style="grid-column:1/-1; text-align:center; padding:20px; font-size:12px; color:#999;">Укажите SteamID64 выше</p>';
+            const list = document.getElementById('inv-list');
+            if (!state.steamId) {
+                list.innerHTML = '<div class="empty-msg">Привяжите SteamID для просмотра инвентаря</div>';
                 return;
             }
-            
-            toggleLoader(true);
+
+            list.innerHTML = '<div class="empty-msg">Загрузка предметов...</div>';
+
             try {
-                const res = await fetch(`${API_BASE}/api/inventory/${user.steamId}`);
+                const res = await fetch(`${API_URL}/api/inventory/${state.steamId}`);
                 const data = await res.json();
-                
-                // Проверка: сервер может вернуть массив напрямую ИЛИ объект с полем items
                 const items = Array.isArray(data) ? data : (data.items || []);
-                
-                const grid = document.getElementById('inventoryGrid');
-                if (items.length === 0) {
-                    grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; padding:20px;">Инвентарь пуст или скрыт</p>';
-                } else {
-                    grid.innerHTML = items.map(i => `
-                        <div class="item-card">
-                            <img class="item-image" src="${i.image || i.icon_url}">
-                            <div class="item-name">${i.name || i.market_hash_name}</div>
-                            <input type="number" id="price-${i.assetid || i.id}" class="search-box" style="margin-bottom:5px; height:35px; text-align:center;" placeholder="Цена TON">
-                            <button class="btn btn-ton" style="padding:8px; font-size:11px;" onclick="listForSale('${i.assetid || i.id}', '${i.name || i.market_hash_name}')">Выставить</button>
-                        </div>
-                    `).join('');
+
+                if (!items.length) {
+                    list.innerHTML = '<div class="empty-msg">Инвентарь пуст или скрыт</div>';
+                    return;
                 }
-            } catch (e) { 
-                console.error(e);
-                showNotif("Ошибка загрузки инвентаря", "error"); 
+
+                list.innerHTML = items.map(i => {
+                    const id = i.assetid || i.id;
+                    const img = i.image || i.icon_url || 'https://via.placeholder.com/100';
+                    const name = i.name || i.market_hash_name;
+                    return `
+                        <div class="item-card">
+                            <div class="item-img-container"><img src="${img}" class="item-img"></div>
+                            <div class="item-name">${name}</div>
+                            <input type="number" id="price-${id}" class="input-dark" style="margin:0; padding:5px; font-size:12px;" placeholder="Цена TON">
+                            <button class="btn-action" style="background:#fff" onclick="sellItem('${id}', '${name}')">ПРОДАТЬ</button>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                list.innerHTML = '<div class="empty-msg">Не удалось получить данные Steam</div>';
             }
-            toggleLoader(false);
         }
 
-        function handleSaveSteamId() {
-            const val = document.getElementById('steamIdInput').value.trim();
-            if (val.length < 10) return showNotif("Неверный SteamID", "error");
-            user.steamId = val;
-            localStorage.setItem('steamId64', val);
-            showNotif("ID Сохранен", "success");
+        // Действия
+        function saveSteam() {
+            const val = document.getElementById('steamInput').value.trim();
+            if (val.length < 15) return showToast('Некорректный SteamID64');
+            state.steamId = val;
+            localStorage.setItem('steam_id_64', val);
+            showToast('Аккаунт привязан!');
             loadInventory();
         }
 
-        // --- УТИЛИТЫ ---
-        function switchMainTab(id) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            document.getElementById('nav-' + id).classList.add('active');
-            if (id === 'profile') loadInventory();
-            tg.HapticFeedback.impactOccurred('light');
+        async function buyItem(id, price) {
+            if (state.balance < price) return showToast('Недостаточно TON!');
+            tg.showConfirm(`Купить этот предмет за ${price} TON?`, (ok) => {
+                if(ok) showToast('Обработка покупки...');
+            });
         }
 
-        function switchProfileTab(type) {
-            document.getElementById('tab-inv').classList.toggle('active', type === 'inventory');
-            document.getElementById('tab-hist').classList.toggle('active', type === 'history');
-            document.getElementById('inventorySection').style.display = type === 'inventory' ? 'block' : 'none';
-            document.getElementById('historySection').style.display = type === 'history' ? 'block' : 'none';
-        }
-
-        function toggleLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
-
-        function showNotif(msg, type = "success") {
-            const n = document.getElementById('notif');
-            n.innerText = msg;
-            n.className = `notification notification-${type} show`;
-            setTimeout(() => n.classList.remove('show'), 3000);
+        function showToast(text) {
+            const container = document.getElementById('toast-container');
+            const el = document.createElement('div');
+            el.className = 'toast';
+            el.innerHTML = `<span>🔔</span> ${text}`;
+            container.appendChild(el);
+            setTimeout(() => {
+                el.style.opacity = '0';
+                setTimeout(() => el.remove(), 300);
+            }, 3000);
         }
     </script>
 </body>
 </html>
+
 
 
