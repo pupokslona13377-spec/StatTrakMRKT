@@ -602,29 +602,64 @@ ${item.price || '0.00'}
             }
         }
 
-        function itemAction(type, id) {
-            const action = type === 'buy' ? 'купить' : 'продать';
-            tg.showConfirm(`Вы действительно хотите ${action} этот предмет?`, (confirmed) => {
-                if (confirmed) showToast("Запрос отправлен в блокчейн...");
-            });
-            tg.HapticFeedback.impactOccurred('medium');
-        }
+       let currentSellingItem = null;
 
-        function showToast(msg) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerHTML = `<span>⚡</span> ${msg}`;
-            container.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 400);
-            }, 3000);
-        }
+function itemAction(type, id) {
+    if (type === 'buy') {
+        tg.showConfirm(`Вы хотите купить этот предмет?`, (confirmed) => {
+            if (confirmed) showToast("Система оплаты временно недоступна");
+        });
+    } else {
+        // Логика продажи
+        const itemCard = document.querySelector(`[onclick*="'${id}'"]`).closest('.item-card');
+        const name = itemCard.querySelector('.item-name').innerText;
+        const img = itemCard.querySelector('.item-img').src;
+
+        currentSellingItem = { id, name, img };
+
+        document.getElementById('modal-img').src = img;
+        document.getElementById('modal-item-name').innerText = name;
+        document.getElementById('floor-val').innerText = (Math.random() * 2 + 0.1).toFixed(2); // Фейковый флор для красоты
+        
+        // Сброс полей
+        document.getElementById('sell-price-input').value = "";
+        document.getElementById('fee-val').innerText = "0.00 TON";
+        document.getElementById('final-receive').innerText = "0.00 TON";
+
+        document.getElementById('sell-modal').style.display = 'flex';
+        tg.HapticFeedback.impactOccurred('medium');
+    }
+}
+
+function calculateFee(val) {
+    const price = parseFloat(val);
+    if (!price || price <= 0) {
+        document.getElementById('fee-val').innerText = "0.00 TON";
+        document.getElementById('final-receive').innerText = "0.00 TON";
+        return;
+    }
+    const fee = (price * 0.05).toFixed(2);
+    const receive = (price - fee).toFixed(2);
+    document.getElementById('fee-val').innerText = `${fee} TON`;
+    document.getElementById('final-receive').innerText = `${receive} TON`;
+}
+
+function closeSellModal() {
+    document.getElementById('sell-modal').style.display = 'none';
+}
+
+async function confirmSale() {
+    const price = document.getElementById('sell-price-input').value;
+    if(!price || price <= 0) return showToast("Укажите цену");
+    
+    showToast("Размещаем на маркете...");
+    closeSellModal();
+    // Тут позже добавим fetch запрос к твоему серверу
+}
     </script>
 </body>
 </html>
+
 
 
 
