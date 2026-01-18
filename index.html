@@ -6,205 +6,260 @@
     <title>StatTrak Market</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* ... (все стили из твоего сообщения) ... */
+        /* СТИЛИ ИЗ ПЕРВОГО КОДА + УЛУЧШЕНИЯ */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #F8F9FA; padding-bottom: 80px; }
-        .header { background: #FFFFFF; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; }
-        .header-accent { color: #00D2FF; font-weight: 700; }
-        .search-box { width: 100%; padding: 12px; border: 2px solid #E9ECEF; border-radius: 12px; margin-top: 10px; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #FFFFFF; display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }
-        .nav-item { flex: 1; text-align: center; color: #6C757D; cursor: pointer; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #F8F9FA; color: #212529; padding-bottom: 80px; overflow-x: hidden;
+        }
+
+        /* HEADER */
+        .header {
+            background: #FFFFFF; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .header h1 { font-size: 24px; font-weight: 700; margin-bottom: 15px; }
+        .header-accent { color: #00D2FF; }
+        .search-box {
+            width: 100%; padding: 12px 16px; border: 2px solid #E9ECEF;
+            border-radius: 12px; font-size: 15px; background: #F8F9FA;
+        }
+
+        /* NAVIGATION */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; background: #FFFFFF;
+            display: flex; justify-content: space-around; padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000;
+        }
+        .nav-item { flex: 1; text-align: center; cursor: pointer; color: #6C757D; transition: 0.3s; }
         .nav-item.active { color: #00D2FF; border-top: 3px solid #00D2FF; }
+        .nav-icon { display: block; font-size: 22px; }
+        .nav-label { font-size: 11px; font-weight: 600; }
+
+        /* SECTIONS */
         .section { display: none; padding: 20px; animation: fadeIn 0.4s ease; }
         .section.active { display: block; }
-        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
-        .item-card { background: #FFFFFF; border-radius: 12px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-        .item-image { width: 100%; height: 100px; object-fit: contain; }
-        .profile-header { background: linear-gradient(135deg, #00D2FF 0%, #0099CC 100%); border-radius: 16px; padding: 25px; color: #FFFFFF; margin-bottom: 20px; }
-        .pending-balance { background: rgba(255,255,255,0.2); padding: 15px; border-radius: 12px; margin-top: 15px; }
-        .action-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; margin-top: 10px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* MARKET & CARDS */
+        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        .item-card {
+            background: #FFFFFF; border-radius: 12px; padding: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: 0.3s;
+        }
+        .item-image { width: 100%; height: 120px; object-fit: contain; margin-bottom: 10px; background: #F8F9FA; border-radius: 8px; }
+        .item-name { font-size: 13px; font-weight: 600; height: 34px; overflow: hidden; margin-bottom: 6px; }
+        .item-price { font-size: 16px; font-weight: 700; color: #00D2FF; margin-bottom: 8px; }
+
+        /* PROFILE */
+        .profile-header {
+            background: linear-gradient(135deg, #00D2FF 0%, #0099CC 100%);
+            border-radius: 16px; padding: 25px; color: #FFFFFF; margin-bottom: 20px;
+        }
+        .balance-amount { font-size: 36px; font-weight: 700; margin: 10px 0; }
+        .btn-action {
+            width: 100%; padding: 14px; border: none; border-radius: 12px;
+            font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
         .btn-cyan { background: #00D2FF; color: white; }
-        .game-hub-blur { filter: blur(8px); opacity: 0.5; }
-        .coming-soon-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; text-align: center; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* NOTIFICATIONS & LOADER (ИЗ ВТОРОГО КОДА) */
+        .loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.8); display: none;
+            justify-content: center; align-items: center; z-index: 9999;
+        }
+        .spinner {
+            width: 40px; height: 40px; border: 4px solid #f3f3f3;
+            border-top: 4px solid #00D2FF; border-radius: 50%; animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .notification {
+            position: fixed; top: 20px; right: 20px; padding: 15px;
+            border-radius: 10px; color: white; z-index: 10000;
+            transform: translateX(400px); transition: 0.3s;
+        }
+        .notification.show { transform: translateX(0); }
+        .notification-error { background: #e74c3c; }
+        .notification-success { background: #2ecc71; }
     </style>
 </head>
 <body>
-    <div class="toast-container" id="toastContainer"></div>
+
+    <div id="loader" class="loader"><div class="spinner"></div></div>
 
     <div class="header">
         <h1>💎 <span class="header-accent">StatTrak Market</span></h1>
         <input type="text" class="search-box" id="searchInput" placeholder="🔍 Поиск скинов...">
     </div>
 
-    <div class="section active" id="marketSection">
-        <div id="marketLoading" class="loading"><div class="spinner"></div></div>
+    <div class="section active" id="market">
         <div class="items-grid" id="marketGrid"></div>
     </div>
 
-    <div class="section" id="ordersSection">
-        <div id="ordersContainer" class="empty-state">
-            <div class="empty-icon">📦</div>
+    <div class="section" id="orders">
+        <div class="empty-state" style="text-align:center; padding: 50px;">
+            <span style="font-size: 50px;">📦</span>
             <p>История заказов пуста</p>
         </div>
     </div>
 
-    <div class="section" id="gameHubSection">
-        <div class="game-hub-container">
-            <div class="coming-soon-overlay">
-                <h2>🎮 В разработке</h2>
-                <p>Игровой хаб появится в следующем обновлении</p>
-            </div>
-            <div class="game-hub-blur">
-                <div class="items-grid">
-                    <div class="item-card"><div style="height:100px; background:#eee;"></div></div>
-                    <div class="item-card"><div style="height:100px; background:#eee;"></div></div>
-                </div>
-            </div>
+    <div class="section" id="gameHub">
+        <div style="text-align:center; padding: 50px; background: white; border-radius: 20px;">
+            <h2>🎮 Game Hub</h2>
+            <p style="color: #666;">В разработке...</p>
         </div>
     </div>
 
-    <div class="section" id="profileSection">
+    <div class="section" id="profile">
         <div class="profile-header">
-            <div class="balance-label">💰 Доступный баланс</div>
-            <div class="balance-amount"><span id="mainBalance">0.00</span> <span class="balance-currency">TON</span></div>
-            <div class="pending-balance">
-                <div class="pending-label">⏳ В ожидании (Escrow) <span onclick="alert('Удержание средств для безопасности P2P сделки')">ℹ️</span></div>
-                <div class="pending-amount" id="pendingBalanceDisplay">0.00 TON</div>
-            </div>
-        </div>
-        
-        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-            <button class="action-btn btn-cyan" onclick="depositFunds()">Пополнить</button>
-            <button class="action-btn" style="background: white;" onclick="showToast('Вывод временно недоступен')">Вывод</button>
+            <div>💰 Текущий баланс</div>
+            <div class="balance-amount" id="balanceDisplay">$0.00</div>
+            <div style="font-size: 12px; opacity: 0.8;">User ID: <span id="displayUserId">...</span></div>
         </div>
 
-        <div class="steam-section">
-            <h3>🔗 Steam Привязка</h3>
-            <input type="text" id="steamIdInput" class="steam-input" placeholder="Введите ваш SteamID64">
-            <button class="btn-save" onclick="saveSteamID()">Сохранить данные</button>
+        <div style="background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px;">
+            <h3 style="margin-bottom: 10px;">🔗 Steam ID64</h3>
+            <input type="text" id="steamIdInput" class="search-box" style="margin-bottom: 10px;" placeholder="76561198...">
+            <button class="btn-action btn-cyan" onclick="handleSaveSteamId()">Привязать Steam</button>
         </div>
 
-        <h3 style="margin: 20px 0 10px;">🎒 Мои скины</h3>
-        <div id="inventoryGrid" class="items-grid"></div>
+        <h3>🎒 Мой инвентарь</h3>
+        <div class="items-grid" id="inventoryGrid" style="margin-top:15px;"></div>
     </div>
 
     <nav class="bottom-nav">
-        <div class="nav-item active" onclick="switchSection('market', this)">
+        <div class="nav-item active" onclick="switchSection('market')">
             <span class="nav-icon">🛒</span><span class="nav-label">Маркет</span>
         </div>
-        <div class="nav-item" onclick="switchSection('orders', this)">
-            <span class="nav-icon">📋</span><span class="nav-label">Заказы</span>
+        <div class="nav-item" onclick="switchSection('orders')">
+            <span class="nav-icon">📦</span><span class="nav-label">Заказы</span>
         </div>
-        <div class="nav-item" onclick="switchSection('gameHub', this)">
+        <div class="nav-item" onclick="switchSection('gameHub')">
             <span class="nav-icon">🎮</span><span class="nav-label">Хаб</span>
         </div>
-        <div class="nav-item" onclick="switchSection('profile', this)">
+        <div class="nav-item" onclick="switchSection('profile')">
             <span class="nav-icon">👤</span><span class="nav-label">Профиль</span>
         </div>
     </nav>
 
     <script>
-        const API_URL = "https://stattrakmrkt.onrender.com";
+        // ВСЯ ЛОГИКА ИЗ ВТОРОГО КОДА (Адаптированная)
+        const API_BASE = 'https://stattrakmrkt.onrender.com';
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        let userId = tg.initDataUnsafe?.user?.id || 1234567;
+        let currentUser = {
+            userId: tg.initDataUnsafe?.user?.id || localStorage.getItem('userId') || '12345',
+            steamId: localStorage.getItem('steamId64'),
+            balance: 0
+        };
 
-        function showToast(text) {
-            const t = document.createElement('div');
-            t.className = 'toast'; t.innerText = text;
-            document.getElementById('toastContainer').appendChild(t);
-            setTimeout(() => t.remove(), 3000);
-        }
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('displayUserId').innerText = currentUser.userId;
+            document.getElementById('steamIdInput').value = currentUser.steamId || '';
+            syncBalance();
+            loadMarket();
+        });
 
-        function switchSection(id, el) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            document.getElementById(id + 'Section').classList.add('active');
-            el.classList.add('active');
-            if(id === 'market') loadMarket();
-            if(id === 'profile') loadInventory();
+        async function syncBalance() {
+            try {
+                const res = await fetch(`${API_BASE}/api/user/${currentUser.userId}`);
+                const data = await res.json();
+                currentUser.balance = data.balance || 0;
+                document.getElementById('balanceDisplay').innerText = `$${currentUser.balance.toFixed(2)}`;
+            } catch (e) { console.error("Balance sync error"); }
         }
 
         async function loadMarket() {
-            const grid = document.getElementById('marketGrid');
+            showLoader();
             try {
-                const res = await fetch(`${API_URL}/api/market`);
+                const res = await fetch(`${API_BASE}/api/market`);
                 const items = await res.json();
+                const grid = document.getElementById('marketGrid');
                 grid.innerHTML = items.map(i => `
                     <div class="item-card">
-                        <img class="item-image" src="https://community.cloudflare.steamstatic.com/economy/image/${i.hash}/200fx200f">
+                        <img class="item-image" src="${i.image || 'https://via.placeholder.com/150'}">
                         <div class="item-name">${i.name}</div>
-                        <div class="item-price">💎 ${i.price} TON</div>
-                        <button class="action-btn btn-cyan" style="padding: 8px; font-size: 12px;" onclick="buyItem('${i.id}', ${i.price})">Купить</button>
+                        <div class="item-price">$${parseFloat(i.price).toFixed(2)}</div>
+                        <button class="btn-action btn-cyan" onclick="buyItem('${i.id}', ${i.price})">Купить</button>
                     </div>
                 `).join('');
-            } catch(e) { grid.innerHTML = "Ошибка загрузки"; }
-            document.getElementById('marketLoading').style.display = 'none';
+            } catch (e) { showNotification("Ошибка загрузки маркета", "error"); }
+            hideLoader();
         }
 
         async function loadInventory() {
-            const sid = localStorage.getItem('sid');
-            const grid = document.getElementById('inventoryGrid');
-            if(!sid) { grid.innerHTML = "Введите SteamID64 в поле выше"; return; }
-            
+            if (!currentUser.steamId) return;
+            showLoader();
             try {
-                const res = await fetch(`${API_URL}/api/inventory/${sid}`);
-                const data = await res.json();
-                if(data.descriptions) {
-                    grid.innerHTML = data.descriptions.map(item => `
-                        <div class="item-card">
-                            <img class="item-image" src="https://community.cloudflare.steamstatic.com/economy/image/${item.icon_url}/200fx200f">
-                            <div class="item-name">${item.market_name}</div>
-                            <button class="action-btn" style="padding: 8px; font-size: 12px; background: #eee;" onclick="listItem('${item.market_name}', '${item.icon_url}')">Продать</button>
-                        </div>
-                    `).join('');
-                }
-            } catch(e) { grid.innerHTML = "Инвентарь не найден"; }
+                const res = await fetch(`${API_BASE}/api/inventory/${currentUser.steamId}`);
+                const items = await res.json();
+                const grid = document.getElementById('inventoryGrid');
+                grid.innerHTML = items.map(i => `
+                    <div class="item-card">
+                        <img class="item-image" src="${i.image}">
+                        <div class="item-name">${i.name}</div>
+                        <input type="number" id="price-${i.id}" class="search-box" style="padding: 5px; margin-bottom: 5px;" placeholder="Цена $">
+                        <button class="btn-action" onclick="handleList('${i.id}', '${i.name}', '${i.hash}')">Выставить</button>
+                    </div>
+                `).join('');
+            } catch (e) { showNotification("Ошибка инвентаря", "error"); }
+            hideLoader();
         }
 
-        function saveSteamID() {
+        function handleSaveSteamId() {
             const val = document.getElementById('steamIdInput').value;
-            if(val.length < 15) return alert("Некорректный SteamID");
-            localStorage.setItem('sid', val);
-            showToast("ID сохранен!");
+            if (val.length < 10) return showNotification("Неверный ID", "error");
+            currentUser.steamId = val;
+            localStorage.setItem('steamId64', val);
+            showNotification("Steam ID привязан", "success");
             loadInventory();
         }
 
-        async function depositFunds() {
-            const amount = prompt("Сумма пополнения (тест):", "1.0");
-            if(!amount) return;
-            await fetch(`${API_URL}/api/user/deposit`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ userId, amount: parseFloat(amount) })
-            });
-            updateBalance();
+        async function buyItem(itemId, price) {
+            if (currentUser.balance < price) return showNotification("Недостаточно средств", "error");
+            if (!confirm("Подтвердить покупку?")) return;
+            
+            showLoader();
+            try {
+                const res = await fetch(`${API_BASE}/api/market/buy`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ itemId, buyerId: currentUser.userId, price })
+                });
+                if (res.ok) {
+                    showNotification("Успешно куплено!", "success");
+                    syncBalance(); loadMarket();
+                } else { throw new Error(); }
+            } catch (e) { showNotification("Ошибка транзакции", "error"); }
+            hideLoader();
         }
 
-        async function updateBalance() {
-            const res = await fetch(`${API_URL}/api/user/${userId}`);
-            const data = await res.json();
-            document.getElementById('mainBalance').innerText = data.balance.toFixed(2);
+        function switchSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            event.currentTarget.classList.add('active');
+            
+            if (id === 'market') loadMarket();
+            if (id === 'profile') loadInventory();
+            tg.HapticFeedback.impactOccurred('light');
         }
 
-        async function buyItem(id, price) {
-            if(!confirm(`Купить за ${price} TON?`)) return;
-            const res = await fetch(`${API_URL}/api/market/buy`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ userId, itemId: id })
-            });
-            if(res.ok) { showToast("Успешно куплено!"); updateBalance(); loadMarket(); }
-            else { showToast("Ошибка баланса"); }
-        }
+        function showLoader() { document.getElementById('loader').style.display = 'flex'; }
+        function hideLoader() { document.getElementById('loader').style.display = 'none'; }
 
-        window.onload = () => {
-            loadMarket();
-            updateBalance();
-            document.getElementById('steamIdInput').value = localStorage.getItem('sid') || '';
-        };
+        function showNotification(msg, type) {
+            const n = document.createElement('div');
+            n.className = `notification notification-${type}`;
+            n.innerText = msg;
+            document.body.appendChild(n);
+            setTimeout(() => n.classList.add('show'), 10);
+            setTimeout(() => { n.classList.remove('show'); setTimeout(() => n.remove(), 300); }, 3000);
+        }
     </script>
 </body>
 </html>
