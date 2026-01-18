@@ -3,536 +3,480 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>STATTRAK MARKET PRO | TON EDITION</title>
+    <title>STATTRAK MARKET PRO | TITANIUM EDITION</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         /* ============================================================
-           TITANIC CSS SYSTEM - FULL UI/UX FRAMEWORK
+           1. СИСТЕМА ДИЗАЙНА (VARIABLES & RESET)
            ============================================================
         */
         :root {
             --accent: #00D2FF;
-            --accent-glow: rgba(0, 210, 255, 0.4);
+            --accent-dark: #00A3C7;
             --ton-blue: #0088CC;
-            --bg-dark: #0F172A;
+            --bg-main: #0F172A;
             --bg-darker: #020617;
             --card-bg: #1E293B;
-            --card-hover: #334155;
-            --text-main: #F8FAFC;
-            --text-dim: #94A3B8;
-            --success: #10B981;
-            --danger: #EF4444;
+            --text-white: #F8FAFC;
+            --text-gray: #94A3B8;
             --border: rgba(255, 255, 255, 0.08);
-            --glass: rgba(255, 255, 255, 0.03);
-            --nav-bg: rgba(15, 23, 42, 0.95);
-            --rarity-ancient: #eb4b4b;
-            --rarity-legendary: #d32ce6;
-            --rarity-mythical: #8847ff;
+            --glass: rgba(255, 255, 255, 0.05);
             --rarity-rare: #4b69ff;
+            --rarity-ancient: #eb4b4b;
+            --shadow-glow: 0 0 15px rgba(0, 210, 255, 0.3);
         }
 
         * {
             margin: 0; padding: 0; box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'SF Pro Display', -apple-system, system-ui, sans-serif;
         }
 
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            line-height: 1.6;
+            background-color: var(--bg-main);
+            color: var(--text-white);
             overflow-x: hidden;
-            padding-bottom: 120px; /* Space for Nav */
+            padding-bottom: 120px; /* Отступ под навигацию */
             user-select: none;
+            -webkit-user-select: none;
         }
 
-        /* АНИМАЦИИ */
-        @keyframes pulse-glow {
-            0% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 20px var(--accent-glow); }
-            100% { transform: scale(1); opacity: 0.8; }
+        /* ============================================================
+           2. АНИМАЦИИ
+           ============================================================
+        */
+        @keyframes pulse-dev {
+            0% { opacity: 0.6; transform: scale(1); filter: drop-shadow(0 0 0px var(--accent)); }
+            50% { opacity: 1; transform: scale(1.05); filter: drop-shadow(0 0 10px var(--accent)); }
+            100% { opacity: 0.6; transform: scale(1); filter: drop-shadow(0 0 0px var(--accent)); }
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
+        @keyframes slide-up {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn {
+            from { opacity: 0; } to { opacity: 1; }
+        }
 
-        /* УВЕДОМЛЕНИЯ */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ============================================================
+           3. КОМПОНЕНТЫ ИНТЕРФЕЙСА
+           ============================================================
+        */
+
+        /* Прелоадер */
+        #loading-screen {
+            position: fixed; inset: 0; background: var(--bg-darker);
+            z-index: 9999; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+        .loader-ring {
+            width: 50px; height: 50px; border: 3px solid var(--glass);
+            border-top: 3px solid var(--accent); border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 20px;
+        }
+
+        /* Уведомления */
         #toast-container {
-            position: fixed; top: 25px; left: 50%; transform: translateX(-50%);
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
             z-index: 10000; width: 90%; pointer-events: none;
         }
         .toast {
-            background: var(--card-bg); border: 1px solid var(--border);
-            color: white; padding: 14px 20px; border-radius: 16px;
-            margin-bottom: 10px; font-size: 14px; font-weight: 700;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-            display: flex; align-items: center; gap: 12px;
-            backdrop-filter: blur(15px); animation: fadeIn 0.3s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-        }
-        .toast-icon { width: 20px; height: 20px; color: var(--accent); }
-
-        /* ЛОАДЕР ПРИ ВХОДЕ */
-        #main-preloader {
-            position: fixed; inset: 0; background: var(--bg-darker);
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: center; z-index: 20000; transition: opacity 0.6s ease;
-        }
-        .loading-logo {
-            font-size: 28px; font-weight: 900; letter-spacing: 5px;
-            margin-bottom: 30px; animation: pulse-glow 2s infinite;
-        }
-        .loading-logo span { color: var(--accent); }
-        .spinner {
-            width: 40px; height: 40px; border: 3px solid var(--glass);
-            border-top: 3px solid var(--accent); border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            background: rgba(30, 41, 59, 0.9); border: 1px solid var(--accent);
+            backdrop-filter: blur(10px); color: white; padding: 15px;
+            border-radius: 15px; margin-bottom: 10px; font-weight: 700;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: slide-up 0.3s ease;
+            display: flex; align-items: center; gap: 10px;
         }
 
-        /* HEADER & SEARCH */
+        /* Шапка */
         header {
-            padding: 20px 20px 15px; background: var(--bg-dark);
-            position: sticky; top: 0; z-index: 1000;
+            padding: 20px; position: sticky; top: 0; z-index: 1000;
+            background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(15px);
             border-bottom: 1px solid var(--border);
-            backdrop-filter: blur(10px);
         }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .logo { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; }
+        .logo { font-size: 24px; font-weight: 900; letter-spacing: -1px; }
         .logo span { color: var(--accent); }
-        .user-pill {
-            background: var(--card-bg); border: 1px solid var(--border);
-            padding: 6px 12px; border-radius: 50px; display: flex; align-items: center; gap: 8px;
-            font-size: 11px; font-weight: 800; color: var(--accent);
+        .user-status {
+            background: var(--card-bg); padding: 6px 14px; border-radius: 20px;
+            font-size: 11px; font-weight: 800; border: 1px solid var(--border); color: var(--accent);
         }
-        .status-dot { width: 6px; height: 6px; background: var(--success); border-radius: 50%; box-shadow: 0 0 8px var(--success); }
 
-        .search-container { position: relative; width: 100%; }
-        .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); opacity: 0.5; pointer-events: none; }
-        .search-bar {
+        /* Поиск (Только для маркета) */
+        .search-wrapper { position: relative; transition: all 0.3s ease; }
+        .search-input {
             width: 100%; background: var(--card-bg); border: 1px solid var(--border);
             padding: 12px 15px 12px 45px; border-radius: 14px; color: white;
-            font-size: 15px; outline: none; transition: 0.3s;
+            font-size: 15px; outline: none; focus: border-color: var(--accent);
         }
-        .search-bar:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(0, 210, 255, 0.1); }
+        .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); opacity: 0.4; }
 
-        /* ОСНОВНОЙ КОНТЕНТ */
-        .page { display: none; padding: 15px; animation: fadeIn 0.4s ease-out; }
+        /* ============================================================
+           4. СТРАНИЦЫ
+           ============================================================
+        */
+        .page { display: none; padding: 15px; animation: fadeIn 0.4s ease; }
         .page.active { display: block; }
 
-        /* КАРТОЧКА БАЛАНСА (ПРОФИЛЬ) */
-        .balance-widget {
-            background: linear-gradient(135deg, #00D2FF 0%, #0088CC 100%);
-            border-radius: 24px; padding: 20px; margin-bottom: 20px;
-            position: relative; overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 136, 204, 0.3);
-        }
-        .balance-widget::before {
-            content: ''; position: absolute; top: -30px; right: -30px;
-            width: 120px; height: 120px; background: rgba(255,255,255,0.1);
-            border-radius: 50%; filter: blur(20px);
-        }
-        .bal-title { font-size: 11px; font-weight: 800; text-transform: uppercase; opacity: 0.8; letter-spacing: 1px; }
-        .bal-amount { font-size: 36px; font-weight: 900; margin: 5px 0 20px; display: flex; align-items: center; gap: 12px; }
-        .ton-symbol-large { width: 34px; height: 34px; fill: white; }
-
-        .widget-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .w-btn {
-            background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.2);
-            color: white; padding: 12px; border-radius: 14px; font-weight: 800;
-            font-size: 12px; backdrop-filter: blur(10px); transition: 0.2s;
-        }
-        .w-btn:active { transform: scale(0.95); background: rgba(255,255,255,0.3); }
-
-        /* STEAM ID БЛОК */
-        .steam-card {
-            background: var(--card-bg); border: 1px solid var(--border);
-            border-radius: 20px; padding: 20px; margin-bottom: 20px;
-        }
-        .card-label { font-size: 12px; font-weight: 900; color: var(--accent); margin-bottom: 12px; display: block; letter-spacing: 0.5px; }
-        .steam-input-group { position: relative; }
-        .steam-field {
-            width: 100%; background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border);
-            padding: 14px; border-radius: 14px; color: white; font-weight: 600; outline: none; margin-bottom: 12px;
-        }
-        .steam-field:focus { border-color: var(--accent); }
-
-        /* GRID SYSTEM */
+        /* Маркет - Сетка предметов */
         .items-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         .item-card {
             background: var(--card-bg); border: 1px solid var(--border);
-            border-radius: 20px; padding: 12px; transition: 0.3s;
-            position: relative; overflow: hidden;
+            border-radius: 20px; padding: 12px; position: relative; overflow: hidden;
+            transition: transform 0.2s;
         }
-        .item-card:active { transform: scale(0.96); }
-        .item-img-box {
-            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.2) 100%);
-            border-radius: 15px; height: 110px; display: flex; align-items: center; justify-content: center;
-            margin-bottom: 12px; position: relative;
+        .item-card:active { transform: scale(0.97); }
+        .item-img-holder {
+            background: rgba(0,0,0,0.2); border-radius: 14px; height: 120px;
+            display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
         }
-        .item-img { max-width: 85%; max-height: 85%; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.4)); transition: 0.3s; }
-        .item-info { padding: 0 4px; }
-        .item-name { font-size: 12px; font-weight: 700; color: var(--text-main); height: 38px; overflow: hidden; margin-bottom: 8px; line-height: 1.2; }
-        .item-price-row { display: flex; align-items: center; gap: 6px; font-weight: 900; font-size: 16px; color: #fff; }
-        .ton-icon-small { width: 16px; height: 16px; fill: var(--accent); }
-        
-        .buy-button {
-            width: 100%; background: var(--accent); color: var(--bg-darker);
-            border: none; padding: 10px; border-radius: 12px; font-weight: 900;
-            font-size: 11px; text-transform: uppercase; margin-top: 10px;
-            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.2);
+        .item-img { max-width: 90%; max-height: 90%; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5)); }
+        .item-name { font-size: 13px; font-weight: 700; height: 38px; overflow: hidden; margin-bottom: 8px; line-height: 1.3; }
+        .item-footer { display: flex; justify-content: space-between; align-items: center; }
+        .price-tag { display: flex; align-items: center; gap: 4px; font-weight: 900; font-size: 15px; color: var(--accent); }
+
+        .buy-btn {
+            width: 100%; padding: 10px; border-radius: 12px; border: none;
+            background: var(--accent); color: var(--bg-darker); font-weight: 800;
+            font-size: 12px; text-transform: uppercase; margin-top: 10px;
         }
 
-        /* GAME HUB (PREMIUM BLUR) */
-        .hub-banner {
-            height: 320px; border-radius: 30px; border: 1px solid var(--border);
+        /* Гейм Хаб (Old Style Blur) */
+        .hub-hero {
+            height: 350px; border-radius: 25px; margin-top: 10px;
             background: url('https://rare-gallery.com/uploads/posts/301308-csgo-counter-strike-global-offensive-video-game.jpg') center/cover;
-            position: relative; overflow: hidden;
+            position: relative; overflow: hidden; border: 1px solid var(--border);
         }
-        .hub-blur {
-            position: absolute; inset: 0; background: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; padding: 30px;
+        .hub-overlay {
+            position: absolute; inset: 0; background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
         }
-        .badge-dev {
-            background: var(--accent); color: var(--bg-darker);
-            padding: 6px 15px; border-radius: 50px; font-weight: 900; font-size: 11px;
-            margin-bottom: 15px; animation: pulse-glow 2s infinite;
+        .pulse-text {
+            color: var(--accent); font-weight: 900; font-size: 14px;
+            letter-spacing: 2px; text-transform: uppercase;
+            animation: pulse-dev 2s infinite; margin-bottom: 10px;
         }
-        .hub-title { font-size: 34px; font-weight: 900; margin-bottom: 10px; letter-spacing: -1px; }
-        .hub-desc { color: var(--text-dim); font-size: 14px; max-width: 250px; }
+        .hub-title { font-size: 32px; font-weight: 900; margin-bottom: 10px; }
 
-        /* TABS */
-        .tab-system {
-            display: flex; background: var(--card-bg); border-radius: 16px;
-            padding: 5px; margin-bottom: 20px; border: 1px solid var(--border);
+        /* Профиль */
+        .ton-balance-card {
+            background: linear-gradient(135deg, #00D2FF 0%, #0088CC 100%);
+            border-radius: 22px; padding: 18px; margin-bottom: 20px;
+            box-shadow: 0 10px 20px rgba(0, 136, 204, 0.3);
         }
-        .tab-btn {
-            flex: 1; padding: 12px; text-align: center; border-radius: 12px;
-            font-size: 12px; font-weight: 800; color: var(--text-dim); transition: 0.3s;
+        .ton-bal-header { font-size: 11px; font-weight: 800; text-transform: uppercase; opacity: 0.8; letter-spacing: 1px; }
+        .ton-bal-value { font-size: 32px; font-weight: 900; margin: 10px 0; display: flex; align-items: center; gap: 10px; }
+        .ton-svg { width: 30px; height: 30px; fill: white; }
+        
+        .profile-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .p-btn {
+            background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white; padding: 10px; border-radius: 12px; font-size: 12px; font-weight: 800;
+            backdrop-filter: blur(5px);
         }
-        .tab-btn.active { background: var(--accent); color: var(--bg-darker); }
 
-        /* NAVIGATION BAR */
+        .steam-id-section {
+            background: var(--card-bg); border-radius: 20px; padding: 20px;
+            border: 1px solid var(--border); margin-bottom: 20px;
+        }
+        .input-label { font-size: 12px; font-weight: 900; color: var(--accent); margin-bottom: 10px; display: block; }
+        .sid-input {
+            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+            padding: 14px; border-radius: 12px; color: white; font-weight: 600; outline: none; margin-bottom: 10px;
+        }
+
+        /* Табы в инвентаре */
+        .tab-nav {
+            display: flex; background: var(--card-bg); border-radius: 15px;
+            padding: 4px; margin-bottom: 15px; border: 1px solid var(--border);
+        }
+        .tab-trigger {
+            flex: 1; padding: 10px; text-align: center; border-radius: 12px;
+            font-size: 12px; font-weight: 800; color: var(--text-gray);
+        }
+        .tab-trigger.active { background: var(--accent); color: var(--bg-darker); }
+
+        /* Навигация */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
-            background: var(--nav-bg); border-top: 1px solid var(--border);
-            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-            display: flex; justify-content: space-around; padding: 15px 10px 35px;
-            z-index: 5000;
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border); display: flex;
+            justify-content: space-around; padding: 15px 10px 35px; z-index: 2000;
         }
-        .nav-link {
-            display: flex; flex-direction: column; align-items: center; gap: 5px;
-            color: var(--text-dim); text-decoration: none; font-size: 10px; font-weight: 800;
-            transition: 0.3s;
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            color: var(--text-gray); text-decoration: none; font-size: 10px; font-weight: 800;
         }
-        .nav-link.active { color: var(--accent); }
-        .nav-link svg { width: 24px; height: 24px; }
+        .nav-item.active { color: var(--accent); }
+        .nav-item svg { width: 24px; height: 24px; }
 
-        /* SKELETON LOADERS */
-        .skeleton-item {
-            background: linear-gradient(90deg, var(--card-bg) 25%, #2d3a4f 50%, var(--card-bg) 75%);
-            background-size: 200% 100%; animation: shimmer 1.5s infinite;
-            border-radius: 20px; height: 220px;
-        }
     </style>
 </head>
 <body>
 
-    <div id="main-preloader">
-        <div class="loading-logo">STAT<span>TRAK</span></div>
-        <div class="spinner"></div>
+    <div id="loading-screen">
+        <div class="loader-ring"></div>
+        <div class="logo">STAT<span>TRAK</span></div>
     </div>
 
     <div id="toast-container"></div>
 
-    <header>
+    <header id="app-header">
         <div class="header-top">
             <div class="logo">STAT<span>TRAK</span></div>
-            <div class="user-pill">
-                <span class="status-dot"></span>
-                <span id="tg-name">GUEST</span>
-            </div>
+            <div id="user-pill" class="user-status">CONNECTING...</div>
         </div>
-        <div class="search-container" id="search-box-main">
+        <div id="market-search-box" class="search-wrapper">
             <span class="search-icon">🔍</span>
-            <input type="text" id="market-query" class="search-bar" placeholder="Поиск скинов по названию..." oninput="filterMarket()">
+            <input type="text" id="search-input" class="search-input" placeholder="Поиск по названию..." oninput="handleSearch()">
         </div>
     </header>
 
     <main id="page-market" class="page active">
-        <div class="items-grid" id="market-list">
-            <div class="skeleton-item"></div>
-            <div class="skeleton-item"></div>
-            <div class="skeleton-item"></div>
-            <div class="skeleton-item"></div>
-        </div>
+        <div id="market-list" class="items-grid">
+            </div>
     </main>
 
     <section id="page-hub" class="page">
-        <div class="hub-banner">
-            <div class="hub-blur">
-                <div class="badge-dev">В РАЗРАБОТКЕ</div>
+        <div class="hub-hero">
+            <div class="hub-overlay">
+                <div class="pulse-text">В разработке</div>
                 <h2 class="hub-title">GAME HUB</h2>
-                <p class="hub-desc">Уникальные кейсы и мини-игры с выводом скинов скоро будут доступны.</p>
-                <div style="margin-top: 30px; display: flex; gap: 10px;">
-                   <div style="width: 10px; height: 10px; border-radius: 50%; background: var(--accent); animation: pulse-glow 1s infinite;"></div>
-                   <div style="width: 10px; height: 10px; border-radius: 50%; background: var(--accent); animation: pulse-glow 1s infinite 0.3s;"></div>
-                   <div style="width: 10px; height: 10px; border-radius: 50%; background: var(--accent); animation: pulse-glow 1s infinite 0.6s;"></div>
-                </div>
+                <p style="color: var(--text-gray); font-size: 14px; max-width: 250px;">
+                    Здесь будут кейсы, контракты и ежедневные бонусы. Загляните позже!
+                </p>
             </div>
         </div>
     </section>
 
     <section id="page-profile" class="page">
-        <div class="balance-widget">
-            <div class="bal-title">Доступный баланс</div>
-            <div class="bal-amount">
-                <svg class="ton-symbol-large" viewBox="0 0 56 56"><path d="M28 56C43.464 56 56 43.464 56 28C56 12.536 43.464 0 28 0C12.536 0 0 12.536 0 28C0 43.464 12.536 56 28 56ZM14.5607 15.7513C14.7963 15.3979 15.228 15.2158 15.6318 15.2995L27.6318 17.7995C27.8727 17.8497 28.1273 17.8497 28.3682 17.7995L40.3682 15.2995C40.772 15.2158 41.2037 15.3979 41.4393 15.7513C41.6749 16.1047 41.6738 16.5701 41.4367 16.9234L28.9367 35.4234C28.5146 36.0487 27.4854 36.0487 27.0633 35.4234L14.5633 16.9234C14.3262 16.5701 14.3251 16.1047 14.5607 15.7513Z"/></svg>
-                <span id="user-balance-val">0.00</span>
+        <div class="ton-balance-card">
+            <span class="ton-bal-header">Ваш баланс</span>
+            <div class="ton-bal-value">
+                <svg class="ton-svg" viewBox="0 0 56 56"><path d="M28 56C43.464 56 56 43.464 56 28C56 12.536 43.464 0 28 0C12.536 0 0 12.536 0 28C0 43.464 12.536 56 28 56ZM14.5607 15.7513C14.7963 15.3979 15.228 15.2158 15.6318 15.2995L27.6318 17.7995C27.8727 17.8497 28.1273 17.8497 28.3682 17.7995L40.3682 15.2995C40.772 15.2158 41.2037 15.3979 41.4393 15.7513C41.6749 16.1047 41.6738 16.5701 41.4367 16.9234L28.9367 35.4234C28.5146 36.0487 27.4854 36.0487 27.0633 35.4234L14.5633 16.9234C14.3262 16.5701 14.3251 16.1047 14.5607 15.7513Z"/></svg>
+                <span id="balance-val">0.00</span>
             </div>
-            <div class="widget-btns">
-                <button class="w-btn" onclick="showToast('Депозит через TON скоро...')">ПОПОЛНИТЬ</button>
-                <button class="w-btn" onclick="showToast('Минимальный вывод: 1.0 TON')">ВЫВЕСТИ</button>
+            <div class="profile-actions">
+                <button class="p-btn" onclick="showToast('Пополнение через TON временно недоступно')">ПОПОЛНИТЬ</button>
+                <button class="p-btn" onclick="showToast('Вывод от 2 TON')">ВЫВЕСТИ</button>
             </div>
         </div>
 
-        <div class="steam-card">
-            <span class="card-label">STEAM ID (64-BIT)</span>
-            <input type="text" id="steam-id-input" class="steam-field" placeholder="76561198...">
-            <button class="buy-button" style="background:white; color:black; margin:0;" onclick="saveSteamId()">ПРИВЯЗАТЬ АККАУНТ</button>
+        <div class="steam-id-section">
+            <span class="input-label">STEAM ID</span>
+            <input type="text" id="sid-field" class="sid-input" placeholder="76561198...">
+            <button class="buy-btn" style="background:white; color:black; margin:0;" onclick="saveSid()">ОБНОВИТЬ ДАННЫЕ</button>
         </div>
 
-        <div class="tab-system">
-            <div id="tab-inv" class="tab-btn active" onclick="switchProfileTab('inv')">ИНВЕНТАРЬ</div>
-            <div id="tab-hist" class="tab-btn" onclick="switchProfileTab('hist')">ИСТОРИЯ</div>
+        <div class="tab-nav">
+            <div id="tab-inv" class="tab-trigger active" onclick="switchTab('inv')">ИНВЕНТАРЬ</div>
+            <div id="tab-hist" class="tab-trigger" onclick="switchTab('hist')">ИСТОРИЯ</div>
         </div>
 
-        <div id="inv-status-label" style="text-align:center; font-size:11px; color:var(--accent); font-weight:800; margin-bottom:10px; text-transform:uppercase;"></div>
-        
-        <div id="profile-inventory" class="items-grid">
+        <div id="inventory-status" style="text-align:center; font-size:11px; color:var(--accent); font-weight:800; margin-bottom:10px;"></div>
+        <div id="profile-content" class="items-grid">
             </div>
-
-        <div id="profile-history" style="display:none; text-align:center; padding:50px; opacity:0.3; font-weight:700;">
-            ИСТОРИЯ ТРАНЗАКЦИЙ ПУСТА
-        </div>
     </section>
 
     <nav class="bottom-nav">
-        <a href="#" class="nav-link active" onclick="navigate('market', this)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+        <a href="javascript:void(0)" class="nav-item active" onclick="navigate('market', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
             МАРКЕТ
         </a>
-        <a href="#" class="nav-link" onclick="navigate('hub', this)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4M8 10v4M15 13a1 1 0 100-2 1 1 0 000 2z"/></svg>
+        <a href="javascript:void(0)" class="nav-item" onclick="navigate('hub', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4M8 10v4M15 13a1 1 0 100-2 1 1 0 000 2z"/></svg>
             ХАБ
         </a>
-        <a href="#" class="nav-link" onclick="navigate('profile', this)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <a href="javascript:void(0)" class="nav-item" onclick="navigate('profile', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             ПРОФИЛЬ
         </a>
     </nav>
 
     <script>
-        /*
-           ============================================================
-           TITANIC CORE JAVASCRIPT
+        /* ============================================================
+           5. СКРИПТОВАЯ ЛОГИКА (CORE)
            ============================================================
         */
-        const API_BASE = 'https://stattrakmrkt.onrender.com';
         const tg = window.Telegram.WebApp;
-        let globalMarketData = [];
+        const API_URL = 'https://stattrakmrkt.onrender.com';
+        let marketData = [];
 
-        // Инициализация
-        window.addEventListener('DOMContentLoaded', () => {
+        // Инициализация при старте
+        window.onload = async () => {
             tg.ready();
             tg.expand();
             
-            // Получаем имя из ТГ
+            // Определяем пользователя
             if (tg.initDataUnsafe?.user) {
-                document.getElementById('tg-name').innerText = tg.initDataUnsafe.user.first_name.toUpperCase();
+                document.getElementById('user-pill').innerText = tg.initDataUnsafe.user.first_name.toUpperCase();
             }
 
-            // Загрузка Steam ID
-            const savedSid = localStorage.getItem('stattrak_sid');
-            if (savedSid) document.getElementById('steam-id-input').value = savedSid;
+            // Загружаем сохраненный SID
+            const savedSid = localStorage.getItem('cs2_sid64');
+            if (savedSid) document.getElementById('sid-field').value = savedSid;
 
-            // Первичная загрузка
-            loadMarketData();
-            
-            // Убираем прелоадер
+            // Грузим маркет
+            await fetchMarket();
+
+            // Скрываем прелоадер
             setTimeout(() => {
-                const loader = document.getElementById('main-preloader');
-                loader.style.opacity = '0';
-                setTimeout(() => loader.style.display = 'none', 600);
-            }, 1500);
-        });
+                document.getElementById('loading-screen').style.opacity = '0';
+                setTimeout(() => document.getElementById('loading-screen').style.display = 'none', 500);
+            }, 1000);
+        };
 
-        // Навигация между страницами
-        function navigate(page, element) {
+        // Навигация
+        function navigate(pageId, element) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             
-            document.getElementById('page-' + page).classList.add('active');
+            document.getElementById('page-' + pageId).classList.add('active');
             element.classList.add('active');
 
-            // Убираем поиск везде кроме маркета
-            document.getElementById('search-box-main').style.display = (page === 'market') ? 'block' : 'none';
+            // Скрываем поиск если не маркет
+            document.getElementById('market-search-box').style.display = (pageId === 'market') ? 'block' : 'none';
 
-            if (page === 'profile') loadSteamInventory();
-            if (page === 'market') loadMarketData();
-
-            tg.HapticFeedback.impactOccurred('medium');
+            if (pageId === 'profile') fetchInventory();
+            
+            tg.HapticFeedback.impactOccurred('light');
         }
 
-        // --- МАРКЕТ ЛОГИКА ---
-        async function loadMarketData() {
-            const list = document.getElementById('market-list');
+        // Работа с маркетом
+        async function fetchMarket() {
             try {
-                const response = await fetch(`${API_BASE}/api/market`);
-                const items = await response.json();
-                globalMarketData = items;
-                renderMarket(items);
-            } catch (error) {
-                list.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:50px;opacity:0.3;">ОШИБКА СОЕДИНЕНИЯ</div>';
+                const res = await fetch(`${API_URL}/api/market`);
+                marketData = await res.json();
+                renderMarket(marketData);
+            } catch (e) {
+                console.error("Market error", e);
+                document.getElementById('market-list').innerHTML = '<p style="grid-column:1/-1;text-align:center;opacity:0.5;padding:50px;">Ошибка загрузки маркета</p>';
             }
         }
 
         function renderMarket(items) {
             const list = document.getElementById('market-list');
-            if (!items || items.length === 0) {
-                list.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:50px;opacity:0.3;">ТОВАРОВ НЕТ</div>';
-                return;
-            }
-
             list.innerHTML = items.map(item => {
-                // ПРОВЕРКА КАРТИНКИ
-                let img = item.image || item.icon_url;
-                if (!img || img === 'undefined') {
-                    img = 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVdgYpw23d9dfHldogjSA1BW7mD8v_k_W4RS04_IiH6NBX8j66F8WLY';
-                } else if (!img.includes('http')) {
-                    img = 'https://community.cloudflare.steamstatic.com/economy/image/' + img;
+                // ТИТАНОВАЯ ЛОГИКА КАРТИНОК
+                let imgUrl = item.image || item.icon_url;
+                if (!imgUrl || imgUrl === 'undefined') {
+                    imgUrl = 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVdgYpw23d9dfHldogjSA1BW7mD8v_k_W4RS04_IiH6NBX8j66F8WLY';
+                } else if (!imgUrl.includes('http')) {
+                    imgUrl = 'https://community.cloudflare.steamstatic.com/economy/image/' + imgUrl;
                 }
 
                 return `
                 <div class="item-card">
-                    <div class="item-img-box">
-                        <img src="${img}" class="item-img" onerror="this.src='https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVdgYpw23d9dfHldogjSA1BW7mD8v_k_W4RS04_IiH6NBX8j66F8WLY'">
+                    <div class="item-img-holder">
+                        <img src="${imgUrl}" class="item-img" onerror="this.src='https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVdgYpw23d9dfHldogjSA1BW7mD8v_k_W4RS04_IiH6NBX8j66F8WLY'">
                     </div>
-                    <div class="item-info">
-                        <div class="item-name">${item.name}</div>
-                        <div class="item-price-row">
-                            <svg class="ton-icon-small" viewBox="0 0 56 56"><path d="M28 56C43.464 56 56 43.464 56 28C56 12.536 43.464 0 28 0C12.536 0 0 12.536 0 28C0 43.464 12.536 56 28 56ZM14.5607 15.7513C14.7963 15.3979 15.228 15.2158 15.6318 15.2995L27.6318 17.7995C27.8727 17.8497 28.1273 17.8497 28.3682 17.7995L40.3682 15.2995C40.772 15.2158 41.2037 15.3979 41.4393 15.7513C41.6749 16.1047 41.6738 16.5701 41.4367 16.9234L28.9367 35.4234C28.5146 36.0487 27.4854 36.0487 27.0633 35.4234L14.5633 16.9234C14.3262 16.5701 14.3251 16.1047 14.5607 15.7513Z"/></svg>
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-footer">
+                        <div class="price-tag">
+                            <svg style="width:14px;height:14px;fill:var(--accent)" viewBox="0 0 56 56"><path d="M28 56C43.464 56 56 43.464 56 28C56 12.536 43.464 0 28 0C12.536 0 0 12.536 0 28C0 43.464 12.536 56 28 56ZM14.5607 15.7513C14.7963 15.3979 15.228 15.2158 15.6318 15.2995L27.6318 17.7995C27.8727 17.8497 28.1273 17.8497 28.3682 17.7995L40.3682 15.2995C40.772 15.2158 41.2037 15.3979 41.4393 15.7513C41.6749 16.1047 41.6738 16.5701 41.4367 16.9234L28.9367 35.4234C28.5146 36.0487 27.4854 36.0487 27.0633 35.4234L14.5633 16.9234C14.3262 16.5701 14.3251 16.1047 14.5607 15.7513Z"/></svg>
                             ${item.price}
                         </div>
-                        <button class="buy-button" onclick="buyItem('${item.id}', ${item.price})">КУПИТЬ</button>
                     </div>
+                    <button class="buy-btn" onclick="handleBuy('${item.id}')">КУПИТЬ</button>
                 </div>`;
             }).join('');
         }
 
-        function filterMarket() {
-            const query = document.getElementById('market-query').value.toLowerCase();
-            const filtered = globalMarketData.filter(i => i.name.toLowerCase().includes(query));
-            renderMarket(filtered);
-        }
+        // Инвентарь (Working Logic)
+        async function fetchInventory() {
+            const sid = document.getElementById('sid-field').value.trim();
+            const container = document.getElementById('profile-content');
+            const status = document.getElementById('inventory-status');
 
-        // --- ПРОФИЛЬ ЛОГИКА ---
-        function switchProfileTab(tab) {
-            document.getElementById('tab-inv').classList.toggle('active', tab === 'inv');
-            document.getElementById('tab-hist').classList.toggle('active', tab === 'hist');
-            
-            document.getElementById('profile-inventory').style.display = (tab === 'inv') ? 'grid' : 'none';
-            document.getElementById('profile-history').style.display = (tab === 'hist') ? 'block' : 'none';
-            document.getElementById('inv-status-label').style.display = (tab === 'inv') ? 'block' : 'none';
-        }
-
-        async function loadSteamInventory() {
-            const sid = document.getElementById('steam-id-input').value.trim();
-            const list = document.getElementById('profile-inventory');
-            const status = document.getElementById('inv-status-label');
-
-            if (!sid || sid.length < 10) {
-                list.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;opacity:0.3;font-size:12px;">ПРИВЯЖИТЕ STEAM ID ДЛЯ ЗАГРУЗКИ</div>';
+            if (!sid) {
+                container.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:40px;opacity:0.4;">Введите Steam ID</p>';
                 return;
             }
 
-            status.innerText = "⏳ ЗАГРУЗКА ДАННЫХ STEAM...";
-            list.innerHTML = Array(4).fill('<div class="skeleton-item"></div>').join('');
-
+            status.innerText = "ОБНОВЛЕНИЕ ДАННЫХ...";
+            
             try {
-                const response = await fetch(`${API_BASE}/api/inventory/${sid}`);
-                const data = await response.json();
+                const res = await fetch(`${API_URL}/api/inventory/${sid}`);
+                const data = await res.json();
                 
-                // Обработка разных форматов ответа
-                const items = Array.isArray(data) ? data : (data.items || data.assets || []);
+                // Глубокий поиск предметов в ответе
+                const items = data.items || data.assets || (Array.isArray(data) ? data : []);
 
                 if (!items || items.length === 0) {
-                    status.innerText = "❌ ИНВЕНТАРЬ ПУСТ ИЛИ СКРЫТ";
-                    list.innerHTML = '';
+                    status.innerText = "ИНВЕНТАРЬ ПУСТ ИЛИ СКРЫТ";
+                    container.innerHTML = '';
                     return;
                 }
 
-                status.innerText = `✅ НАЙДЕНО ПРЕДМЕТОВ: ${items.length}`;
-                list.innerHTML = items.map(i => {
+                status.innerText = "НАЙДЕНО ПРЕДМЕТОВ: " + items.length;
+                container.innerHTML = items.map(i => {
                     let img = i.icon_url || i.image;
                     if (img && !img.includes('http')) img = 'https://community.cloudflare.steamstatic.com/economy/image/' + img;
-                    
                     return `
                     <div class="item-card">
-                        <div class="item-img-box">
-                            <img src="${img}" class="item-img">
-                        </div>
+                        <div class="item-img-holder"><img src="${img}" class="item-img"></div>
                         <div class="item-name">${i.name || i.market_hash_name}</div>
-                        <button class="buy-button" style="background:white; color:black;" onclick="showToast('Выставление скоро...')">ПРОДАТЬ</button>
+                        <button class="buy-btn" style="background:white; color:black;">ПРОДАТЬ</button>
                     </div>`;
                 }).join('');
-
-            } catch (error) {
-                status.innerText = "❌ ОШИБКА STEAM API";
-                list.innerHTML = '';
+            } catch (e) {
+                status.innerText = "ОШИБКА СИНХРОНИЗАЦИИ";
             }
         }
 
-        function saveSteamId() {
-            const val = document.getElementById('steam-id-input').value.trim();
-            if (val.length < 15) {
-                showToast('Неверный формат SteamID64');
-                return;
+        function handleSearch() {
+            const q = document.getElementById('search-input').value.toLowerCase();
+            const filtered = marketData.filter(item => item.name.toLowerCase().includes(q));
+            renderMarket(filtered);
+        }
+
+        function saveSid() {
+            const sid = document.getElementById('sid-field').value.trim();
+            if (sid) {
+                localStorage.setItem('cs2_sid64', sid);
+                showToast("Steam ID обновлен!");
+                fetchInventory();
+                tg.HapticFeedback.notificationOccurred('success');
             }
-            localStorage.setItem('stattrak_sid', val);
-            showToast('✅ Аккаунт успешно привязан');
-            loadSteamInventory();
-            tg.HapticFeedback.notificationOccurred('success');
         }
 
-        // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
-        function buyItem(id, price) {
-            tg.showConfirm(`Вы подтверждаете покупку за ${price} TON?`, (ok) => {
-                if (ok) {
-                    showToast('Недостаточно TON на балансе');
-                    tg.HapticFeedback.notificationOccurred('error');
-                }
-            });
+        function switchTab(t) {
+            document.getElementById('tab-inv').classList.toggle('active', t === 'inv');
+            document.getElementById('tab-hist').classList.toggle('active', t === 'hist');
+            
+            if (t === 'inv') {
+                document.getElementById('profile-content').style.display = 'grid';
+                fetchInventory();
+            } else {
+                document.getElementById('profile-content').style.display = 'none';
+                document.getElementById('inventory-status').innerText = "ИСТОРИЯ ПУСТА";
+            }
         }
 
-        function showToast(message) {
+        function showToast(msg) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = 'toast';
-            toast.innerHTML = `<span class="toast-icon">⚡</span> ${message}`;
+            toast.innerHTML = `<span>⚡</span> ${msg}`;
             container.appendChild(toast);
-            
             setTimeout(() => {
                 toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 400);
+                setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
+
+        function handleBuy(id) {
+            tg.showConfirm("Вы уверены, что хотите купить этот скин?");
+            tg.HapticFeedback.impactOccurred('medium');
+        }
+
     </script>
 </body>
 </html>
