@@ -443,6 +443,8 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   <div id="sell-modal" class="modal-overlay" onclick="if(event.target === this) closeSellModal()">
     <div class="modal-content">
         <div style="width: 40px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 10px; margin: 0 auto 15px;"></div>
+        <div id="success-modal" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.96); z-index:20000; backdrop-filter:blur(20px); align-items:center; justify-content:center;">
+    <div style="width:100%; max-width:360px; padding:20px; text-align:center;">
 
         <div id="step-input">
             <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
@@ -492,11 +494,22 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
                 <button class="action-btn" style="background:var(--accent); color:black; border:none; height:55px; border-radius:16px; font-weight:900;" onclick="startCartAnimation()">ВЫСТАВИТЬ</button>
             </div>
         </div>
+
+        <div id="success-modal" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.98); z-index:30000; backdrop-filter:blur(20px); align-items:center; justify-content:center;">
+    <div style="width:100%; max-width:340px; padding:20px; text-align:center;">
+        
+        <div style="height: 160px; position: relative; overflow: hidden; margin-bottom: 25px; background: rgba(255,255,255,0.03); border-radius: 24px; border: 1px solid rgba(255,255,255,0.05);">
+            <div id="cart-anim" class="cart-container" style="position: absolute; bottom: 15px; left: -150px;">
+                <div id="items-box"></div>
+                <div class="cart-emoji">🛒</div>
+            </div>
+        </div>
+
+        <h2 style="color:white; font-size:22px; font-weight:900; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Лот размещен!</h2>
+        <p id="success-item-name" style="color:rgba(255,255,255,0.5); font-weight:600; margin-bottom:30px; font-size:13px;">ITEM NAME #0000</p>
+        
+        <button class="action-btn" onclick="closeSuccessModal()" style="width:100%; background:var(--accent); color:black; height:54px; border-radius:14px; font-weight:900; font-size:16px;">ОТЛИЧНО</button>
     </div>
-</div>
-    <div id="cart-anim" class="cart-container">
-    <div id="items-box"></div>
-    <div class="cart-emoji">🛒</div>
 </div>
 
     <script>
@@ -720,6 +733,7 @@ function itemAction(type, id) {
         tg.HapticFeedback.impactOccurred('medium');
     }
 }
+        
 
 function closeSellModal() {
     const modal = document.getElementById('sell-modal');
@@ -830,6 +844,7 @@ function startCartAnimation() {
     </script>
 </body>
 </html>
+
 
 
 
