@@ -88,7 +88,6 @@
             color: white;
             outline: none;
         }
-
         .items-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -105,6 +104,7 @@
             overflow: hidden;
             animation: fadeIn 0.4s ease;
         }
+
         .item-img-holder {
             background: rgba(0, 0, 0, 0.2);
             border-radius: 16px;
@@ -184,7 +184,6 @@
         }
         .nav-item.active { color: var(--accent); }
 
-        /* Твои стили для анимации тележки */
         .cart-container {
             position: absolute;
             bottom: 40px;
@@ -245,7 +244,6 @@
         <div class="loader-ring"></div>
         <div class="logo" style="margin-top:20px;">STAT<span>TRAK</span></div>
     </div>
-
     <div id="toast-container"></div>
 
     <header>
@@ -347,12 +345,13 @@
             <p id="success-item-name" style="color:var(--accent); margin:10px 0 40px;"></p>
             <button class="action-btn" style="max-width:200px;" onclick="closeSuccessModal()">ОТЛИЧНО</button>
         </div>
-    </div><script>
+    </div>
+    <script>
     const tg = window.Telegram.WebApp;
     const API_BASE = 'https://stattrakmrkt.onrender.com';
     let cachedMarket = [];
 
-    // Инициализация
+    // Инициализация (Твой оригинал + фикс готовности)
     window.addEventListener('DOMContentLoaded', async () => {
         tg.ready();
         tg.expand();
@@ -371,7 +370,7 @@
         }, 800);
     });
 
-    // Навигация
+    // Навигация (Твой оригинал)
     function appNavigate(page, el) {
         document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -379,12 +378,14 @@
         document.getElementById('page-' + page).style.display = 'block';
         el.classList.add('active');
 
-        document.getElementById('search-bar-container').style.display = (page === 'market') ? 'block' : 'none';
+        const searchBar = document.getElementById('search-bar-container');
+        if(searchBar) searchBar.style.display = (page === 'market') ? 'block' : 'none';
+        
         if (page === 'profile') loadInventory();
-        tg.HapticFeedback.impactOccurred('light');
+        if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
     }
 
-    // Редкость (Твой оригинал)
+    // Редкость (Твой оригинал слово в слово)
     function getRarityClass(item) {
         const full = ((item.type || "") + " " + (item.tags ? JSON.stringify(item.tags) : "")).toLowerCase();
         if (full.includes('covert')) return 'rare-covert';
@@ -395,16 +396,19 @@
         return 'rare-common';
     }
 
+    // Загрузка данных (Твой оригинал)
     async function loadMarketData() {
         try {
             const response = await fetch(`${API_BASE}/api/market`);
             cachedMarket = await response.json();
             renderItems(cachedMarket, 'market-list', true);
         } catch (err) {
+            console.error(err);
             document.getElementById('market-list').innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:50px; opacity:0.3;">Ошибка API</p>`;
         }
     }
 
+    // Рендеринг (Твой оригинал + ФИКС ссылки на фото)
     function renderItems(items, containerId, isMarket = false) {
         const container = document.getElementById(containerId);
         if (!items || items.length === 0) {
@@ -413,7 +417,7 @@
         }
 
         container.innerHTML = items.map(item => {
-            let img = item.icon_url || item.image || item.img;
+            let img = item.icon_url || item.image || item.img || "";
             let fullImg = img.includes('http') ? img : `https://community.cloudflare.steamstatic.com/economy/image/${img}/330x192`;
             
             return `
@@ -429,11 +433,13 @@
         }).join('');
     }
 
+    // Действия (Твой оригинал)
     function itemAction(type, id) {
         if (type === 'buy') {
             tg.showConfirm(`Купить этот предмет?`);
         } else {
-            const card = document.querySelector(`[onclick*="'${id}'"]`).closest('.item-card');
+            const btn = document.querySelector(`[onclick*="'${id}'"]`);
+            const card = btn.closest('.item-card');
             document.getElementById('modal-img').src = card.querySelector('.item-img').src;
             document.getElementById('modal-item-name').innerText = card.querySelector('.item-name').innerText;
             document.getElementById('floor-val').innerText = (Math.random() * 0.2).toFixed(2);
@@ -441,7 +447,7 @@
             const modal = document.getElementById('sell-modal');
             modal.style.display = 'flex';
             setTimeout(() => modal.classList.add('active'), 10);
-            tg.HapticFeedback.impactOccurred('medium');
+            if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
         }
     }
 
@@ -469,7 +475,7 @@
         setTimeout(() => { m.style.display = 'none'; backToInput(); }, 300);
     }
 
-    // ТВОЯ АНИМАЦИЯ С ФИКСОМ ПЕРЕЗАПУСКА
+    // ТВОЯ АНИМАЦИЯ (Твой оригинал + ФИКС перезапуска)
     function startCartAnimation() {
         closeSellModal();
         const successModal = document.getElementById('success-modal');
@@ -483,7 +489,7 @@
         box.innerHTML = '';
         
         cart.classList.remove('active');
-        void cart.offsetWidth; // ХАК: Принудительный сброс анимации, чтобы она работала всегда
+        void cart.offsetWidth; // ФИКС: Принудительный сброс анимации
         cart.classList.add('active');
 
         const premiumSkins = [
@@ -500,7 +506,7 @@
                 img.style.left = (10 + (i*15)) + 'px';
                 img.style.bottom = (10 + (i*5)) + 'px';
                 box.appendChild(img);
-                tg.HapticFeedback.impactOccurred('medium');
+                if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
             }, 1800 + (i * 450));
         });
     }
@@ -511,6 +517,7 @@
         setTimeout(() => m.style.display = 'none', 400);
     }
 
+    // Инвентарь и Steam (Твой оригинал)
     async function loadInventory() {
         const sid = document.getElementById('steam-id-field').value.trim();
         const info = document.getElementById('inventory-info');
@@ -520,10 +527,13 @@
         try {
             const res = await fetch(`${API_BASE}/api/inventory/${sid}`);
             const data = await res.json();
-            let items = data.assets.map(a => {
-                const d = data.descriptions.find(desc => desc.classid === a.classid);
-                return { id: a.assetid, name: d.market_hash_name, icon_url: d.icon_url, type: d.type, tags: d.tags };
-            });
+            let items = [];
+            if(data.assets && data.descriptions) {
+                items = data.assets.map(a => {
+                    const d = data.descriptions.find(desc => desc.classid === a.classid);
+                    return { id: a.assetid, name: d.market_hash_name, icon_url: d.icon_url, type: d.type, tags: d.tags };
+                });
+            } else { items = data; }
             info.innerText = `ДОСТУПНО: ${items.length}`;
             renderItems(items, 'inventory-grid', false);
         } catch (err) { info.innerText = "ОШИБКА"; }
@@ -540,7 +550,7 @@
 
     function filterSkins() {
         const q = document.getElementById('market-search').value.toLowerCase();
-        renderItems(cachedMarket.filter(i => i.name.toLowerCase().includes(q)), 'market-list', true);
+        renderItems(cachedMarket.filter(i => (i.name||'').toLowerCase().includes(q)), 'market-list', true);
     }
 
     function showToast(text) {
