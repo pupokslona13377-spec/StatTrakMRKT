@@ -523,7 +523,58 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         const tg = window.Telegram.WebApp;
         const API_BASE = 'https://stattrakmrkt.onrender.com';
         let cachedMarket = [];
+// --- ФУНКЦИИ ОКНА УСПЕХА (ФИКС ВЫЕЗДА) ---
+function startCartAnimation() {
+    console.log("Запуск анимации...");
+    
+    // 1. Закрываем окно подтверждения
+    const stepConfirm = document.getElementById('step-confirm');
+    if(stepConfirm) stepConfirm.style.display = 'none';
+    
+    // 2. Берем окно успеха
+    const successModal = document.getElementById('success-modal');
+    if(successModal) {
+        successModal.style.display = 'flex'; // Показываем оверлей
+        
+        setTimeout(() => {
+            successModal.classList.add('active');
+            // ПРИНУДИТЕЛЬНЫЙ ВЫЕЗД: этот код вытянет окно, даже если CSS тупит
+            const content = successModal.querySelector('.modal-content');
+            if(content) {
+                content.style.transform = 'translateY(0)';
+                content.style.transition = 'transform 0.4s ease-out';
+            }
+        }, 50);
+    }
 
+    // 3. Подставляем имя предмета
+    const nameFromModal = document.getElementById('modal-item-name')?.innerText;
+    const successNamePlace = document.getElementById('success-item-name');
+    if(successNamePlace && nameFromModal) successNamePlace.innerText = nameFromModal;
+
+    // 4. Запуск тележки
+    const cart = document.getElementById('cart-anim');
+    if(cart) {
+        cart.classList.remove('active');
+        void cart.offsetWidth; 
+        cart.classList.add('active');
+    }
+}
+
+function closeSuccessModal() {
+    const successModal = document.getElementById('success-modal');
+    if(successModal) {
+        successModal.classList.remove('active');
+        const content = successModal.querySelector('.modal-content');
+        if(content) content.style.transform = 'translateY(100%)';
+        
+        setTimeout(() => {
+            successModal.style.display = 'none';
+            // Возвращаем интерфейс в начало для следующей продажи
+            if(typeof backToInput === 'function') backToInput();
+        }, 400);
+    }
+}
         // --- ДОБАВЛЕНО: ФУНКЦИЯ ОПРЕДЕЛЕНИЯ РЕДКОСТИ ---
        function getRarityClass(item) {
     const typeStr = (item.type || "").toLowerCase();
@@ -774,52 +825,7 @@ if (window.visualViewport) {
         }
     });
 }
-function startCartAnimation() {
-    // 1. Прячем модалку ввода
-    const sellModal = document.getElementById('sell-modal');
-    if(sellModal) sellModal.classList.remove('active');
-    
-    // 2. Берем модалку успеха
-    const successModal = document.getElementById('success-modal');
-    
-    // СНАЧАЛА делаем её видимой, но прозрачной
-    successModal.style.display = 'flex';
-    successModal.style.opacity = '1';
 
-    // ДАЕМ БРАУЗЕРУ 10мс, ЧТОБЫ ОН ПОНЯЛ, ЧТО ОКНО ЕСТЬ
-    setTimeout(() => {
-        successModal.classList.add('active');
-        // ПРИНУДИТЕЛЬНО ВЫТАЛКИВАЕМ КОНТЕНТ НАВЕРХ (на случай если CSS тупит)
-        const content = successModal.querySelector('.modal-content');
-        if(content) {
-            content.style.transform = 'translateY(0)';
-        }
-    }, 50);
-    
-    // Дальше твоя анимация с тележкой...
-    document.getElementById('success-item-name').innerText = document.getElementById('modal-item-name').innerText;
-    const cart = document.getElementById('cart-anim');
-    const box = document.getElementById('items-box');
-    box.innerHTML = '';
-    
-    cart.classList.remove('active');
-    void cart.offsetWidth; 
-    cart.classList.add('active');
-
-    const skins = [
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09Kzm7-FmP7mDLfYkWNF18lwmO7Eu4_xiVXg_0s_Ym3xctXAdVBoZlvR-FfsxL3ph5S9v53AmCc17id253_VyxSygBtMcKUx0iC9f_7E/120fx120f',
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35cppQij-qUrN322VbgqBFqYmDycI-RI1A4YVvS8lTole_v08S06Z_MnXUws3Ur7H3ZzAv3309_7A8V7Q/120fx120f'
-    ];
-
-    skins.forEach((src, i) => {
-        setTimeout(() => {
-            const img = document.createElement('img');
-            img.src = src;
-            img.className = 'skin-drop-final';
-            box.appendChild(img);
-        }, 1100 + (i * 400));
-    });
-}
 
     // 5. Завершение анимации: убираем тележку и показываем успех
     setTimeout(() => {
@@ -834,6 +840,7 @@ function startCartAnimation() {
     </script>
 </body>
 </html>
+
 
 
 
