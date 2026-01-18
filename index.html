@@ -357,17 +357,31 @@
         let cachedMarket = [];
 
         // --- ДОБАВЛЕНО: ФУНКЦИЯ ОПРЕДЕЛЕНИЯ РЕДКОСТИ ---
-        function getRarityClass(item) {
-            // Ищем текст редкости в разных полях, которые может прислать API
-            const type = (item.type || item.rarity || item.tags?.[1]?.localized_tag_name || "").toLowerCase();
-            
-            if (type.includes('covert') || type.includes('extraordinary') || type.includes('тайное')) return 'rare-covert';
-            if (type.includes('classified') || type.includes('засекреченное')) return 'rare-classified';
-            if (type.includes('restricted') || type.includes('запрещенное')) return 'rare-restricted';
-            if (type.includes('mil-spec') || type.includes('армейское')) return 'rare-milspec';
-            if (type.includes('knife') || type.includes('gloves') || type.includes('нож') || type.includes('перчатки')) return 'rare-gold';
-            return 'rare-common';
-        }
+       function getRarityClass(item) {
+    // Собираем всё, что знаем о предмете в одну строку для поиска
+    const searchString = (
+        (item.type || "") + " " + 
+        (item.rarity || "") + " " + 
+        (item.tags?.map(t => t.localized_tag_name).join(" ") || "")
+    ).toLowerCase();
+
+    // Проверка на Тайное / Covert
+    if (searchString.includes('covert') || searchString.includes('extraordinary') || searchString.includes('тайное')) return 'rare-covert';
+    
+    // Проверка на Засекреченное / Classified
+    if (searchString.includes('classified') || searchString.includes('засекреченное')) return 'rare-classified';
+    
+    // Проверка на Запрещенное / Restricted
+    if (searchString.includes('restricted') || searchString.includes('запрещенное')) return 'rare-restricted';
+    
+    // Проверка на Армейское / Mil-spec
+    if (searchString.includes('mil-spec') || searchString.includes('армейское')) return 'rare-milspec';
+    
+    // Проверка на Ножи / Перчатки
+    if (searchString.includes('knife') || searchString.includes('gloves') || searchString.includes('нож') || searchString.includes('перчатки') || searchString.includes('star')) return 'rare-gold';
+
+    return 'rare-common';
+}
 
         // Старт системы
         window.addEventListener('DOMContentLoaded', async () => {
@@ -572,6 +586,7 @@
     </script>
 </body>
 </html>
+
 
 
 
