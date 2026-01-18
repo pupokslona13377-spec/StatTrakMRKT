@@ -716,30 +716,28 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
                 loadInventory();
             }
         }
-
-       function itemAction(type, id) {
+function itemAction(type, id) {
     if (type === 'buy') {
         tg.showConfirm(`Купить этот предмет?`);
     } else {
-        // Находим данные предмета
+        // 1. Находим карточку и данные
         const itemCard = document.querySelector(`[onclick*="'${id}'"]`).closest('.item-card');
-        const itemImg = itemCard.querySelector('.item-img').src;
-        const itemName = itemCard.querySelector('.item-name').innerText;
+        const img = itemCard.querySelector('.item-img').src;
+        const name = itemCard.querySelector('.item-name').innerText;
 
-        // Заполняем модалку
-        document.getElementById('modal-img').src = itemImg;
-        document.getElementById('modal-item-name').innerText = itemName;
+        // 2. Заполняем модалку данными
+        document.getElementById('modal-img').src = img;
+        document.getElementById('modal-item-name').innerText = name;
         document.getElementById('floor-val').innerText = (Math.random() * 0.5 + 0.1).toFixed(2);
         
+        // 3. ВКЛЮЧАЕМ ОКНО (Жестко)
         const modal = document.getElementById('sell-modal');
+        modal.style.display = 'flex'; // Показываем блок
         
-        // Сначала ставим display flex
-        modal.style.display = 'flex';
-        
-        // Даем браузеру 1 кадр, чтобы применить display, и только потом запускаем анимацию
-        requestAnimationFrame(() => {
+        // 4. Запускаем анимацию выезда через микро-паузу
+        setTimeout(() => {
             modal.classList.add('active');
-        });
+        }, 10);
 
         if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
     }
@@ -843,6 +841,7 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </script>
 </body>
 </html>
+
 
 
 
