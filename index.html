@@ -494,8 +494,14 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
            8. ЯДРО (КОНТРОЛЛЕР ПРИЛОЖЕНИЯ)
            ================================================================
         */
-        const tg = window.Telegram.WebApp;
-tg.ready();
+const tg = window.Telegram.WebApp;
+// СРАЗУ УБИРАЕМ ЛОУДЕР, НЕ ДОЖИДАЯСЬ ДАННЫХ
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        const ls = document.getElementById('loading-screen');
+        if(ls) ls.style.display = 'none';
+    }, 500);
+});
         const API_BASE = 'https://stattrakmrkt.onrender.com';
         let cachedMarket = [];
 
@@ -863,6 +869,7 @@ function closeSuccessModal() {
     </script>
 </body>
 </html>
+
 
 
 
