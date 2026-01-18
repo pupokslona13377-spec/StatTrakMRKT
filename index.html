@@ -643,61 +643,64 @@ ${item.price || '0.00'}
 
        let currentSellingItem = null;
 
+/* --- ЛОГИКА ОКНА ПРОДАЖИ (В КОНЕЦ СКРИПТА) --- */
 function itemAction(type, id) {
     if (type === 'buy') {
-        tg.showConfirm(`Вы хотите купить этот предмет?`, (confirmed) => {
-            if (confirmed) showToast("Система оплаты временно недоступна");
-        });
+        tg.showConfirm(`Купить этот предмет?`);
     } else {
-        // Логика продажи
         const itemCard = document.querySelector(`[onclick*="'${id}'"]`).closest('.item-card');
-        const name = itemCard.querySelector('.item-name').innerText;
-        const img = itemCard.querySelector('.item-img').src;
-
-        currentSellingItem = { id, name, img };
-
-        document.getElementById('modal-img').src = img;
-        document.getElementById('modal-item-name').innerText = name;
-        document.getElementById('floor-val').innerText = (Math.random() * 2 + 0.1).toFixed(2); // Фейковый флор для красоты
+        document.getElementById('modal-img').src = itemCard.querySelector('.item-img').src;
+        document.getElementById('modal-item-name').innerText = itemCard.querySelector('.item-name').innerText;
+        document.getElementById('floor-val').innerText = (Math.random() * 0.5 + 0.1).toFixed(2);
         
-        // Сброс полей
-        document.getElementById('sell-price-input').value = "";
-        document.getElementById('fee-val').innerText = "0.00 TON";
-        document.getElementById('final-receive').innerText = "0.00 TON";
-
-        document.getElementById('sell-modal').style.display = 'flex';
+        // Открываем окно
+        const modal = document.getElementById('sell-modal');
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('active'), 10);
         tg.HapticFeedback.impactOccurred('medium');
     }
 }
 
-function calculateFee(val) {
-    const price = parseFloat(val);
-    if (!price || price <= 0) {
-        document.getElementById('fee-val').innerText = "0.00 TON";
-        document.getElementById('final-receive').innerText = "0.00 TON";
-        return;
-    }
-    const fee = (price * 0.05).toFixed(2);
-    const receive = (price - fee).toFixed(2);
-    document.getElementById('fee-val').innerText = `${fee} TON`;
-    document.getElementById('final-receive').innerText = `${receive} TON`;
-}
-
 function closeSellModal() {
-    document.getElementById('sell-modal').style.display = 'none';
+    const modal = document.getElementById('sell-modal');
+    modal.classList.remove('active');
+    setTimeout(() => { modal.style.display = 'none'; backToInput(); }, 300);
 }
 
-async function confirmSale() {
+function goToConfirm() {
     const price = document.getElementById('sell-price-input').value;
-    if(!price || price <= 0) return showToast("Укажите цену");
-    
-    showToast("Размещаем на маркете...");
-    closeSellModal();
-    // Тут позже добавим fetch запрос к твоему серверу
+    if (!price || price <= 0) return tg.showAlert("Введите корректную цену!");
+    document.getElementById('confirm-price-val').innerText = price;
+    document.getElementById('step-input').style.display = 'none';
+    document.getElementById('step-confirm').style.display = 'block';
+}
+
+function backToInput() {
+    document.getElementById('step-input').style.display = 'block';
+    document.getElementById('step-confirm').style.display = 'none';
+}
+
+function calculateFee(val) {
+    const p = parseFloat(val);
+    document.getElementById('final-receive').innerText = p ? (p * 0.95).toFixed(2) + " TON" : "0.00 TON";
+}
+
+// РЕШЕНИЕ ПРОБЛЕМЫ С КЛАВИАТУРОЙ
+if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+        const modalContent = document.querySelector('.modal-content');
+        const offset = window.innerHeight - window.visualViewport.height;
+        if (offset > 0) {
+            modalContent.style.marginBottom = offset + 'px'; // Поднимаем окно на высоту клавиатуры
+        } else {
+            modalContent.style.marginBottom = '0px';
+        }
+    });
 }
     </script>
 </body>
 </html>
+
 
 
 
