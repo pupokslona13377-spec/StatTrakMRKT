@@ -229,7 +229,7 @@
 
         /* Загрузка */
         #loading-screen {
-            position: fixed; inset: 0; background: var(--bg-darker);
+            pointer-events: none;position: fixed; inset: 0; background: var(--bg-darker);
             z-index: 9999; display: flex; flex-direction: column;
             align-items: center; justify-content: center; transition: 0.5s;
         }
@@ -495,15 +495,24 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
            ================================================================
         */
 const tg = window.Telegram.WebApp;
-// СРАЗУ УБИРАЕМ ЛОУДЕР, НЕ ДОЖИДАЯСЬ ДАННЫХ
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        const ls = document.getElementById('loading-screen');
-        if(ls) ls.style.display = 'none';
-    }, 500);
-});
-        const API_BASE = 'https://stattrakmrkt.onrender.com';
-        let cachedMarket = [];
+tg.ready();
+tg.expand();
+
+// Этот скрипт сработает ПЕРВЫМ
+const killLoader = () => {
+    const root = document.documentElement;
+    const ls = document.getElementById('loading-screen');
+    if (ls) {
+        ls.style.display = 'none';
+        ls.style.opacity = '0';
+        ls.style.pointerEvents = 'none'; // Чтобы клики проходили сквозь него
+    }
+};
+
+// Пробуем убить его трижды
+killLoader();
+window.addEventListener('DOMContentLoaded', killLoader);
+setTimeout(killLoader, 1000);
 
         // --- ДОБАВЛЕНО: ФУНКЦИЯ ОПРЕДЕЛЕНИЯ РЕДКОСТИ ---
        function getRarityClass(item) {
@@ -869,6 +878,7 @@ function closeSuccessModal() {
     </script>
 </body>
 </html>
+
 
 
 
