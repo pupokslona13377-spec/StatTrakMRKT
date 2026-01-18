@@ -356,6 +356,19 @@
         const API_BASE = 'https://stattrakmrkt.onrender.com';
         let cachedMarket = [];
 
+        // --- ДОБАВЛЕНО: ФУНКЦИЯ ОПРЕДЕЛЕНИЯ РЕДКОСТИ ---
+        function getRarityClass(item) {
+            // Ищем текст редкости в разных полях, которые может прислать API
+            const type = (item.type || item.rarity || item.tags?.[1]?.localized_tag_name || "").toLowerCase();
+            
+            if (type.includes('covert') || type.includes('extraordinary') || type.includes('тайное')) return 'rare-covert';
+            if (type.includes('classified') || type.includes('засекреченное')) return 'rare-classified';
+            if (type.includes('restricted') || type.includes('запрещенное')) return 'rare-restricted';
+            if (type.includes('mil-spec') || type.includes('армейское')) return 'rare-milspec';
+            if (type.includes('knife') || type.includes('gloves') || type.includes('нож') || type.includes('перчатки')) return 'rare-gold';
+            return 'rare-common';
+        }
+
         // Старт системы
         window.addEventListener('DOMContentLoaded', async () => {
             tg.ready();
@@ -406,7 +419,7 @@
             }
         }
 
-        // Умный Рендер (Исправляет картинки и undefined)
+        // Умный Рендер (Исправляет картинки и undefined + ДОБАВЛЕНА РЕДКОСТЬ)
         function renderItems(items, containerId, isMarket = false) {
             const container = document.getElementById(containerId);
             if (!items || items.length === 0) {
@@ -430,22 +443,26 @@
                 }
 
                 const itemName = item.name || item.market_hash_name || 'CS2 Item';
+                
+                // --- ДОБАВЛЕНО: ПОЛУЧАЕМ КЛАСС РЕДКОСТИ ---
+                const rClass = getRarityClass(item);
 
                 return `
                 <div class="item-card anim-fade">
                     <div class="item-img-holder">
-                        <img src="${fullImg}" class="item-img" onerror="this.src='https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVdgYpw23d9dfHldogjSA1BW7mD8v_k_W4RS04_IiH6NBX8j66F8WLY'">
+                        <img src="${fullImg}" class="item-img" onerror="this.src='https://community.cloudflare.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVdgYpw23d9dfHldogjSA1BW7mD8v_k_W4RS04_IiH6NBX8j66F8WLY'">
                     </div>
                     <div class="item-name">${itemName}</div>
                     <div class="item-footer">
                         <div class="price-tag">
-                            <svg class="ton-logo-small"><use xlink:href="#ton-crystal"></use></svg>
+                            <svg class="ton-logo-small" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M28 56C43.464 56 56 43.464 56 28C56 12.536 43.464 0 28 0C12.536 0 0 12.536 0 28C0 43.464 12.536 56 28 56ZM14.5607 15.7513C14.7963 15.3979 15.228 15.2158 15.6318 15.2995L27.6318 17.7995C27.8727 17.8497 28.1273 17.8497 28.3682 17.7995L40.3682 15.2995C40.772 15.2158 41.2037 15.3979 41.4393 15.7513C41.6749 16.1047 41.6738 16.5701 41.4367 16.9234L28.9367 35.4234C28.5146 36.0487 27.4854 36.0487 27.0633 35.4234L14.5633 16.9234C14.3262 16.5701 14.3251 16.1047 14.5607 15.7513Z" fill="white"/></svg>
                             ${item.price || '0.00'}
                         </div>
                     </div>
                     <button class="action-btn" onclick="${isMarket ? `itemAction('buy', '${item.id}')` : `itemAction('sell', '${item.id}')`}">
                         ${isMarket ? 'Купить' : 'Продать'}
                     </button>
+                    <div class="rarity-line ${rClass}"></div>
                 </div>`;
             }).join('');
         }
@@ -477,6 +494,8 @@
                             id: asset.assetid,
                             name: description ? description.market_hash_name : 'Предмет Steam',
                             icon_url: description ? description.icon_url : '',
+                            // --- ДОБАВЛЕНО: ПРОКИДЫВАЕМ ТИП ДЛЯ ЦВЕТА ---
+                            type: description ? description.type : '', 
                             price: '---'
                         };
                     });
@@ -550,9 +569,9 @@
                 setTimeout(() => toast.remove(), 400);
             }, 3000);
         }
-
     </script>
 </body>
 </html>
+
 
 
