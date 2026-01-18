@@ -505,13 +505,13 @@
                     items = data.assets.map(asset => {
                         const description = data.descriptions.find(d => d.classid === asset.classid);
                         return {
-                            id: asset.assetid,
-                            name: description ? description.market_hash_name : 'Предмет Steam',
-                            icon_url: description ? description.icon_url : '',
-                            // --- ДОБАВЛЕНО: ПРОКИДЫВАЕМ ТИП ДЛЯ ЦВЕТА ---
-                            type: description ? description.type : '', 
-                            price: '---'
-                        };
+    id: asset.assetid,
+    name: description ? description.market_hash_name : 'Предмет Steam',
+    icon_url: description ? description.icon_url : '',
+    type: description ? description.type : '',      // ОШИБКА БЫЛА ТУТ (отсутствовало)
+    tags: description ? description.tags : [],      // И ТУТ
+    price: '---'
+};
                     });
                 } else {
                     items = Array.isArray(data) ? data : (data.items || []);
@@ -586,6 +586,7 @@
     </script>
 </body>
 </html>
+
 
 
 
