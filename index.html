@@ -717,21 +717,33 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
             }
         }
 
-        function itemAction(type, id) {
-            if (type === 'buy') {
-                tg.showConfirm(`Купить этот предмет?`);
-            } else {
-                const itemCard = document.querySelector(`[onclick*="'${id}'"]`).closest('.item-card');
-                document.getElementById('modal-img').src = itemCard.querySelector('.item-img').src;
-                document.getElementById('modal-item-name').innerText = itemCard.querySelector('.item-name').innerText;
-                document.getElementById('floor-val').innerText = (Math.random() * 0.5 + 0.1).toFixed(2);
-                
-                const modal = document.getElementById('sell-modal');
-                modal.style.display = 'flex';
-                setTimeout(() => modal.classList.add('active'), 10);
-                if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-            }
-        }
+       function itemAction(type, id) {
+    if (type === 'buy') {
+        tg.showConfirm(`Купить этот предмет?`);
+    } else {
+        // Находим данные предмета
+        const itemCard = document.querySelector(`[onclick*="'${id}'"]`).closest('.item-card');
+        const itemImg = itemCard.querySelector('.item-img').src;
+        const itemName = itemCard.querySelector('.item-name').innerText;
+
+        // Заполняем модалку
+        document.getElementById('modal-img').src = itemImg;
+        document.getElementById('modal-item-name').innerText = itemName;
+        document.getElementById('floor-val').innerText = (Math.random() * 0.5 + 0.1).toFixed(2);
+        
+        const modal = document.getElementById('sell-modal');
+        
+        // Сначала ставим display flex
+        modal.style.display = 'flex';
+        
+        // Даем браузеру 1 кадр, чтобы применить display, и только потом запускаем анимацию
+        requestAnimationFrame(() => {
+            modal.classList.add('active');
+        });
+
+        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+    }
+}
 
         function closeSellModal() {
             const modal = document.getElementById('sell-modal');
@@ -831,6 +843,7 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </script>
 </body>
 </html>
+
 
 
 
