@@ -774,25 +774,50 @@ if (window.visualViewport) {
         }
     });
 }
-        // ФУНКЦИЯ ЗАПУСКА АНИМАЦИИ ТЕЛЕЖКИ
 function startCartAnimation() {
-    // 1. Закрываем модальное окно продажи
-    closeSellModal();
+    // 1. Прячем окно ввода
+    document.getElementById('sell-modal').classList.remove('active');
+    
+    // 2. Показываем шторку успеха (через класс active для анимации снизу)
+    const successModal = document.getElementById('success-modal');
+    successModal.classList.add('active');
+    
+    // Подставляем имя
+    document.getElementById('success-item-name').innerText = document.getElementById('modal-item-name').innerText;
 
     const cart = document.getElementById('cart-anim');
     const box = document.getElementById('items-box');
+    box.innerHTML = '';
     
-    if (!cart || !box) return; // Защита от ошибок
-
-    box.innerHTML = ''; // Очищаем корзину от старых предметов
-    
-    // 2. Показываем и запускаем тележку
+    // 3. Запуск анимации тележки
+    cart.classList.remove('active');
+    void cart.offsetWidth; 
     cart.classList.add('active');
-    
-    // Вибрация в Telegram (Тяжелый удар при появлении)
-    if(window.Telegram && Telegram.WebApp) {
-        Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
-    }
+
+    // Те же ссылки на скины
+    const skins = [
+        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09Kzm7-FmP7mDLfYkWNF18lwmO7Eu4_xiVXg_0s_Ym3xctXAdVBoZlvR-FfsxL3ph5S9v53AmCc17id253_VyxSygBtMcKUx0iC9f_7E/120fx120f',
+        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35cppQij-qUrN322VbgqBFqYmDycI-RI1A4YVvS8lTole_v08S06Z_MnXUws3Ur7H3ZzAv3309_7A8V7Q/120fx120f',
+        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0ebcZThQ6tKznJm0mvLwOq7c2G1Qv5Nz3u_E9N2iilG1-RA-NmqhcY-Sdw9rYV_R-gK-x7y605S1u8zMm3p9-n51YV_0no8/120fx120f'
+    ];
+
+    // 4. Дождь из скинов СВЕРХУ + Вибрация
+    skins.forEach((src, i) => {
+        setTimeout(() => {
+            const img = document.createElement('img');
+            img.src = src;
+            img.className = 'skin-drop-final';
+            img.style.left = (i * 15) + 'px';
+            img.style.bottom = (i * 10) + 'px';
+            box.appendChild(img);
+            
+            // Вибрация через Telegram API
+            if(window.Telegram && Telegram.WebApp.HapticFeedback) {
+                Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+            }
+        }, 1100 + (i * 400));
+    });
+}
 
     // 3. Список легендарных скинов (те самые ссылки, которые всегда грузятся)
     const premiumSkins = [
@@ -847,6 +872,7 @@ function startCartAnimation() {
     </script>
 </body>
 </html>
+
 
 
 
