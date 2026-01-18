@@ -495,8 +495,8 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
             </div>
         </div>
 
-        <div id="success-modal" class="modal-overlay" style="align-items: flex-end;" onclick="if(event.target === this) closeSuccessModal()">
-    <div class="modal-content" style="background: #020617; border-top: 2px solid var(--accent); height: 75vh;">
+        <div id="success-modal" class="modal-overlay" onclick="if(event.target === this) closeSuccessModal()">
+    <div class="modal-content" style="background: #020617; border-top: 2px solid var(--accent);">
         <div style="width: 40px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 10px; margin: 0 auto 20px;"></div>
         
         <div style="text-align:center; width: 100%;">
@@ -856,6 +856,7 @@ function startCartAnimation() {
     </script>
 </body>
 </html>
+
 
 
 
