@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>STATTRDSAK MARKET PRO | TITANIUM ULTIMATE</title>
+    <title>STATTRAK MARKET PRO | TITANIUM ULTIMATE</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         /* ================================================================
@@ -229,7 +229,7 @@
 
         /* Загрузка */
         #loading-screen {
-            pointer-events: none;position: fixed; inset: 0; background: var(--bg-darker);
+            position: fixed; inset: 0; background: var(--bg-darker);
             z-index: 9999; display: flex; flex-direction: column;
             align-items: center; justify-content: center; transition: 0.5s;
         }
@@ -267,8 +267,34 @@
     z-index: 50; /* Это выведет полоску на передний план */
     border-radius: 0 0 18px 18px;
 }
-      
+        /* --- НОВЫЕ СТИЛИ МОДАЛЬНОГО ОКНА (В НИЗ БЛОКА STYLE) --- */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(15px);
+    z-index: 10000;
+    align-items: flex-end; 
+    justify-content: center;
+    transition: opacity 0.3s ease;
+}
 
+.modal-content {
+    width: 100%;
+    background: #0f172a; 
+    border-radius: 24px 24px 0 0;
+    padding: 20px 20px 40px 20px;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    border-top: 1px solid rgba(0, 210, 255, 0.3);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+}
+
+.modal-overlay.active { display: flex; opacity: 1; }
+.modal-overlay.active .modal-content { transform: translateY(0); }
 
 /* Убираем стрелки у поля ввода цены */
 input::-webkit-outer-spin-button,
@@ -494,25 +520,9 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
            8. ЯДРО (КОНТРОЛЛЕР ПРИЛОЖЕНИЯ)
            ================================================================
         */
-const tg = window.Telegram.WebApp;
-tg.ready();
-tg.expand();
-
-// Этот скрипт сработает ПЕРВЫМ
-const killLoader = () => {
-    const root = document.documentElement;
-    const ls = document.getElementById('loading-screen');
-    if (ls) {
-        ls.style.display = 'none';
-        ls.style.opacity = '0';
-        ls.style.pointerEvents = 'none'; // Чтобы клики проходили сквозь него
-    }
-};
-
-// Пробуем убить его трижды
-killLoader();
-window.addEventListener('DOMContentLoaded', killLoader);
-setTimeout(killLoader, 1000);
+        const tg = window.Telegram.WebApp;
+        const API_BASE = 'https://stattrakmrkt.onrender.com';
+        let cachedMarket = [];
 
         // --- ДОБАВЛЕНО: ФУНКЦИЯ ОПРЕДЕЛЕНИЯ РЕДКОСТИ ---
        function getRarityClass(item) {
@@ -528,33 +538,26 @@ setTimeout(killLoader, 1000);
     return 'rare-common';
 }
         // Старт системы
-      // Старт системы напрямую (без лишних оберток)
-tg.ready();
-tg.expand();
+        window.addEventListener('DOMContentLoaded', async () => {
+            tg.ready();
+            tg.expand();
+            
+            // Настройка темы под ТГ
+            document.body.style.setProperty('--tg-color', tg.themeParams.button_color);
 
-// Настройка темы
-document.body.style.setProperty('--tg-color', tg.themeParams.button_color);
+            // Загрузка данных
+            const storedSid = localStorage.getItem('titanium_sid');
+            if (storedSid) document.getElementById('steam-id-field').value = storedSid;
 
-// Загрузка данных
-const storedSid = localStorage.getItem('titanium_sid');
-if (storedSid) {
-    const field = document.getElementById('steam-id-field');
-    if (field) field.value = storedSid;
-}
+            await loadMarketData();
 
-// Запускаем асинхронную часть
-(async () => {
-    await loadMarketData();
-    
-    // Плавное скрытие загрузки
-    setTimeout(() => {
-        const ls = document.getElementById('loading-screen');
-        if (ls) {
-            ls.style.opacity = '0';
-            setTimeout(() => { ls.style.display = 'none'; }, 500);
-        }
-    }, 800);
-})();
+            // Плавное скрытие загрузки
+            setTimeout(() => {
+                const ls = document.getElementById('loading-screen');
+                ls.style.opacity = '0';
+                setTimeout(() => ls.style.display = 'none', 500);
+            }, 800);
+        });
 
         // Навигация
         function appNavigate(page, el) {
@@ -732,7 +735,9 @@ function itemAction(type, id) {
         setTimeout(() => modal.classList.add('active'), 10);
         tg.HapticFeedback.impactOccurred('medium');
     }
-}      
+}
+        
+
 function closeSellModal() {
     const modal = document.getElementById('sell-modal');
     modal.classList.remove('active');
@@ -796,34 +801,7 @@ function startCartAnimation() {
         'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0ebcZThQ6tKznJm0mvLwOq7c2G1Qv5Nz3u_E9N2iilG1-RA-NmqhcY-Sdw9rYV_R-gK-x7y605S1u8zMm3p9-n51YV_0no8/120fx120f'
     ];
 
-    // 4. Дождь из скинов СВЕРХУ + Вибрация
-    skins.forEach((src, i) => {
-        setTimeout(() => {
-            const img = document.createElement('img');
-            img.src = src;
-            img.className = 'skin-drop-final';
-            img.style.left = (i * 15) + 'px';
-            img.style.bottom = (i * 10) + 'px';
-            box.appendChild(img);
-            
-            // Вибрация через Telegram API
-            if(window.Telegram && Telegram.WebApp.HapticFeedback) {
-                Telegram.WebApp.HapticFeedback.impactOccurred('medium');
-            }
-        }, 1100 + (i * 400));
-    });
-}
-
-function closeSuccessModal() {
-    const successModal = document.getElementById('success-modal');
-    // Плавный уход вниз
-    successModal.classList.remove('active');
-    
-    // Через 400мс (время анимации CSS) очищаем состояние
-    setTimeout(() => {
-        backToInput(); // Возвращаем модалку продажи в первый шаг
-    }, 400);
-}
+   
 
     // 3. Список легендарных скинов (те самые ссылки, которые всегда грузятся)
     const premiumSkins = [
@@ -878,15 +856,6 @@ function closeSuccessModal() {
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
 
 
 
