@@ -495,8 +495,8 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
             </div>
         </div>
 
-        <div id="success-modal" class="modal-overlay" onclick="if(event.target === this) closeSuccessModal()">
-    <div class="modal-content" style="background: #020617; border-top: 2px solid var(--accent);">
+        <div id="success-modal" class="modal-overlay" style="align-items: flex-end;" onclick="if(event.target === this) closeSuccessModal()">
+    <div class="modal-content" style="background: #020617; border-top: 2px solid var(--accent); height: 75vh;">
         <div style="width: 40px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 10px; margin: 0 auto 20px;"></div>
         
         <div style="text-align:center; width: 100%;">
@@ -523,58 +523,7 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         const tg = window.Telegram.WebApp;
         const API_BASE = 'https://stattrakmrkt.onrender.com';
         let cachedMarket = [];
-// --- ФУНКЦИИ ОКНА УСПЕХА (ФИКС ВЫЕЗДА) ---
-function startCartAnimation() {
-    console.log("Запуск анимации...");
-    
-    // 1. Закрываем окно подтверждения
-    const stepConfirm = document.getElementById('step-confirm');
-    if(stepConfirm) stepConfirm.style.display = 'none';
-    
-    // 2. Берем окно успеха
-    const successModal = document.getElementById('success-modal');
-    if(successModal) {
-        successModal.style.display = 'flex'; // Показываем оверлей
-        
-        setTimeout(() => {
-            successModal.classList.add('active');
-            // ПРИНУДИТЕЛЬНЫЙ ВЫЕЗД: этот код вытянет окно, даже если CSS тупит
-            const content = successModal.querySelector('.modal-content');
-            if(content) {
-                content.style.transform = 'translateY(0)';
-                content.style.transition = 'transform 0.4s ease-out';
-            }
-        }, 50);
-    }
 
-    // 3. Подставляем имя предмета
-    const nameFromModal = document.getElementById('modal-item-name')?.innerText;
-    const successNamePlace = document.getElementById('success-item-name');
-    if(successNamePlace && nameFromModal) successNamePlace.innerText = nameFromModal;
-
-    // 4. Запуск тележки
-    const cart = document.getElementById('cart-anim');
-    if(cart) {
-        cart.classList.remove('active');
-        void cart.offsetWidth; 
-        cart.classList.add('active');
-    }
-}
-
-function closeSuccessModal() {
-    const successModal = document.getElementById('success-modal');
-    if(successModal) {
-        successModal.classList.remove('active');
-        const content = successModal.querySelector('.modal-content');
-        if(content) content.style.transform = 'translateY(100%)';
-        
-        setTimeout(() => {
-            successModal.style.display = 'none';
-            // Возвращаем интерфейс в начало для следующей продажи
-            if(typeof backToInput === 'function') backToInput();
-        }, 400);
-    }
-}
         // --- ДОБАВЛЕНО: ФУНКЦИЯ ОПРЕДЕЛЕНИЯ РЕДКОСТИ ---
        function getRarityClass(item) {
     const typeStr = (item.type || "").toLowerCase();
@@ -825,7 +774,101 @@ if (window.visualViewport) {
         }
     });
 }
+function startCartAnimation() {
+    // 1. Прячем окно ввода
+    document.getElementById('sell-modal').classList.remove('active');
+    
+    // 2. Показываем шторку успеха (через класс active для анимации снизу)
+    const successModal = document.getElementById('success-modal');
+    successModal.classList.add('active');
+    
+    // Подставляем имя
+    document.getElementById('success-item-name').innerText = document.getElementById('modal-item-name').innerText;
 
+    const cart = document.getElementById('cart-anim');
+    const box = document.getElementById('items-box');
+    box.innerHTML = '';
+    
+    // 3. Запуск анимации тележки
+    cart.classList.remove('active');
+    void cart.offsetWidth; 
+    cart.classList.add('active');
+
+    // Те же ссылки на скины
+    const skins = [
+        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09Kzm7-FmP7mDLfYkWNF18lwmO7Eu4_xiVXg_0s_Ym3xctXAdVBoZlvR-FfsxL3ph5S9v53AmCc17id253_VyxSygBtMcKUx0iC9f_7E/120fx120f',
+        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35cppQij-qUrN322VbgqBFqYmDycI-RI1A4YVvS8lTole_v08S06Z_MnXUws3Ur7H3ZzAv3309_7A8V7Q/120fx120f',
+        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0ebcZThQ6tKznJm0mvLwOq7c2G1Qv5Nz3u_E9N2iilG1-RA-NmqhcY-Sdw9rYV_R-gK-x7y605S1u8zMm3p9-n51YV_0no8/120fx120f'
+    ];
+
+    // 4. Дождь из скинов СВЕРХУ + Вибрация
+    skins.forEach((src, i) => {
+        setTimeout(() => {
+            const img = document.createElement('img');
+            img.src = src;
+            img.className = 'skin-drop-final';
+            img.style.left = (i * 15) + 'px';
+            img.style.bottom = (i * 10) + 'px';
+            box.appendChild(img);
+            
+            // Вибрация через Telegram API
+            if(window.Telegram && Telegram.WebApp.HapticFeedback) {
+                Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+            }
+        }, 1100 + (i * 400));
+    });
+}
+
+function closeSuccessModal() {
+    const successModal = document.getElementById('success-modal');
+    // Плавный уход вниз
+    successModal.classList.remove('active');
+    
+    // Через 400мс (время анимации CSS) очищаем состояние
+    setTimeout(() => {
+        backToInput(); // Возвращаем модалку продажи в первый шаг
+    }, 400);
+}
+
+    // 3. Список легендарных скинов (те самые ссылки, которые всегда грузятся)
+    const premiumSkins = [
+        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09Kzm7-FmP7mDLfYkWNF18lwmO7Eu4_xiVXg_0s_Ym3xctXAdVBoZlvR-FfsxL3ph5S9v53AmCc17id253_VyxSygBtMcKUx0iC9f_7E/200fx200f',
+        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35cppQij-qUrN322VbgqBFqYmDycI-RI1A4YVvS8lTole_v08S06Z_MnXUws3Ur7H3ZzAv3309_7A8V7Q/200fx200f',
+        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0Ob3fDJ95466kYe0m_7zO6-fzj9V7cJ0n_rE89Sk0Vbg-0VpYm_wI4-VclA8ZAuF-1m2wL3og5S6uJ_An3Rru3In-z-DyPTo0YhX/200fx200f',
+        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0ebcZThQ6tKznJm0mvLwOq7c2G1Qv5Nz3u_E9N2iilG1-RA-NmqhcY-Sdw9rYV_R-gK-x7y605S1u8zMm3p9-n51YV_0no8/200fx200f',
+        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou7umeldf0Ob3fDxBvYyJh5Saif73N6_um25V4dB8xL2Z8N6tjVax80E-Y273co-SdFNoYAnR_wK4yOi81pC07Zidm3p9-n51pC8f0mU/200fx200f'
+    ];
+
+    // Позиции для создания эффекта "горки"
+    const stackPositions = [
+        { x: '-10px', b: '0px' },
+        { x: '20px', b: '0px' },
+        { x: '5px', b: '25px' },
+        { x: '-15px', b: '45px' },
+        { x: '15px', b: '65px' }
+    ];
+
+    // 4. Начинаем сыпать скины, когда тележка остановится в центре (через 1.8 сек)
+    premiumSkins.forEach((url, i) => {
+        setTimeout(() => {
+            const img = document.createElement('img');
+            img.src = url;
+            img.className = 'skin-drop-final';
+            img.style.left = stackPositions[i].x;
+            img.style.bottom = stackPositions[i].b;
+            
+            box.appendChild(img);
+            
+            // Физический эффект тряски тележки при падении предмета
+            cart.style.transform = 'translateY(5px)';
+            setTimeout(() => cart.style.transform = 'translateY(0)', 80);
+            
+            // Легкая вибрация при каждом падении
+            if(window.Telegram && Telegram.WebApp) {
+                Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+            }
+        }, 1800 + (i * 400));
+    });
 
     // 5. Завершение анимации: убираем тележку и показываем успех
     setTimeout(() => {
@@ -840,9 +883,6 @@ if (window.visualViewport) {
     </script>
 </body>
 </html>
-
-
-
 
 
 
