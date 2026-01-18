@@ -512,26 +512,33 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     return 'rare-common';
 }
         // Старт системы
-        window.addEventListener('DOMContentLoaded', async () => {
-            tg.ready();
-            tg.expand();
-            
-            // Настройка темы под ТГ
-            document.body.style.setProperty('--tg-color', tg.themeParams.button_color);
+      // Старт системы напрямую (без лишних оберток)
+tg.ready();
+tg.expand();
 
-            // Загрузка данных
-            const storedSid = localStorage.getItem('titanium_sid');
-            if (storedSid) document.getElementById('steam-id-field').value = storedSid;
+// Настройка темы
+document.body.style.setProperty('--tg-color', tg.themeParams.button_color);
 
-            await loadMarketData();
+// Загрузка данных
+const storedSid = localStorage.getItem('titanium_sid');
+if (storedSid) {
+    const field = document.getElementById('steam-id-field');
+    if (field) field.value = storedSid;
+}
 
-            // Плавное скрытие загрузки
-            setTimeout(() => {
-                const ls = document.getElementById('loading-screen');
-                ls.style.opacity = '0';
-                setTimeout(() => ls.style.display = 'none', 500);
-            }, 800);
-        });
+// Запускаем асинхронную часть
+(async () => {
+    await loadMarketData();
+    
+    // Плавное скрытие загрузки
+    setTimeout(() => {
+        const ls = document.getElementById('loading-screen');
+        if (ls) {
+            ls.style.opacity = '0';
+            setTimeout(() => { ls.style.display = 'none'; }, 500);
+        }
+    }, 800);
+})();
 
         // Навигация
         function appNavigate(page, el) {
@@ -857,6 +864,7 @@ function closeSuccessModal() {
     </script>
 </body>
 </html>
+
 
 
 
