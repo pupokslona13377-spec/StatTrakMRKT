@@ -274,9 +274,11 @@
     inset: 0;
     background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
     z-index: 10000;
     align-items: flex-end; 
     justify-content: center;
+    opacity: 0;
     transition: opacity 0.3s ease;
 }
 
@@ -285,7 +287,8 @@
     background: #0f172a; 
     border-radius: 24px 24px 0 0;
     padding: 20px 20px 40px 20px;
-    transform: translateY(100%);
+    /* Начальное положение — полностью скрыто внизу */
+    transform: translateY(100%); 
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     border-top: 1px solid rgba(0, 210, 255, 0.3);
     display: flex;
@@ -293,9 +296,14 @@
     max-height: 90vh;
 }
 
-.modal-overlay.active { display: flex; opacity: 1; }
-.modal-overlay.active .modal-content { transform: translateY(0); }
-
+/* Когда активен — плавно выезжает и проявляется */
+.modal-overlay.active { 
+    display: flex !important; 
+    opacity: 1; 
+}
+.modal-overlay.active .modal-content { 
+    transform: translateY(0) !important; 
+}
 /* Убираем стрелки у поля ввода цены */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -823,5 +831,6 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </script>
 </body>
 </html>
+
 
 
