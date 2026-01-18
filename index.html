@@ -355,6 +355,50 @@
             ПРОФИЛЬ
         </a>
     </nav>
+    <div id="sell-modal" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.96); z-index:10000; backdrop-filter:blur(20px); align-items:center; justify-content:center;">
+    <div style="width:100%; max-width:360px; padding:20px; position:relative;">
+        
+        <div onclick="closeSellModal()" style="position:absolute; top:0; right:20px; font-size:28px; color:var(--text-gray); cursor:pointer; font-weight:300;">&times;</div>
+
+        <div style="width:180px; height:180px; margin:0 auto 10px; position:relative; display:flex; align-items:center; justify-content:center;">
+            <div style="position:absolute; inset:0; border:2px solid var(--accent); border-radius:40px; opacity:0.2; box-shadow:0 0 40px var(--accent-glow);"></div>
+            <img id="modal-img" src="" style="width:140px; z-index:2; filter:drop-shadow(0 15px 25px rgba(0,0,0,0.6));">
+        </div>
+
+        <div style="text-align:center; margin-bottom:25px;">
+            <h3 id="modal-item-name" style="font-size:20px; font-weight:900; color:white; text-transform:uppercase;">ITEM NAME</h3>
+            <span style="font-size:11px; color:var(--text-gray); letter-spacing:1px; opacity:0.6;">STATTRAK MARKET PRO UNIFIED</span>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-left:4px solid var(--accent); border-radius:20px; padding:18px; margin-bottom:20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+            
+            <div style="display:flex; align-items:center; gap:8px; font-size:11px; font-weight:900; color:var(--text-gray); margin-bottom:15px; text-transform:uppercase;">
+                <svg width="12" height="12" viewBox="0 0 56 56" fill="var(--accent)"><path d="M28 56C43.464 56 56 43.464 56 28C56 12.536 43.464 0 28 0C12.536 0 0 12.536 0 28C0 43.464 12.536 56 28 56ZM14.5607 15.7513C14.7963 15.3979 15.228 15.2158 15.6318 15.2995L27.6318 17.7995C27.8727 17.8497 28.1273 17.8497 28.3682 17.7995L40.3682 15.2995C40.772 15.2158 41.2037 15.3979 41.4393 15.7513C41.6749 16.1047 41.6738 16.5701 41.4367 16.9234L28.9367 35.4234C28.5146 36.0487 27.4854 36.0487 27.0633 35.4234L14.5633 16.9234C14.3262 16.5701 14.3251 16.1047 14.5607 15.7513Z"/></svg>
+                FLOOR PRICE: <span id="floor-val" style="color:white;">0.00</span> TON
+            </div>
+
+            <input type="number" id="sell-price-input" placeholder="Введите цену..." oninput="calculateFee(this.value)"
+                   style="width:100%; background:rgba(0,0,0,0.4); border:1px solid var(--border); padding:15px; border-radius:14px; color:white; outline:none; font-size:16px; font-weight:700; margin-bottom:15px;">
+
+            <div style="font-size:12px; display:flex; flex-direction:column; gap:10px;">
+                <div style="display:flex; justify-content:space-between; color:var(--text-gray); font-weight:600;">
+                    <span>Комиссия маркета (5%)</span>
+                    <span id="fee-val" style="color:white;">0.00 TON</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding-top:12px; border-top:1px solid rgba(255,255,255,0.05);">
+                    <span style="font-weight:900; color:var(--accent); font-size:13px;">К ЗАЧИСЛЕНИЮ</span>
+                    <span id="final-receive" style="color:var(--accent); font-weight:900; font-size:15px;">0.00 TON</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <button class="action-btn" style="background:#EAB308; color:black; border:none; height:50px; border-radius:14px; font-weight:900; font-size:12px;">БЫСТРАЯ ПРОДАЖА</button>
+            <button class="action-btn" onclick="confirmSale()" style="background:transparent; border:2px solid var(--accent); color:white; height:50px; border-radius:14px; font-weight:900; font-size:12px; box-shadow:0 0 20px var(--accent-glow);">РАЗМЕСТИТЬ</button>
+        </div>
+
+    </div>
+</div>
 
     <script>
         /* ================================================================
@@ -581,6 +625,7 @@ ${item.price || '0.00'}
     </script>
 </body>
 </html>
+
 
 
 
