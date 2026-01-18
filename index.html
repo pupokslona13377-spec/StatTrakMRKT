@@ -615,6 +615,10 @@ ${item.price || '0.00'}
                 </div>`;
             }).join('');
         }
+            async function handleSteamSync() {
+    tg.HapticFeedback.impactOccurred('medium'); // Виброотклик
+    await loadInventory(); // Запускаем твою основную функцию
+}
 
         // ИСПРАВЛЕННЫЙ ИНВЕНТАРЬ (MAPPER LOGIC)
         async function loadInventory() {
@@ -884,6 +888,7 @@ function closeSuccessModal() {
     </script>
 </body>
 </html>
+
 
 
 
