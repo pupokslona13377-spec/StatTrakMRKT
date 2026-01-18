@@ -1,241 +1,505 @@
+# CS2 Skins Marketplace - Telegram Web App
+
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StatTrak Market</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CS2 Marketplace</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, sans-serif; background: #0f172a; color: white; padding-bottom: 80px; overflow-x: hidden; }
-        
-        /* ШАПКА И ПОИСК */
-        .header { background: #1e293b; padding: 15px 20px; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
-        .header h1 { font-size: 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .search-box { width: 100%; padding: 12px; background: #0f172a; border: 2px solid #334155; border-radius: 12px; color: white; margin-top: 10px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        /* СЕКЦИИ */
-        .section { display: none; padding: 20px; animation: fadeIn 0.3s; }
-        .section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #F8F9FA;
+            color: #2D3436;
+            padding-bottom: 70px;
+            overflow-x: hidden;
+        }
 
-        /* СЕТКА ТОВАРОВ */
-        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
-        .item-card { background: #1e293b; border-radius: 12px; padding: 15px; text-align: center; border-bottom: 4px solid #475569; transition: transform 0.2s; }
-        .item-card:active { transform: scale(0.95); }
-        .item-card img { width: 100%; max-width: 100px; height: auto; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); }
-        .item-name { font-size: 12px; margin: 8px 0; min-height: 32px; font-weight: 500; }
-        .item-price { font-size: 18px; font-weight: bold; color: #10b981; }
+        /* ============ HEADER ============ */
+        .header {
+            background: #FFFFFF;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
 
-        /* РЕДКОСТИ */
-        .rarity-ancient { border-bottom-color: #eb4b4b; box-shadow: 0 4px 15px rgba(235, 75, 75, 0.3); }
-        .rarity-legendary { border-bottom-color: #d32ce6; box-shadow: 0 4px 15px rgba(211, 44, 230, 0.3); }
-        .rarity-mythical { border-bottom-color: #8847ff; box-shadow: 0 4px 15px rgba(136, 71, 255, 0.3); }
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2D3436;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-        /* КНОПКИ */
-        .btn { padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; transition: 0.3s; }
-        .btn-success { background: #10b981; color: white; }
-        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .header-accent {
+            color: #00D2FF;
+        }
 
-        /* НАВИГАЦИЯ */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #1e293b; display: flex; justify-content: space-around; padding: 10px 0 25px 0; z-index: 1000; }
-        .nav-btn { background: none; border: none; color: #94a3b8; font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .nav-btn.active { color: #667eea; }
-        .nav-icon { font-size: 20px; }
+        .search-box {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #E9ECEF;
+            border-radius: 12px;
+            font-size: 15px;
+            margin-top: 12px;
+            outline: none;
+            transition: all 0.3s;
+        }
 
-        /* TOAST */
-        .toast-container { position: fixed; bottom: 100px; left: 20px; right: 20px; z-index: 10000; }
-        .toast { background: #1e293b; color: white; padding: 15px; border-radius: 10px; border-left: 4px solid #667eea; margin-top: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .search-box:focus {
+            border-color: #00D2FF;
+            background: #F8FDFF;
+        }
 
-        .loader { text-align: center; padding: 40px; color: #667eea; }
-        .spinner { border: 4px solid #334155; border-top: 4px solid #667eea; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        /* ============ SECTIONS ============ */
+        .section {
+            display: none;
+            padding: 15px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============ ITEMS GRID ============ */
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+        }
+
+        .item-card {
+            background: #E9ECEF;
+            border-radius: 16px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .item-card:active {
+            transform: scale(0.98);
+        }
+
+        .item-image {
+            width: 100%;
+            height: 120px;
+            object-fit: contain;
+            margin-bottom: 8px;
+        }
+
+        .item-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #2D3436;
+            margin-bottom: 6px;
+            line-height: 1.3;
+            height: 35px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .item-price {
+            font-size: 16px;
+            font-weight: 700;
+            color: #00D2FF;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .item-wear {
+            font-size: 11px;
+            color: #636e72;
+            margin-top: 4px;
+        }
+
+        /* ============ ACTION BUTTON ============ */
+        .btn-primary {
+            background: #00D2FF;
+            color: #FFFFFF;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+            background: #00B8E6;
+        }
+
+        .btn-secondary {
+            background: #E9ECEF;
+            color: #2D3436;
+            border: 2px solid #00D2FF;
+        }
+
+        /* ============ PROFILE SECTION ============ */
+        .profile-header {
+            background: #FFFFFF;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.1);
+        }
+
+        .balance-container {
+            margin-bottom: 20px;
+        }
+
+        .balance-label {
+            font-size: 14px;
+            color: #636e72;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .balance-amount {
+            font-size: 36px;
+            font-weight: 700;
+            color: #00D2FF;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .balance-currency {
+            font-size: 20px;
+            color: #636e72;
+        }
+
+        .pending-balance {
+            background: #FFF5E6;
+            border-left: 4px solid #FFA726;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+        }
+
+        .pending-label {
+            font-size: 13px;
+            color: #F57C00;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 5px;
+        }
+
+        .pending-amount {
+            font-size: 24px;
+            font-weight: 700;
+            color: #F57C00;
+        }
+
+        .info-tip {
+            font-size: 12px;
+            color: #636e72;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        .button-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .steam-id-section {
+            background: #FFFFFF;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .steam-id-section h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #2D3436;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #E9ECEF;
+            border-radius: 12px;
+            font-size: 15px;
+            margin-bottom: 10px;
+            outline: none;
+        }
+
+        .input-field:focus {
+            border-color: #00D2FF;
+        }
+
+        /* ============ ORDERS SECTION ============ */
+        .order-card {
+            background: #FFFFFF;
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 4px solid #00D2FF;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .order-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #FFF5E6;
+            color: #F57C00;
+        }
+
+        .status-completed {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .order-item {
+            font-size: 14px;
+            color: #2D3436;
+            margin-bottom: 5px;
+        }
+
+        .order-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: #00D2FF;
+        }
+
+        /* ============ GAME HUB (BLURRED) ============ */
+        .game-hub-container {
+            position: relative;
+            min-height: 400px;
+        }
+
+        .game-hub-blur {
+            filter: blur(8px);
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        .coming-soon-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+        }
+
+        .coming-soon-overlay h2 {
+            font-size: 28px;
+            color: #00D2FF;
+            margin-bottom: 10px;
+        }
+
+        .coming-soon-overlay p {
+            font-size: 16px;
+            color: #636e72;
+        }
+
+        /* ============ BOTTOM NAVIGATION ============ */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #FFFFFF;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            padding: 8px 0;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #636e72;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            transition: all 0.3s;
+        }
+
+        .nav-btn.active {
+            color: #00D2FF;
+        }
+
+        .nav-btn.active .nav-icon {
+            transform: scale(1.1);
+        }
+
+        /* ============ TOAST ============ */
+        .toast-container {
+            position: fixed;
+            top: 70px;
+            right: 15px;
+            z-index: 9999;
+        }
+
+        .toast {
+            background: #FFFFFF;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            margin-bottom: 10px;
+            animation: slideIn 0.3s ease;
+            border-left: 4px solid #00D2FF;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* ============ LOADING ============ */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #636e72;
+        }
+
+        .spinner {
+            border: 3px solid #E9ECEF;
+            border-top: 3px solid #00D2FF;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #636e72;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
     </style>
 </head>
 <body>
+    <!-- TOAST CONTAINER -->
     <div class="toast-container" id="toastContainer"></div>
 
+    <!-- HEADER -->
     <div class="header">
-        <h1>🎯 StatTrak Market</h1>
-        <input type="text" class="search-box" id="searchInput" placeholder="🔍 Поиск скинов..." oninput="filterMarket()">
+        <h1>💎 CS2 <span class="header-accent">Marketplace</span></h1>
+        <input type="text" class="search-box" id="searchInput" placeholder="🔍 Поиск скинов...">
     </div>
 
+    <!-- SECTION: MARKET -->
     <div class="section active" id="marketSection">
-        <div style="background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #10b981;">
-            <span style="color: #94a3b8; font-size: 12px;">Ваш баланс:</span>
-            <span id="m-balance" style="color: #10b981; font-weight: bold; font-size: 18px; margin-left: 5px;">0.00</span> TON
+        <div class="loading" id="marketLoading">
+            <div class="spinner"></div>
+            <p>Загрузка предложений...</p>
         </div>
         <div class="items-grid" id="marketGrid"></div>
     </div>
 
-    <div class="section" id="inventorySection">
-        <div class="items-grid" id="inventoryGrid"></div>
+    <!-- SECTION: ORDERS -->
+    <div class="section" id="ordersSection">
+        <div id="ordersContainer"></div>
     </div>
 
-    <div class="section" id="profileSection">
-        <div style="background: #1e293b; padding: 25px; border-radius: 20px; text-align: center; border: 1px solid #334155;">
-            <h2 id="p-balance" style="font-size: 32px; color: #10b981;">0.00 TON</h2>
-            <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Внутренний баланс</p>
-            <button class="btn btn-success" onclick="depositFunds()">➕ Пополнить баланс</button>
-            <div style="margin-top: 25px; border-top: 1px solid #334155; padding-top: 20px;">
-                <input type="text" id="steamIdInput" placeholder="Введите SteamID64" style="width:100%; padding:12px; border-radius:10px; background:#0f172a; border:1px solid #334155; color:white;">
-                <button class="btn btn-primary" onclick="saveData()">💾 Сохранить SteamID</button>
+    <!-- SECTION: GAME HUB -->
+    <div class="section" id="gameHubSection">
+        <div class="game-hub-container">
+            <div class="coming-soon-overlay">
+                <h2>🎮 В разработке</h2>
+                <p>Игровой раздел скоро появится!</p>
+            </div>
+            <div class="game-hub-blur">
+                <div class="items-grid">
+                    <div class="item-card">
+                        <div style="height: 120px; background: #ddd; border-radius: 8px;"></div>
+                        <div style="height: 15px; background: #ccc; margin: 10px 0; border-radius: 4px;"></div>
+                        <div style="height: 20px; background: #bbb; border-radius: 4px;"></div>
+                    </div>
+                    <div class="item-card">
+                        <div style="height: 120px; background: #ddd; border-radius: 8px;"></div>
+                        <div style="height: 15px; background: #ccc; margin: 10px 0; border-radius: 4px;"></div>
+                        <div style="height: 20px; background: #bbb; border-radius: 4px;"></div>
+                    </div>
+                </div>
             </div>
         </div>
-        <h3 style="margin: 25px 0 15px;">📋 Мои активные лоты</h3>
-        <div id="myListings"></div>
     </div>
 
-    <nav class="bottom-nav">
-        <button class="nav-btn active" onclick="switchSection('market')"><span class="nav-icon">🛒</span>Маркет</button>
-        <button class="nav-btn" onclick="switchSection('inventory')"><span class="nav-icon">🎒</span>Инвентарь</button>
-        <button class="nav-btn" onclick="switchSection('profile')"><span class="nav-icon">👤</span>Профиль</button>
-    </nav>
+    <!-- SECTION: PROFILE -->
+    <div class="section" id="profileSection">
+        <div class="profile-header">
+            <div class="balance-container">
+                <div class="balance-label">💰 Доступный баланс</div>
+                <div class="balance-amount">
+                    <span id="mainBalance">0.00</span>
+                    <span class="balance-currency">TON</span>
+                </div>
+            </div>
 
-    <script>
-        const API_URL = "https://stattrakmrkt.onrender.com";
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-
-        const user = tg.initDataUnsafe?.user || { id: 12345, first_name: "Demo" };
-        const userId = user.id;
-        let userBalance = 0;
-
-        function showToast(text) {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = text;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
-
-        async function syncBalance() {
-            try {
-                const res = await fetch(`${API_URL}/api/user/${userId}`);
-                const data = await res.json();
-                userBalance = data.balance;
-                document.getElementById('m-balance').innerText = userBalance.toFixed(2);
-                document.getElementById('p-balance').innerText = userBalance.toFixed(2) + " TON";
-            } catch (e) { console.error("Balance error", e); }
-        }
-
-        async function loadMarket() {
-            const grid = document.getElementById('marketGrid');
-            grid.innerHTML = "<div class='loader'><div class='spinner'></div></div>";
-            try {
-                const res = await fetch(`${API_URL}/api/market`);
-                const items = await res.json();
-                grid.innerHTML = items.map(i => `
-                    <div class="item-card ${i.rarity || ''}">
-                        <img src="https://community.cloudflare.steamstatic.com/economy/image/${i.hash}/200fx200f">
-                        <div class="item-name">${i.name}</div>
-                        <div class="item-price">${i.price} TON</div>
-                        <button class="btn btn-success" onclick="buyItem('${i.id}', ${i.price}, '${i.name}')">Купить</button>
-                    </div>
-                `).join('');
-            } catch (e) { showToast("Ошибка загрузки маркета"); }
-        }
-
-       async function loadInventory() {
-    const sid = localStorage.getItem('sid');
-    const grid = document.getElementById('inventoryGrid');
-    if (!sid) { showToast("Укажите SteamID в профиле!"); switchSection('profile'); return; }
-
-    grid.innerHTML = "<div class='loader'><div class='spinner'></div><p>Связываюсь со Steam...</p></div>";
-    try {
-        const res = await fetch(`${API_URL}/api/inventory/${sid}`);
-        const data = await res.json();
-
-        if (res.ok && data.descriptions) {
-            grid.innerHTML = data.descriptions.map(item => {
-                const rarity = getRarityClass(item);
-                return `
-                    <div class="item-card ${rarity}">
-                        <img src="https://community.cloudflare.steamstatic.com/economy/image/${item.icon_url}/200fx200f">
-                        <div class="item-name">${item.market_name}</div>
-                        <button class="btn btn-primary" onclick="listItem('${item.market_name.replace(/'/g, "\\'")}', '${item.icon_url}', '${rarity}')">Продать</button>
-                    </div>
-                `;
-            }).join('');
-        } else {
-            grid.innerHTML = `<div style="text-align:center; padding:20px;">${data.error || 'Ошибка доступа'}<br><small style="color:#94a3b8">Проверьте настройки приватности инвентаря</small></div>`;
-        }
-    } catch (e) { 
-        console.error(e);
-        grid.innerHTML = "<div class='empty-state'>Сервер не отвечает</div>"; 
-    }
-}
-        function getRarityClass(item) {
-            if (!item.tags) return "";
-            const tag = item.tags.find(t => t.category === "Rarity");
-            if (!tag) return "";
-            const colors = { "eb4b4b": "rarity-ancient", "d32ce6": "rarity-legendary", "8847ff": "rarity-mythical" };
-            return colors[tag.color.toLowerCase()] || "";
-        }
-
-        async function buyItem(itemId, price, name) {
-            if (userBalance < price) { showToast("❌ Недостаточно TON!"); return; }
-            if (!confirm(`Купить ${name} за ${price} TON?`)) return;
-
-            const res = await fetch(`${API_URL}/api/market/buy`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, itemId })
-            });
-            if (res.ok) { showToast("✅ Покупка успешна!"); syncBalance(); loadMarket(); }
-        }
-
-        async function listItem(name, hash, rarity) {
-            const price = prompt(`Цена продажи ${name} (TON):`, "1.0");
-            if (!price || isNaN(price)) return;
-            await fetch(`${API_URL}/api/market/add`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, price: parseFloat(price), hash, rarity, sellerSid: userId })
-            });
-            showToast("✅ Выставлено!");
-            switchSection('market');
-        }
-
-        async function depositFunds() {
-            const amount = prompt("Сумма пополнения (Тест):", "5");
-            if (!amount) return;
-            await fetch(`${API_URL}/api/user/deposit`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, amount })
-            });
-            syncBalance();
-            showToast("💰 Баланс пополнен!");
-        }
-
-        function switchSection(sec) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(sec + 'Section').classList.add('active');
-            const idx = sec === 'market' ? 0 : sec === 'inventory' ? 1 : 2;
-            document.querySelectorAll('.nav-btn')[idx].classList.add('active');
-            if (sec === 'market') loadMarket();
-            if (sec === 'inventory') loadInventory();
-            if (sec === 'profile') syncBalance();
-        }
-
-        function saveData() {
-            localStorage.setItem('sid', document.getElementById('steamIdInput').value);
-            showToast("💾 ID сохранен");
-        }
-
-        window.onload = () => {
-            document.getElementById('steamIdInput').value = localStorage.getItem('sid') || '';
-            syncBalance();
-            loadMarket();
-        };
-    </script>
-</body>
-</html>
-
-
-
+            <div class="pending-balance">
+                <div class="pending-label">
+                    ⏳ В ожидании
+                    <span style="cursor: pointer;" onclick="showPendingInfo()">ℹ️</span>
+                </div>
+                <div class="pending-amount" id="pendingBalance">0.00 TON</div
 
