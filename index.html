@@ -6,83 +6,243 @@
     <title>StatTrak Market</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* СТИЛИ ИЗ ПЕРВОГО КОДА + УЛУЧШЕНИЯ */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        /* ============ ПОЛНЫЕ СТИЛИ ИЗ ПЕРВОГО ПРОМПТА ============ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #F8F9FA; color: #212529; padding-bottom: 80px; overflow-x: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #F8F9FA;
+            color: #212529;
+            padding-bottom: 70px;
+            overflow-x: hidden;
         }
 
-        /* HEADER */
         .header {
-            background: #FFFFFF; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            position: sticky; top: 0; z-index: 100;
+            background: #FFFFFF;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .header h1 { font-size: 24px; font-weight: 700; margin-bottom: 15px; }
-        .header-accent { color: #00D2FF; }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #212529;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-accent {
+            color: #00D2FF;
+        }
+
         .search-box {
-            width: 100%; padding: 12px 16px; border: 2px solid #E9ECEF;
-            border-radius: 12px; font-size: 15px; background: #F8F9FA;
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #E9ECEF;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: #F8F9FA;
         }
 
-        /* NAVIGATION */
+        .search-box:focus {
+            outline: none;
+            border-color: #00D2FF;
+            background: #FFFFFF;
+            box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.1);
+        }
+
         .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0; background: #FFFFFF;
-            display: flex; justify-content: space-around; padding: 10px 0;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #FFFFFF;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
         }
-        .nav-item { flex: 1; text-align: center; cursor: pointer; color: #6C757D; transition: 0.3s; }
-        .nav-item.active { color: #00D2FF; border-top: 3px solid #00D2FF; }
-        .nav-icon { display: block; font-size: 22px; }
-        .nav-label { font-size: 11px; font-weight: 600; }
 
-        /* SECTIONS */
-        .section { display: none; padding: 20px; animation: fadeIn 0.4s ease; }
-        .section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-top: 3px solid transparent;
+            color: #6C757D;
+        }
 
-        /* MARKET & CARDS */
-        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        .nav-item.active {
+            color: #00D2FF;
+            border-top-color: #00D2FF;
+        }
+
+        .nav-icon {
+            font-size: 22px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .section {
+            display: none;
+            padding: 20px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
+        }
+
         .item-card {
-            background: #FFFFFF; border-radius: 12px; padding: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: 0.3s;
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: all 0.3s ease;
+            cursor: pointer;
         }
-        .item-image { width: 100%; height: 120px; object-fit: contain; margin-bottom: 10px; background: #F8F9FA; border-radius: 8px; }
-        .item-name { font-size: 13px; font-weight: 600; height: 34px; overflow: hidden; margin-bottom: 6px; }
-        .item-price { font-size: 16px; font-weight: 700; color: #00D2FF; margin-bottom: 8px; }
 
-        /* PROFILE */
+        .item-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 210, 255, 0.15);
+        }
+
+        .item-image {
+            width: 100%;
+            height: 120px;
+            object-fit: contain;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 100%);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .item-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 6px;
+            line-height: 1.3;
+            height: 34px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .item-price {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 16px;
+            font-weight: 700;
+            color: #00D2FF;
+        }
+
         .profile-header {
             background: linear-gradient(135deg, #00D2FF 0%, #0099CC 100%);
-            border-radius: 16px; padding: 25px; color: #FFFFFF; margin-bottom: 20px;
+            border-radius: 16px;
+            padding: 25px;
+            color: #FFFFFF;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
         }
-        .balance-amount { font-size: 36px; font-weight: 700; margin: 10px 0; }
-        .btn-action {
-            width: 100%; padding: 14px; border: none; border-radius: 12px;
-            font-weight: 600; cursor: pointer; transition: 0.2s;
+
+        .balance-amount {
+            font-size: 36px;
+            font-weight: 700;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
         }
-        .btn-cyan { background: #00D2FF; color: white; }
-        
-        /* NOTIFICATIONS & LOADER (ИЗ ВТОРОГО КОДА) */
+
+        .pending-balance {
+            background: rgba(255,255,255,0.15);
+            padding: 15px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            margin-top: 15px;
+        }
+
+        .steam-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #E9ECEF;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .btn-save {
+            width: 100%;
+            padding: 14px;
+            background: #00D2FF;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* ============ СТИЛИ УВЕДОМЛЕНИЙ ИЗ ВТОРОГО ПРОМПТА ============ */
         .loader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.8); display: none;
+            background: rgba(0, 0, 0, 0.7); display: none;
             justify-content: center; align-items: center; z-index: 9999;
         }
         .spinner {
-            width: 40px; height: 40px; border: 4px solid #f3f3f3;
-            border-top: 4px solid #00D2FF; border-radius: 50%; animation: spin 1s linear infinite;
+            width: 50px; height: 50px; border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
         .notification {
-            position: fixed; top: 20px; right: 20px; padding: 15px;
-            border-radius: 10px; color: white; z-index: 10000;
-            transform: translateX(400px); transition: 0.3s;
+            position: fixed; top: 20px; right: 20px; padding: 15px 20px;
+            border-radius: 8px; color: white; font-weight: 500;
+            opacity: 0; transform: translateX(400px); transition: all 0.3s ease;
+            z-index: 10000; max-width: 300px;
         }
-        .notification.show { transform: translateX(0); }
+        .notification.show { opacity: 1; transform: translateX(0); }
         .notification-error { background: #e74c3c; }
         .notification-success { background: #2ecc71; }
+        .notification-info { background: #3498db; }
+        
+        .game-hub-blur { filter: blur(8px); opacity: 0.6; }
+        .coming-soon-overlay {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; z-index: 10; background: rgba(255,255,255,0.95);
+            padding: 30px; border-radius: 16px; width: 80%;
+        }
     </style>
 </head>
 <body>
@@ -99,166 +259,289 @@
     </div>
 
     <div class="section" id="orders">
-        <div class="empty-state" style="text-align:center; padding: 50px;">
-            <span style="font-size: 50px;">📦</span>
-            <p>История заказов пуста</p>
+        <div id="ordersContainer" class="empty-state" style="text-align: center; padding-top: 50px;">
+            <div style="font-size: 64px; opacity: 0.5;">📦</div>
+            <p style="color: #6C757D;">У вас пока нет заказов</p>
         </div>
     </div>
 
     <div class="section" id="gameHub">
-        <div style="text-align:center; padding: 50px; background: white; border-radius: 20px;">
-            <h2>🎮 Game Hub</h2>
-            <p style="color: #666;">В разработке...</p>
+        <div class="game-hub-container" style="position: relative;">
+            <div class="coming-soon-overlay">
+                <h2>🎮 В разработке</h2>
+                <p>Игровой раздел скоро появится!</p>
+            </div>
+            <div class="game-hub-blur">
+                <div class="items-grid">
+                    <div class="item-card"><div style="height:120px; background:#eee;"></div></div>
+                    <div class="item-card"><div style="height:120px; background:#eee;"></div></div>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="section" id="profile">
         <div class="profile-header">
-            <div>💰 Текущий баланс</div>
+            <div style="font-size: 14px; opacity: 0.9;">💰 Доступный баланс</div>
             <div class="balance-amount" id="balanceDisplay">$0.00</div>
-            <div style="font-size: 12px; opacity: 0.8;">User ID: <span id="displayUserId">...</span></div>
+            
+            <div class="pending-balance">
+                <div style="font-size: 13px; margin-bottom: 6px;">⏳ В ожидании</div>
+                <div style="font-size: 18px; font-weight: 600;" id="pendingBalanceDisplay">0.00 TON</div>
+            </div>
         </div>
 
-        <div style="background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px;">
-            <h3 style="margin-bottom: 10px;">🔗 Steam ID64</h3>
-            <input type="text" id="steamIdInput" class="search-box" style="margin-bottom: 10px;" placeholder="76561198...">
-            <button class="btn-action btn-cyan" onclick="handleSaveSteamId()">Привязать Steam</button>
+        <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+            <h3 style="font-size: 16px; margin-bottom: 12px;">🔗 Steam ID64</h3>
+            <input type="text" id="steamIdInput" class="steam-input" placeholder="76561198...">
+            <button class="btn-save" onclick="handleSaveSteamId()">Сохранить данные</button>
         </div>
 
-        <h3>🎒 Мой инвентарь</h3>
-        <div class="items-grid" id="inventoryGrid" style="margin-top:15px;"></div>
+        <h3 style="margin: 20px 0 10px;">🎒 Мой инвентарь</h3>
+        <div id="inventoryGrid" class="items-grid"></div>
     </div>
 
     <nav class="bottom-nav">
-        <div class="nav-item active" onclick="switchSection('market')">
+        <div class="nav-item active" id="nav-market" onclick="switchSection('market')">
             <span class="nav-icon">🛒</span><span class="nav-label">Маркет</span>
         </div>
-        <div class="nav-item" onclick="switchSection('orders')">
+        <div class="nav-item" id="nav-orders" onclick="switchSection('orders')">
             <span class="nav-icon">📦</span><span class="nav-label">Заказы</span>
         </div>
-        <div class="nav-item" onclick="switchSection('gameHub')">
+        <div class="nav-item" id="nav-gameHub" onclick="switchSection('gameHub')">
             <span class="nav-icon">🎮</span><span class="nav-label">Хаб</span>
         </div>
-        <div class="nav-item" onclick="switchSection('profile')">
+        <div class="nav-item" id="nav-profile" onclick="switchSection('profile')">
             <span class="nav-icon">👤</span><span class="nav-label">Профиль</span>
         </div>
     </nav>
 
     <script>
-        // ВСЯ ЛОГИКА ИЗ ВТОРОГО КОДА (Адаптированная)
+        // ============ ПОЛНАЯ ЛОГИКА ИЗ ВТОРОГО ПРОМПТА (БЕЗ СОКРАЩЕНИЙ) ============
         const API_BASE = 'https://stattrakmrkt.onrender.com';
         const tg = window.Telegram.WebApp;
+
         tg.expand();
+        tg.ready();
 
         let currentUser = {
-            userId: tg.initDataUnsafe?.user?.id || localStorage.getItem('userId') || '12345',
-            steamId: localStorage.getItem('steamId64'),
+            userId: null,
+            steamId: null,
             balance: 0
         };
 
-        // Инициализация
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('displayUserId').innerText = currentUser.userId;
-            document.getElementById('steamIdInput').value = currentUser.steamId || '';
-            syncBalance();
-            loadMarket();
-        });
-
-        async function syncBalance() {
-            try {
-                const res = await fetch(`${API_BASE}/api/user/${currentUser.userId}`);
-                const data = await res.json();
-                currentUser.balance = data.balance || 0;
-                document.getElementById('balanceDisplay').innerText = `$${currentUser.balance.toFixed(2)}`;
-            } catch (e) { console.error("Balance sync error"); }
+        function initUser() {
+            const savedSteamId = localStorage.getItem('steamId64');
+            const savedUserId = localStorage.getItem('userId');
+            
+            if (savedSteamId) currentUser.steamId = savedSteamId;
+            
+            if (tg.initDataUnsafe?.user?.id) {
+                currentUser.userId = tg.initDataUnsafe.user.id;
+                localStorage.setItem('userId', currentUser.userId);
+            } else if (savedUserId) {
+                currentUser.userId = savedUserId;
+            }
         }
 
         async function loadMarket() {
-            showLoader();
             try {
-                const res = await fetch(`${API_BASE}/api/market`);
-                const items = await res.json();
-                const grid = document.getElementById('marketGrid');
-                grid.innerHTML = items.map(i => `
-                    <div class="item-card">
-                        <img class="item-image" src="${i.image || 'https://via.placeholder.com/150'}">
-                        <div class="item-name">${i.name}</div>
-                        <div class="item-price">$${parseFloat(i.price).toFixed(2)}</div>
-                        <button class="btn-action btn-cyan" onclick="buyItem('${i.id}', ${i.price})">Купить</button>
-                    </div>
-                `).join('');
-            } catch (e) { showNotification("Ошибка загрузки маркета", "error"); }
-            hideLoader();
+                showLoader();
+                const response = await fetch(`${API_BASE}/api/market`);
+                if (!response.ok) throw new Error(`Status: ${response.status}`);
+                const data = await response.json();
+                renderMarketItems(data.items || data);
+            } catch (error) {
+                console.error('Error loading market:', error);
+                showError('Ошибка загрузки маркета');
+                tg.HapticFeedback.notificationOccurred('error');
+            } finally {
+                hideLoader();
+            }
         }
 
-        async function loadInventory() {
-            if (!currentUser.steamId) return;
-            showLoader();
+        async function loadInventory(steamId) {
+            if (!steamId) return;
             try {
-                const res = await fetch(`${API_BASE}/api/inventory/${currentUser.steamId}`);
-                const items = await res.json();
-                const grid = document.getElementById('inventoryGrid');
-                grid.innerHTML = items.map(i => `
-                    <div class="item-card">
-                        <img class="item-image" src="${i.image}">
-                        <div class="item-name">${i.name}</div>
-                        <input type="number" id="price-${i.id}" class="search-box" style="padding: 5px; margin-bottom: 5px;" placeholder="Цена $">
-                        <button class="btn-action" onclick="handleList('${i.id}', '${i.name}', '${i.hash}')">Выставить</button>
-                    </div>
-                `).join('');
-            } catch (e) { showNotification("Ошибка инвентаря", "error"); }
-            hideLoader();
+                showLoader();
+                const response = await fetch(`${API_BASE}/api/inventory/${steamId}`);
+                if (!response.ok) throw new Error(`Status: ${response.status}`);
+                const data = await response.json();
+                renderInventoryItems(data.items || data);
+            } catch (error) {
+                showError('Ошибка загрузки инвентаря');
+                tg.HapticFeedback.notificationOccurred('error');
+            } finally {
+                hideLoader();
+            }
         }
 
-        function handleSaveSteamId() {
-            const val = document.getElementById('steamIdInput').value;
-            if (val.length < 10) return showNotification("Неверный ID", "error");
-            currentUser.steamId = val;
-            localStorage.setItem('steamId64', val);
-            showNotification("Steam ID привязан", "success");
-            loadInventory();
+        async function syncBalance() {
+            if (!currentUser.userId) return;
+            try {
+                const response = await fetch(`${API_BASE}/api/user/${currentUser.userId}`);
+                if (!response.ok) throw new Error();
+                const data = await response.json();
+                currentUser.balance = data.balance || 0;
+                document.getElementById('balanceDisplay').textContent = `$${currentUser.balance.toFixed(2)}`;
+            } catch (error) {
+                console.error('Balance sync failed');
+            }
         }
 
         async function buyItem(itemId, price) {
-            if (currentUser.balance < price) return showNotification("Недостаточно средств", "error");
-            if (!confirm("Подтвердить покупку?")) return;
+            if (currentUser.balance < price) {
+                showError('Недостаточно баланса');
+                tg.HapticFeedback.notificationOccurred('error');
+                return;
+            }
             
-            showLoader();
+            if (!confirm(`Купить за $${price.toFixed(2)}?`)) return;
+            
             try {
-                const res = await fetch(`${API_BASE}/api/market/buy`, {
+                showLoader();
+                tg.HapticFeedback.impactOccurred('medium');
+                const response = await fetch(`${API_BASE}/api/market/buy`, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ itemId, buyerId: currentUser.userId, price })
                 });
-                if (res.ok) {
-                    showNotification("Успешно куплено!", "success");
-                    syncBalance(); loadMarket();
-                } else { throw new Error(); }
-            } catch (e) { showNotification("Ошибка транзакции", "error"); }
-            hideLoader();
+                
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.message || 'Ошибка покупки');
+                }
+                
+                tg.HapticFeedback.notificationOccurred('success');
+                showSuccess('Успешно куплено!');
+                await syncBalance();
+                await loadMarket();
+            } catch (error) {
+                showError(error.message);
+                tg.HapticFeedback.notificationOccurred('error');
+            } finally {
+                hideLoader();
+            }
+        }
+
+        function renderMarketItems(items) {
+            const grid = document.getElementById('marketGrid');
+            grid.innerHTML = '';
+            if (!items || items.length === 0) {
+                grid.innerHTML = '<p class="no-items">Нет доступных предметов</p>';
+                return;
+            }
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                card.innerHTML = `
+                    <img class="item-image" src="${item.image || 'https://via.placeholder.com/150'}" onerror="this.src='https://via.placeholder.com/150'">
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-price">
+                        <span>$${parseFloat(item.price).toFixed(2)}</span>
+                        <button class="btn-save" style="padding: 5px 10px; width: auto; font-size: 12px;" onclick="buyItem('${item.id}', ${item.price})">Купить</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderInventoryItems(items) {
+            const grid = document.getElementById('inventoryGrid');
+            grid.innerHTML = '';
+            if (!items || items.length === 0) {
+                grid.innerHTML = '<p class="no-items">Инвентарь пуст</p>';
+                return;
+            }
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                card.innerHTML = `
+                    <img class="item-image" src="${item.image || 'https://via.placeholder.com/150'}">
+                    <div class="item-name">${item.name}</div>
+                    <input type="number" class="search-box" style="margin-bottom:5px; height:30px;" placeholder="Цена $" id="price-${item.id}">
+                    <button class="btn-save" style="height:35px;" onclick="listItemFromInventory('${item.id}', '${item.name}', '${item.market_hash_name || item.name}')">Выставить</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function listItemFromInventory(itemId, name, hash) {
+            const pInput = document.getElementById(`price-${itemId}`);
+            const price = parseFloat(pInput.value);
+            if (!price || price <= 0) return showError('Введите цену');
+            listItem(name, price, hash);
+        }
+
+        async function listItem(name, price, hash) {
+            try {
+                showLoader();
+                const response = await fetch(`${API_BASE}/api/market/list`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sellerId: currentUser.userId,
+                        steamId: currentUser.steamId,
+                        itemName: name,
+                        price: price,
+                        marketHash: hash
+                    })
+                });
+                if (!response.ok) throw new Error('Ошибка выставления');
+                showSuccess('Предмет выставлен!');
+                loadInventory(currentUser.steamId);
+            } catch (e) { showError(e.message); }
+            finally { hideLoader(); }
+        }
+
+        function handleSaveSteamId() {
+            const input = document.getElementById('steamIdInput');
+            if (!input.value) return showError('Введите Steam ID');
+            currentUser.steamId = input.value;
+            localStorage.setItem('steamId64', input.value);
+            tg.HapticFeedback.notificationOccurred('success');
+            showSuccess('Steam ID сохранен');
+            loadInventory(input.value);
         }
 
         function switchSection(id) {
+            tg.HapticFeedback.impactOccurred('light');
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
             document.getElementById(id).classList.add('active');
-            event.currentTarget.classList.add('active');
+            document.getElementById('nav-' + id).classList.add('active');
             
             if (id === 'market') loadMarket();
-            if (id === 'profile') loadInventory();
-            tg.HapticFeedback.impactOccurred('light');
+            if (id === 'profile') {
+                syncBalance();
+                if (currentUser.steamId) loadInventory(currentUser.steamId);
+            }
         }
 
         function showLoader() { document.getElementById('loader').style.display = 'flex'; }
         function hideLoader() { document.getElementById('loader').style.display = 'none'; }
+        function showError(m) { showNotification(m, 'error'); }
+        function showSuccess(m) { showNotification(m, 'success'); }
 
-        function showNotification(msg, type) {
+        function showNotification(message, type) {
             const n = document.createElement('div');
             n.className = `notification notification-${type}`;
-            n.innerText = msg;
+            n.textContent = message;
             document.body.appendChild(n);
             setTimeout(() => n.classList.add('show'), 10);
-            setTimeout(() => { n.classList.remove('show'); setTimeout(() => n.remove(), 300); }, 3000);
+            setTimeout(() => {
+                n.classList.remove('show');
+                setTimeout(() => n.remove(), 300);
+            }, 3000);
+        }
+
+        // INIT
+        initUser();
+        loadMarket();
+        syncBalance();
+        if (currentUser.steamId) {
+            document.getElementById('steamIdInput').value = currentUser.steamId;
         }
     </script>
 </body>
