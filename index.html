@@ -775,73 +775,51 @@ if (window.visualViewport) {
     });
 }
 function startCartAnimation() {
-    // 1. Прячем окно ввода
-    document.getElementById('sell-modal').classList.remove('active');
+    // 1. Прячем модалку ввода
+    const sellModal = document.getElementById('sell-modal');
+    if(sellModal) sellModal.classList.remove('active');
     
-    // 2. Показываем шторку успеха (через класс active для анимации снизу)
+    // 2. Берем модалку успеха
     const successModal = document.getElementById('success-modal');
-    successModal.classList.add('active');
     
-    // Подставляем имя
-    document.getElementById('success-item-name').innerText = document.getElementById('modal-item-name').innerText;
+    // СНАЧАЛА делаем её видимой, но прозрачной
+    successModal.style.display = 'flex';
+    successModal.style.opacity = '1';
 
+    // ДАЕМ БРАУЗЕРУ 10мс, ЧТОБЫ ОН ПОНЯЛ, ЧТО ОКНО ЕСТЬ
+    setTimeout(() => {
+        successModal.classList.add('active');
+        // ПРИНУДИТЕЛЬНО ВЫТАЛКИВАЕМ КОНТЕНТ НАВЕРХ (на случай если CSS тупит)
+        const content = successModal.querySelector('.modal-content');
+        if(content) {
+            content.style.transform = 'translateY(0)';
+        }
+    }, 50);
+    
+    // Дальше твоя анимация с тележкой...
+    document.getElementById('success-item-name').innerText = document.getElementById('modal-item-name').innerText;
     const cart = document.getElementById('cart-anim');
     const box = document.getElementById('items-box');
     box.innerHTML = '';
     
-    // 3. Запуск анимации тележки
     cart.classList.remove('active');
     void cart.offsetWidth; 
     cart.classList.add('active');
 
-    // Те же ссылки на скины
     const skins = [
         'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09Kzm7-FmP7mDLfYkWNF18lwmO7Eu4_xiVXg_0s_Ym3xctXAdVBoZlvR-FfsxL3ph5S9v53AmCc17id253_VyxSygBtMcKUx0iC9f_7E/120fx120f',
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35cppQij-qUrN322VbgqBFqYmDycI-RI1A4YVvS8lTole_v08S06Z_MnXUws3Ur7H3ZzAv3309_7A8V7Q/120fx120f',
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0ebcZThQ6tKznJm0mvLwOq7c2G1Qv5Nz3u_E9N2iilG1-RA-NmqhcY-Sdw9rYV_R-gK-x7y605S1u8zMm3p9-n51YV_0no8/120fx120f'
+        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35cppQij-qUrN322VbgqBFqYmDycI-RI1A4YVvS8lTole_v08S06Z_MnXUws3Ur7H3ZzAv3309_7A8V7Q/120fx120f'
     ];
 
-   
-
-    // 3. Список легендарных скинов (те самые ссылки, которые всегда грузятся)
-    const premiumSkins = [
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09Kzm7-FmP7mDLfYkWNF18lwmO7Eu4_xiVXg_0s_Ym3xctXAdVBoZlvR-FfsxL3ph5S9v53AmCc17id253_VyxSygBtMcKUx0iC9f_7E/200fx200f',
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35cppQij-qUrN322VbgqBFqYmDycI-RI1A4YVvS8lTole_v08S06Z_MnXUws3Ur7H3ZzAv3309_7A8V7Q/200fx200f',
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0Ob3fDJ95466kYe0m_7zO6-fzj9V7cJ0n_rE89Sk0Vbg-0VpYm_wI4-VclA8ZAuF-1m2wL3og5S6uJ_An3Rru3In-z-DyPTo0YhX/200fx200f',
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0ebcZThQ6tKznJm0mvLwOq7c2G1Qv5Nz3u_E9N2iilG1-RA-NmqhcY-Sdw9rYV_R-gK-x7y605S1u8zMm3p9-n51YV_0no8/200fx200f',
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou7umeldf0Ob3fDxBvYyJh5Saif73N6_um25V4dB8xL2Z8N6tjVax80E-Y273co-SdFNoYAnR_wK4yOi81pC07Zidm3p9-n51pC8f0mU/200fx200f'
-    ];
-
-    // Позиции для создания эффекта "горки"
-    const stackPositions = [
-        { x: '-10px', b: '0px' },
-        { x: '20px', b: '0px' },
-        { x: '5px', b: '25px' },
-        { x: '-15px', b: '45px' },
-        { x: '15px', b: '65px' }
-    ];
-
-    // 4. Начинаем сыпать скины, когда тележка остановится в центре (через 1.8 сек)
-    premiumSkins.forEach((url, i) => {
+    skins.forEach((src, i) => {
         setTimeout(() => {
             const img = document.createElement('img');
-            img.src = url;
+            img.src = src;
             img.className = 'skin-drop-final';
-            img.style.left = stackPositions[i].x;
-            img.style.bottom = stackPositions[i].b;
-            
             box.appendChild(img);
-            
-            // Физический эффект тряски тележки при падении предмета
-            cart.style.transform = 'translateY(5px)';
-            setTimeout(() => cart.style.transform = 'translateY(0)', 80);
-            
-            // Легкая вибрация при каждом падении
-            if(window.Telegram && Telegram.WebApp) {
-                Telegram.WebApp.HapticFeedback.impactOccurred('medium');
-            }
-        }, 1800 + (i * 400));
+        }, 1100 + (i * 400));
     });
+}
 
     // 5. Завершение анимации: убираем тележку и показываем успех
     setTimeout(() => {
@@ -856,6 +834,7 @@ function startCartAnimation() {
     </script>
 </body>
 </html>
+
 
 
 
