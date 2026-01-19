@@ -1,7 +1,81 @@
 {
-  "url": "https://stattrakmrkt.onrender.com",
-  "name": "StatTrak Market",
-  "iconUrl": "https://stattrakmrkt.onrender.com/icon.png",
-  "termsOfUseUrl": "https://stattrakmrkt.onrender.com/terms",
-  "privacyPolicyUrl": "https://stattrakmrkt.onrender.com/privacy"
+  "url": "https://yourdomain.com",
+  "name": "STATTRAK MARKET PRO",
+  "iconUrl": "https://yourdomain.com/icon.png",
+  "termsOfUseUrl": "https://yourdomain.com/terms",
+  "privacyPolicyUrl": "https://yourdomain.com/privacy",
+  "platforms": [
+    "chrome",
+    "android",
+    "ios",
+    "windows",
+    "macos",
+    "linux"
+  ],
+  "dapp": {
+    "authentication": {
+      "type": "ton_proof",
+      "payload": "stattrak_market_auth"
+    },
+    "useBackend": true,
+    "useCache": true
+  },
+  "wallets": [
+    {
+      "name": "Tonkeeper",
+      "aboutUrl": "https://tonkeeper.com",
+      "imageUrl": "https://tonkeeper.com/assets/icon.png",
+      "bridgeUrl": "https://bridge.tonapi.io/bridge",
+      "universalLink": "https://app.tonkeeper.com/ton-connect"
+    },
+    {
+      "name": "OpenMask",
+      "aboutUrl": "https://openmask.app",
+      "imageUrl": "https://openmask.app/img/logo.svg",
+      "bridgeUrl": "https://bridge.openmask.app/bridge",
+      "universalLink": "https://openmask.app/ton-connect"
+    },
+    {
+      "name": "MyTonWallet",
+      "aboutUrl": "https://mytonwallet.io",
+      "imageUrl": "https://mytonwallet.io/icon-512.png",
+      "bridgeUrl": "https://connect.mytonwallet.org/bridge",
+      "universalLink": "https://connect.mytonwallet.org"
+    }
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "network": "ton",
+    "chainId": "-239",
+    "feature": {
+      "tonConnect": true,
+      "deeplinks": true,
+      "pushNotifications": true
+    }
+  },
+  "whitelist": [
+    {
+      "name": "STATTRAK Market",
+      "url": "https://api.yourdomain.com",
+      "description": "Official market API"
+    }
+  ],
+  "features": {
+    "payments": {
+      "enabled": true,
+      "currencies": ["TON"],
+      "minAmount": "0.01",
+      "maxAmount": "1000"
+    },
+    "nft": {
+      "enabled": true,
+      "collections": ["CS2_SKINS", "DOTA2_ITEMS"]
+    }
+  },
+  "social": {
+    "telegram": "https://t.me/stattrakmrkt",
+    "twitter": "https://twitter.com/stattrakmrkt",
+    "github": "https://github.com/stattrak-market"
+  },
+  "manifestVersion": "1.0"
 }
