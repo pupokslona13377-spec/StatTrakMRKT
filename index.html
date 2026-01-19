@@ -405,8 +405,8 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
                 <span id="balance-num">0.00</span>
             </div>
             <div class="profile-actions">
-                <div class="p-btn" onclick="showToast('Депозиты TON скоро появятся')">ПОПОЛНИТЬ</div>
-                <div class="p-btn" onclick="showToast('Вывод от 1.5 TON')">ВЫВЕСТИ</div>
+               <div class="p-btn" onclick="depositTON()">ПОПОЛНИТЬ</div>
+<div class="p-btn" onclick="withdrawTON()">ВЫВЕСТИ</div>
             </div>
         </div>
 
@@ -551,6 +551,22 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
             
             tg.HapticFeedback.impactOccurred('light');
         }
+        // Функция пополнения баланса
+function depositTON() {
+    tg.HapticFeedback.impactOccurred('medium');
+    // Используем showAlert, так как это стандарт для Telegram WebApp
+    tg.showAlert("Депозиты через TON Wallet временно недоступны. Функция появится в следующем обновлении!");
+}
+
+// Функция вывода средств
+function withdrawTON() {
+    tg.HapticFeedback.selectionChanged();
+    tg.showConfirm("Вы уверены, что хотите вывести доступный баланс на привязанный TON кошелек?", (confirm) => {
+        if (confirm) {
+            tg.showAlert("Ошибка: Баланс 0.00 TON. Пополните счет для активации вывода.");
+        }
+    });
+}
 
         // Загрузка Маркета
         async function loadMarketData() {
@@ -870,6 +886,7 @@ function closeSuccessModal() {
     </script>
 </body>
 </html>
+
 
 
 
