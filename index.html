@@ -785,42 +785,57 @@ ${item.price || '0.00'}
         let currentSellingItem = null;
 
         /* --- ЛОГИКА ОКНА ПРОДАЖИ --- */
-        function itemAction(type, id) {
-            if (type === 'buy') {
-                if (tg && tg.showConfirm) {
-                    tg.showConfirm(`Купить этот предмет?`);
-                } else {
-                    alert(`Купить предмет ${id}?`);
-                }
-            } else {
-                const button = document.querySelector(`[onclick*="itemAction('sell', '${id}')"]`);
-                if (!button) return;
-                
-                const itemCard = button.closest('.item-card');
-                if (!itemCard) return;
-                
-                const modalImg = document.getElementById('modal-img');
-                const modalName = document.getElementById('modal-item-name');
-                const floorVal = document.getElementById('floor-val');
-                
-                const itemImg = itemCard.querySelector('.item-img');
-                const itemName = itemCard.querySelector('.item-name');
-                
-                if (modalImg && itemImg) modalImg.src = itemImg.src;
-                if (modalName && itemName) modalName.innerText = itemName.innerText;
-                if (floorVal) floorVal.innerText = (Math.random() * 0.5 + 0.1).toFixed(2);
-                
-                // Открываем окно
-                const modal = document.getElementById('sell-modal');
-                if (modal) {
-                    modal.style.display = 'flex';
-                    setTimeout(() => modal.classList.add('active'), 10);
-                    if (tg && tg.HapticFeedback) {
-                        tg.HapticFeedback.impactOccurred('medium');
-                    }
-                }
-            }
+       function itemAction(type, id) {
+    if (type === 'buy') {
+        if (tg && tg.showConfirm) {
+            tg.showConfirm(`Купить этот предмет?`);
+        } else {
+            alert(`Купить предмет ${id}?`);
         }
+    } else {
+        const button = document.querySelector(`[onclick*="itemAction('sell', '${id}')"]`);
+        if (!button) return;
+        
+        const itemCard = button.closest('.item-card');
+        if (!itemCard) return;
+        
+        const modalImg = document.getElementById('modal-img');
+        const modalName = document.getElementById('modal-item-name');
+        const floorVal = document.getElementById('floor-val');
+        
+        const itemImg = itemCard.querySelector('.item-img');
+        const itemName = itemCard.querySelector('.item-name');
+        
+        if (modalImg && itemImg) modalImg.src = itemImg.src;
+        if (modalName && itemName) modalName.innerText = itemName.innerText;
+        if (floorVal) floorVal.innerText = (Math.random() * 0.5 + 0.1).toFixed(2);
+        
+        // ВАЖНОЕ ИСПРАВЛЕНИЕ: Правильное открытие модального окна
+        const modal = document.getElementById('sell-modal');
+        if (modal) {
+            // Сначала показываем
+            modal.style.display = 'flex';
+            
+            // Принудительный reflow перед анимацией
+            void modal.offsetWidth;
+            
+            // Затем добавляем класс active для анимации
+            setTimeout(() => {
+                modal.classList.add('active');
+                
+                // Скрываем клавиатуру Telegram если открыта
+                if (tg && tg.isClosingConfirmationEnabled) {
+                    document.activeElement.blur();
+                }
+                
+                // Вибрация
+                if (tg && tg.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('medium');
+                }
+            }, 10);
+        }
+    }
+}
 
         function closeSellModal() {
             const modal = document.getElementById('sell-modal');
@@ -958,4 +973,5 @@ ${item.price || '0.00'}
     </script>
 </body>
 </html>
+
 
