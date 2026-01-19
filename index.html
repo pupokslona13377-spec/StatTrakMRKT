@@ -538,25 +538,33 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 }
         // Старт системы
         window.addEventListener('DOMContentLoaded', async () => {
-            tg.ready();
-            tg.expand();
-            
-            // Настройка темы под ТГ
-            document.body.style.setProperty('--tg-color', tg.themeParams.button_color);
+          // Инициализация Telegram WebApp должна быть первой
+tg.ready();
+tg.expand();
 
-            // Загрузка данных
-            const storedSid = localStorage.getItem('titanium_sid');
-            if (storedSid) document.getElementById('steam-id-field').value = storedSid;
-
-            await loadMarketData();
-
-            // Плавное скрытие загрузки
-            setTimeout(() => {
-                const ls = document.getElementById('loading-screen');
-                ls.style.opacity = '0';
-                setTimeout(() => ls.style.display = 'none', 500);
-            }, 800);
-        });
+// Загрузка данных
+fetch('https://stattrakmrkt.onrender.com/api/market')
+    .then(res => {
+        if (!res.ok) throw new Error('Ошибка сети');
+        return res.json();
+    })
+    .then(data => {
+        if (data) {
+            renderMarket(data);
+        }
+    })
+    .catch(err => {
+        console.error('Ошибка:', err);
+        // Можно вывести сообщение об ошибке прямо на экран
+    })
+    .finally(() => {
+        // ЭТОТ БЛОК УБЬЕТ ЗАГРУЗКУ ДАЖЕ ЕСЛИ ВСЁ ПЛОХО
+        const loader = document.getElementById('loading-screen');
+        if (loader) {
+            loader.style.opacity = '0';
+            setTimeout(() => loader.style.display = 'none', 500);
+        }
+    });
 
         // Навигация
         function appNavigate(page, el) {
@@ -842,6 +850,7 @@ function startCartAnimation() {
 </div>
 </body>
 </html>
+
 
 
 
