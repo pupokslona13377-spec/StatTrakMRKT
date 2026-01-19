@@ -268,47 +268,33 @@
     border-radius: 0 0 18px 18px;
 }
         /* --- НОВЫЕ СТИЛИ МОДАЛЬНОГО ОКНА (В НИЗ БЛОКА STYLE) --- */
-/* ИСПРАВЛЕННЫЕ СТИЛИ МОДАЛЬНОГО ОКНА */
 .modal-overlay {
     display: none;
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(15px);
     z-index: 10000;
-    align-items: center;
+    align-items: flex-end; 
     justify-content: center;
-    overflow: hidden;
+    transition: opacity 0.3s ease;
 }
 
 .modal-content {
-    width: 92%;
-    max-width: 400px;
-    background: #0f172a;
-    border-radius: 24px;
-    padding: 24px 20px 30px 20px;
-    transform: translateY(20px);
-    opacity: 0;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    border: 1px solid rgba(0, 210, 255, 0.2);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    margin: 20px;
-    max-height: 85vh;
-    overflow-y: auto;
-    position: relative;
-}
-
-.modal-overlay.active {
+    width: 100%;
+    background: #0f172a; 
+    border-radius: 24px 24px 0 0;
+    padding: 20px 20px 40px 20px;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    border-top: 1px solid rgba(0, 210, 255, 0.3);
     display: flex;
+    flex-direction: column;
+    max-height: 90vh;
 }
 
-.modal-overlay.active .modal-content {
-    transform: translateY(0);
-    opacity: 1;
-}
+.modal-overlay.active { display: flex; opacity: 1; }
+.modal-overlay.active .modal-content { transform: translateY(0); }
 
 /* Убираем стрелки у поля ввода цены */
 input::-webkit-outer-spin-button,
@@ -457,8 +443,6 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   <div id="sell-modal" class="modal-overlay" onclick="if(event.target === this) closeSellModal()">
     <div class="modal-content">
         <div style="width: 40px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 10px; margin: 0 auto 15px;"></div>
-        <div id="success-modal" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.96); z-index:20000; backdrop-filter:blur(20px); align-items:center; justify-content:center;">
-    <div style="width:100%; max-width:360px; padding:20px; text-align:center;">
 
         <div id="step-input">
             <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
@@ -508,25 +492,11 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
                 <button class="action-btn" style="background:var(--accent); color:black; border:none; height:55px; border-radius:16px; font-weight:900;" onclick="startCartAnimation()">ВЫСТАВИТЬ</button>
             </div>
         </div>
-
-        <div id="success-modal" class="modal-overlay" style="align-items: flex-end;" onclick="if(event.target === this) closeSuccessModal()">
-    <div class="modal-content" style="background: #020617; border-top: 2px solid var(--accent); height: 75vh;">
-        <div style="width: 40px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 10px; margin: 0 auto 20px;"></div>
-        
-        <div style="text-align:center; width: 100%;">
-            <div style="height: 180px; position: relative; overflow: hidden; margin-bottom: 25px; background: rgba(255,255,255,0.02); border-radius: 24px; border: 1px solid rgba(255,255,255,0.05);">
-                <div id="cart-anim" class="cart-container">
-                    <div id="items-box"></div>
-                    <div class="cart-emoji">🛒</div>
-                </div>
-            </div>
-
-            <h2 style="font-weight:900; text-transform:uppercase; color: white; font-size: 24px;">Лот размещен!</h2>
-            <p id="success-item-name" style="color:var(--text-gray); margin: 10px 0 40px; font-size:14px; font-weight: 600;">ITEM NAME</p>
-            
-            <button class="action-btn" onclick="closeSuccessModal()" style="height: 60px; font-size: 16px; box-shadow: 0 10px 20px rgba(0,210,255,0.2);">ОТЛИЧНО</button>
-        </div>
     </div>
+</div>
+    <div id="cart-anim" class="cart-container">
+    <div id="items-box"></div>
+    <div class="cart-emoji">🛒</div>
 </div>
 
     <script>
@@ -534,46 +504,42 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
            8. ЯДРО (КОНТРОЛЛЕР ПРИЛОЖЕНИЯ)
            ================================================================
         */
-        const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+        const tg = window.Telegram.WebApp;
         const API_BASE = 'https://stattrakmrkt.onrender.com';
         let cachedMarket = [];
 
         // --- ДОБАВЛЕНО: ФУНКЦИЯ ОПРЕДЕЛЕНИЯ РЕДКОСТИ ---
-        function getRarityClass(item) {
-            const typeStr = (item.type || "").toLowerCase();
-            const tagStr = item.tags ? JSON.stringify(item.tags).toLowerCase() : "";
-            const full = typeStr + " " + tagStr;
+       function getRarityClass(item) {
+    const typeStr = (item.type || "").toLowerCase();
+    const tagStr = item.tags ? JSON.stringify(item.tags).toLowerCase() : "";
+    const full = typeStr + " " + tagStr;
 
-            if (full.includes('covert') || full.includes('тайное')) return 'rare-covert';
-            if (full.includes('classified') || full.includes('засекреченное')) return 'rare-classified';
-            if (full.includes('restricted') || full.includes('запрещенное')) return 'rare-restricted';
-            if (full.includes('mil-spec') || full.includes('армейское')) return 'rare-milspec';
-            if (full.includes('knife') || full.includes('нож') || full.includes('gloves') || full.includes('перчатки')) return 'rare-gold';
-            return 'rare-common';
-        }
-        
+    if (full.includes('covert') || full.includes('тайное')) return 'rare-covert';
+    if (full.includes('classified') || full.includes('засекреченное')) return 'rare-classified';
+    if (full.includes('restricted') || full.includes('запрещенное')) return 'rare-restricted';
+    if (full.includes('mil-spec') || full.includes('армейское')) return 'rare-milspec';
+    if (full.includes('knife') || full.includes('нож') || full.includes('gloves') || full.includes('перчатки')) return 'rare-gold';
+    return 'rare-common';
+}
         // Старт системы
         window.addEventListener('DOMContentLoaded', async () => {
-            if (tg) {
-                tg.ready();
-                tg.expand();
-                document.body.style.setProperty('--tg-color', tg.themeParams.button_color || '#00D2FF');
-            }
+            tg.ready();
+            tg.expand();
+            
+            // Настройка темы под ТГ
+            document.body.style.setProperty('--tg-color', tg.themeParams.button_color);
 
             // Загрузка данных
             const storedSid = localStorage.getItem('titanium_sid');
-            const steamIdField = document.getElementById('steam-id-field');
-            if (storedSid && steamIdField) steamIdField.value = storedSid;
+            if (storedSid) document.getElementById('steam-id-field').value = storedSid;
 
             await loadMarketData();
 
             // Плавное скрытие загрузки
             setTimeout(() => {
                 const ls = document.getElementById('loading-screen');
-                if (ls) {
-                    ls.style.opacity = '0';
-                    setTimeout(() => ls.style.display = 'none', 500);
-                }
+                ls.style.opacity = '0';
+                setTimeout(() => ls.style.display = 'none', 500);
             }, 800);
         });
 
@@ -582,35 +548,25 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             
-            const targetPage = document.getElementById('page-' + page);
-            if (targetPage) targetPage.classList.add('active');
-            
-            if (el) el.classList.add('active');
+            document.getElementById('page-' + page).classList.add('active');
+            el.classList.add('active');
 
             // Скрываем поиск в профиле и хабе
-            const searchBar = document.getElementById('search-bar-container');
-            if (searchBar) {
-                searchBar.style.display = (page === 'market') ? 'block' : 'none';
-            }
+            document.getElementById('search-bar-container').style.display = (page === 'market') ? 'block' : 'none';
 
             if (page === 'profile') loadInventory();
             
-            if (tg && tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('light');
-            }
+            tg.HapticFeedback.impactOccurred('light');
         }
 
         // Загрузка Маркета
         async function loadMarketData() {
             const list = document.getElementById('market-list');
-            if (!list) return;
-            
             try {
                 const response = await fetch(`${API_BASE}/api/market`);
                 cachedMarket = await response.json();
                 renderItems(cachedMarket, 'market-list', true);
             } catch (err) {
-                console.error('Market load error:', err);
                 list.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:50px; opacity:0.3;">Маркет временно недоступен</p>`;
             }
         }
@@ -618,8 +574,6 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         // Умный Рендер (Исправляет картинки и undefined + ДОБАВЛЕНА РЕДКОСТЬ)
         function renderItems(items, containerId, isMarket = false) {
             const container = document.getElementById(containerId);
-            if (!container) return;
-            
             if (!items || items.length === 0) {
                 container.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:20px; opacity:0.3;">Нет предметов</p>`;
                 return;
@@ -641,7 +595,6 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
                 }
 
                 const itemName = item.name || item.market_hash_name || 'CS2 Item';
-                const itemId = item.id || item.assetid || Math.random().toString(36).substring(7);
                 
                 // --- ДОБАВЛЕНО: ПОЛУЧАЕМ КЛАСС РЕДКОСТИ ---
                 const rClass = getRarityClass(item);
@@ -658,7 +611,7 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 ${item.price || '0.00'}
                         </div>
                     </div>
-                    <button class="action-btn" onclick="${isMarket ? "itemAction('buy', '" + itemId + "')" : "itemAction('sell', '" + itemId + "')"}">
+                    <button class="action-btn" onclick="${isMarket ? `itemAction('buy', '${item.id}')` : `itemAction('sell', '${item.id}')`}">
                         ${isMarket ? 'Купить' : 'Продать'}
                     </button>
                     <div class="rarity-line ${rClass}"></div>
@@ -668,12 +621,9 @@ ${item.price || '0.00'}
 
         // ИСПРАВЛЕННЫЙ ИНВЕНТАРЬ (MAPPER LOGIC)
         async function loadInventory() {
-            const sidField = document.getElementById('steam-id-field');
-            const sid = sidField ? sidField.value.trim() : '';
+            const sid = document.getElementById('steam-id-field').value.trim();
             const grid = document.getElementById('inventory-grid');
             const info = document.getElementById('inventory-info');
-
-            if (!grid || !info) return;
 
             if (!sid) {
                 grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:40px; opacity:0.3; font-size:12px;">ПРИВЯЖИТЕ STEAM ID ДЛЯ ТОРГОВЛИ</p>`;
@@ -693,13 +643,13 @@ ${item.price || '0.00'}
                     items = data.assets.map(asset => {
                         const description = data.descriptions.find(d => d.classid === asset.classid);
                         return {
-                            id: asset.assetid,
-                            name: description ? description.market_hash_name : 'Предмет Steam',
-                            icon_url: description ? description.icon_url : '',
-                            type: description ? description.type : '',
-                            tags: description ? description.tags : [],
-                            price: '---'
-                        };
+    id: asset.assetid,
+    name: description ? description.market_hash_name : 'Предмет Steam',
+    icon_url: description ? description.icon_url : '',
+    type: description ? description.type : '',      // ОШИБКА БЫЛА ТУТ (отсутствовало)
+    tags: description ? description.tags : [],      // И ТУТ
+    price: '---'
+};
                     });
                 } else {
                     items = Array.isArray(data) ? data : (data.items || []);
@@ -713,265 +663,187 @@ ${item.price || '0.00'}
                     renderItems(items, 'inventory-grid', false);
                 }
             } catch (err) {
-                console.error('Inventory load error:', err);
                 info.innerText = "ОШИБКА API STEAM";
                 grid.innerHTML = '';
             }
         }
 
         function handleSteamSync() {
-            const sidField = document.getElementById('steam-id-field');
-            const sid = sidField ? sidField.value.trim() : '';
-            
-            if (sid && sid.length > 10) {
+            const sid = document.getElementById('steam-id-field').value.trim();
+            if (sid.length > 10) {
                 localStorage.setItem('titanium_sid', sid);
                 showToast("Steam ID успешно сохранен");
                 loadInventory();
-                if (tg && tg.HapticFeedback) {
-                    tg.HapticFeedback.notificationOccurred('success');
-                }
+                tg.HapticFeedback.notificationOccurred('success');
             } else {
                 showToast("Некорректный SteamID64");
             }
         }
 
-        // Функция для показа тостов
-        function showToast(message) {
-            const toastContainer = document.getElementById('toast-container');
-            if (!toastContainer) return;
-            
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerHTML = `<span>✅</span> <span>${message}</span>`;
-            
-            toastContainer.appendChild(toast);
-            
-            // Удаляем через 3 секунды
-            setTimeout(() => {
-                if (toast.parentNode === toastContainer) {
-                    toastContainer.removeChild(toast);
-                }
-            }, 3000);
-        }
-
         function filterSkins() {
-            const searchInput = document.getElementById('market-search');
-            if (!searchInput) return;
-            
-            const query = searchInput.value.toLowerCase();
+            const query = document.getElementById('market-search').value.toLowerCase();
             const filtered = cachedMarket.filter(i => (i.name || '').toLowerCase().includes(query));
             renderItems(filtered, 'market-list', true);
         }
 
         function toggleProfileTab(tab) {
-            const tabInv = document.getElementById('tab-inv');
-            const tabHist = document.getElementById('tab-hist');
+            document.getElementById('tab-inv').classList.toggle('active', tab === 'inv');
+            document.getElementById('tab-hist').classList.toggle('active', tab === 'hist');
+            
             const grid = document.getElementById('inventory-grid');
             const info = document.getElementById('inventory-info');
 
-            if (!tabInv || !tabHist || !grid) return;
-
-            tabInv.classList.toggle('active', tab === 'inv');
-            tabHist.classList.toggle('active', tab === 'hist');
-            
             if (tab === 'hist') {
                 grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:50px; opacity:0.2;">НЕТ ИСТОРИИ ОПЕРАЦИЙ</p>`;
-                if (info) info.innerText = "";
+                info.innerText = "";
             } else {
                 loadInventory();
             }
         }
 
-        let currentSellingItem = null;
+       let currentSellingItem = null;
 
-        /* --- ЛОГИКА ОКНА ПРОДАЖИ --- */
-       function itemAction(type, id) {
+/* --- ЛОГИКА ОКНА ПРОДАЖИ (В КОНЕЦ СКРИПТА) --- */
+function itemAction(type, id) {
     if (type === 'buy') {
-        if (tg && tg.showConfirm) {
-            tg.showConfirm(`Купить этот предмет?`);
-        } else {
-            alert(`Купить предмет ${id}?`);
-        }
+        tg.showConfirm(`Купить этот предмет?`);
     } else {
-        const button = document.querySelector(`[onclick*="itemAction('sell', '${id}')"]`);
-        if (!button) return;
+        const itemCard = document.querySelector(`[onclick*="'${id}'"]`).closest('.item-card');
+        document.getElementById('modal-img').src = itemCard.querySelector('.item-img').src;
+        document.getElementById('modal-item-name').innerText = itemCard.querySelector('.item-name').innerText;
+        document.getElementById('floor-val').innerText = (Math.random() * 0.5 + 0.1).toFixed(2);
         
-        const itemCard = button.closest('.item-card');
-        if (!itemCard) return;
-        
-        const modalImg = document.getElementById('modal-img');
-        const modalName = document.getElementById('modal-item-name');
-        const floorVal = document.getElementById('floor-val');
-        
-        const itemImg = itemCard.querySelector('.item-img');
-        const itemName = itemCard.querySelector('.item-name');
-        
-        if (modalImg && itemImg) modalImg.src = itemImg.src;
-        if (modalName && itemName) modalName.innerText = itemName.innerText;
-        if (floorVal) floorVal.innerText = (Math.random() * 0.5 + 0.1).toFixed(2);
-        
-        // ВАЖНОЕ ИСПРАВЛЕНИЕ: Правильное открытие модального окна
+        // Открываем окно
         const modal = document.getElementById('sell-modal');
-        if (modal) {
-            // Сначала показываем
-            modal.style.display = 'flex';
-            
-            // Принудительный reflow перед анимацией
-            void modal.offsetWidth;
-            
-            // Затем добавляем класс active для анимации
-            setTimeout(() => {
-                modal.classList.add('active');
-                
-                // Скрываем клавиатуру Telegram если открыта
-                if (tg && tg.isClosingConfirmationEnabled) {
-                    document.activeElement.blur();
-                }
-                
-                // Вибрация
-                if (tg && tg.HapticFeedback) {
-                    tg.HapticFeedback.impactOccurred('medium');
-                }
-            }, 10);
-        }
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('active'), 10);
+        tg.HapticFeedback.impactOccurred('medium');
     }
 }
 
-        function closeSellModal() {
-            const modal = document.getElementById('sell-modal');
-            if (!modal) return;
-            
-            modal.classList.remove('active');
-            setTimeout(() => { 
-                modal.style.display = 'none'; 
-                backToInput(); 
-            }, 300);
-        }
+function closeSellModal() {
+    const modal = document.getElementById('sell-modal');
+    modal.classList.remove('active');
+    setTimeout(() => { modal.style.display = 'none'; backToInput(); }, 300);
+}
 
-        function goToConfirm() {
-            const priceInput = document.getElementById('sell-price-input');
-            const stepInput = document.getElementById('step-input');
-            const stepConfirm = document.getElementById('step-confirm');
-            const confirmPrice = document.getElementById('confirm-price-val');
+function goToConfirm() {
+    const price = document.getElementById('sell-price-input').value;
+    if (!price || price <= 0) return tg.showAlert("Введите корректную цену!");
+    document.getElementById('confirm-price-val').innerText = price;
+    document.getElementById('step-input').style.display = 'none';
+    document.getElementById('step-confirm').style.display = 'block';
+}
+
+function backToInput() {
+    document.getElementById('step-input').style.display = 'block';
+    document.getElementById('step-confirm').style.display = 'none';
+}
+
+function calculateFee(val) {
+    const p = parseFloat(val);
+    document.getElementById('final-receive').innerText = p ? (p * 0.95).toFixed(2) + " TON" : "0.00 TON";
+}
+
+// РЕШЕНИЕ ПРОБЛЕМЫ С КЛАВИАТУРОЙ
+if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+        const modalContent = document.querySelector('.modal-content');
+        const offset = window.innerHeight - window.visualViewport.height;
+        if (offset > 0) {
+            modalContent.style.marginBottom = offset + 'px'; // Поднимаем окно на высоту клавиатуры
+        } else {
+            modalContent.style.marginBottom = '0px';
+        }
+    });
+}
+        // ФУНКЦИЯ ЗАПУСКА АНИМАЦИИ ТЕЛЕЖКИ
+function startCartAnimation() {
+    // 1. Закрываем модальное окно продажи
+    closeSellModal();
+
+    const cart = document.getElementById('cart-anim');
+    const box = document.getElementById('items-box');
+    
+    if (!cart || !box) return; // Защита от ошибок
+
+    box.innerHTML = ''; // Очищаем корзину от старых предметов
+    
+    // 2. Показываем и запускаем тележку
+    cart.classList.add('active');
+    
+    // Вибрация в Telegram (Тяжелый удар при появлении)
+    if(window.Telegram && Telegram.WebApp) {
+        Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
+    }
+
+    // 3. Список легендарных скинов (те самые ссылки, которые всегда грузятся)
+    const premiumSkins = [
+        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09Kzm7-FmP7mDLfYkWNF18lwmO7Eu4_xiVXg_0s_Ym3xctXAdVBoZlvR-FfsxL3ph5S9v53AmCc17id253_VyxSygBtMcKUx0iC9f_7E/200fx200f',
+        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35cppQij-qUrN322VbgqBFqYmDycI-RI1A4YVvS8lTole_v08S06Z_MnXUws3Ur7H3ZzAv3309_7A8V7Q/200fx200f',
+        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0Ob3fDJ95466kYe0m_7zO6-fzj9V7cJ0n_rE89Sk0Vbg-0VpYm_wI4-VclA8ZAuF-1m2wL3og5S6uJ_An3Rru3In-z-DyPTo0YhX/200fx200f',
+        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0ebcZThQ6tKznJm0mvLwOq7c2G1Qv5Nz3u_E9N2iilG1-RA-NmqhcY-Sdw9rYV_R-gK-x7y605S1u8zMm3p9-n51YV_0no8/200fx200f',
+        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou7umeldf0Ob3fDxBvYyJh5Saif73N6_um25V4dB8xL2Z8N6tjVax80E-Y273co-SdFNoYAnR_wK4yOi81pC07Zidm3p9-n51pC8f0mU/200fx200f'
+    ];
+
+    // Позиции для создания эффекта "горки"
+    const stackPositions = [
+        { x: '-10px', b: '0px' },
+        { x: '20px', b: '0px' },
+        { x: '5px', b: '25px' },
+        { x: '-15px', b: '45px' },
+        { x: '15px', b: '65px' }
+    ];
+
+    // 4. Начинаем сыпать скины, когда тележка остановится в центре (через 1.8 сек)
+    premiumSkins.forEach((url, i) => {
+        setTimeout(() => {
+            const img = document.createElement('img');
+            img.src = url;
+            img.className = 'skin-drop-final';
+            img.style.left = stackPositions[i].x;
+            img.style.bottom = stackPositions[i].b;
             
-            if (!priceInput || !stepInput || !stepConfirm || !confirmPrice) return;
+            box.appendChild(img);
             
-            const price = priceInput.value;
-            if (!price || parseFloat(price) <= 0) {
-                if (tg && tg.showAlert) {
-                    tg.showAlert("Введите корректную цену!");
-                } else {
-                    alert("Введите корректную цену!");
-                }
-                return;
+            // Физический эффект тряски тележки при падении предмета
+            cart.style.transform = 'translateY(5px)';
+            setTimeout(() => cart.style.transform = 'translateY(0)', 80);
+            
+            // Легкая вибрация при каждом падении
+            if(window.Telegram && Telegram.WebApp) {
+                Telegram.WebApp.HapticFeedback.impactOccurred('medium');
             }
-            
-            confirmPrice.innerText = price;
-            stepInput.style.display = 'none';
-            stepConfirm.style.display = 'block';
+        }, 1800 + (i * 400));
+    });
+
+    // 5. Завершение анимации: убираем тележку и показываем успех
+    setTimeout(() => {
+        cart.classList.remove('active');
+        showToast("✅ Предмет выставлен на маркет!");
+        
+        if(window.Telegram && Telegram.WebApp) {
+            Telegram.WebApp.HapticFeedback.notificationOccurred('success');
         }
-
-        function backToInput() {
-            const stepInput = document.getElementById('step-input');
-            const stepConfirm = document.getElementById('step-confirm');
-            
-            if (stepInput) stepInput.style.display = 'block';
-            if (stepConfirm) stepConfirm.style.display = 'none';
-        }
-
-        function calculateFee(val) {
-            const finalReceive = document.getElementById('final-receive');
-            if (!finalReceive) return;
-            
-            const p = parseFloat(val);
-            finalReceive.innerText = p ? (p * 0.95).toFixed(2) + " TON" : "0.00 TON";
-        }
-
-        // РЕШЕНИЕ ПРОБЛЕМЫ С КЛАВИАТУРОЙ
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', () => {
-                const modalContent = document.querySelector('.modal-content');
-                if (!modalContent) return;
-                
-                const offset = window.innerHeight - window.visualViewport.height;
-                if (offset > 0) {
-                    modalContent.style.marginBottom = offset + 'px';
-                } else {
-                    modalContent.style.marginBottom = '0px';
-                }
-            });
-        }
-
-        function startCartAnimation() {
-            // 1. Прячем окно ввода
-            document.getElementById('sell-modal').classList.remove('active');
-            
-            // 2. Показываем шторку успеха (через класс active для анимации снизу)
-            const successModal = document.getElementById('success-modal');
-            if (successModal) {
-                successModal.style.display = 'flex';
-                setTimeout(() => successModal.classList.add('active'), 10);
-            }
-            
-            // Подставляем имя
-            const successItemName = document.getElementById('success-item-name');
-            const modalItemName = document.getElementById('modal-item-name');
-            if (successItemName && modalItemName) {
-                successItemName.innerText = modalItemName.innerText;
-            }
-
-            const cart = document.getElementById('cart-anim');
-            const box = document.getElementById('items-box');
-            
-            if (!cart || !box) return;
-            
-            box.innerHTML = '';
-            
-            // 3. Запуск анимации тележки
-            cart.classList.remove('active');
-            void cart.offsetWidth; // Триггер reflow
-            cart.classList.add('active');
-
-            // Те же ссылки на скины
-            const skins = [
-                'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09Kzm7-FmP7mDLfYkWNF18lwmO7Eu4_xiVXg_0s_Ym3xctXAdVBoZlvR-FfsxL3ph5S9v53AmCc17id253_VyxSygBtMcKUx0iC9f_7E/120fx120f',
-                'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35cppQij-qUrN322VbgqBFqYmDycI-RI1A4YVvS8lTole_v08S06Z_MnXUws3Ur7H3ZzAv3309_7A8V7Q/120fx120f',
-                'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0ebcZThQ6tKznJm0mvLwOq7c2G1Qv5Nz3u_E9N2iilG1-RA-NmqhcY-Sdw9rYV_R-gK-x7y605S1u8zMm3p9-n51YV_0no8/120fx120f'
-            ];
-
-            // 4. Дождь из скинов СВЕРХУ + Вибрация
-            skins.forEach((src, i) => {
-                setTimeout(() => {
-                    const img = document.createElement('img');
-                    img.src = src;
-                    img.className = 'skin-drop-final';
-                    img.style.left = (i * 15) + 'px';
-                    img.style.bottom = (i * 10) + 'px';
-                    box.appendChild(img);
-                    
-                    // Вибрация через Telegram API
-                    if (window.Telegram && Telegram.WebApp && Telegram.WebApp.HapticFeedback) {
-                        Telegram.WebApp.HapticFeedback.impactOccurred('medium');
-                    }
-                }, 1100 + (i * 400));
-            });
-        }
-
-        function closeSuccessModal() {
-            const successModal = document.getElementById('success-modal');
-            if (!successModal) return;
-            
-            // Плавный уход вниз
-            successModal.classList.remove('active');
-            
-            // Через 400мс (время анимации CSS) очищаем состояние
-            setTimeout(() => {
-                successModal.style.display = 'none';
-                backToInput(); // Возвращаем модалку продажи в первый шаг
-            }, 400);
-        }
+    }, 5600);
+}
     </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
