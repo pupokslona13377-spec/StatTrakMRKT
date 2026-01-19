@@ -621,65 +621,51 @@ ${item.price || '0.00'}
 }
 
         // ИСПРАВЛЕННЫЙ ИНВЕНТАРЬ (MAPPER LOGIC)
-        async function loadInventory() {
-            const sid = document.getElementById('steam-id-field').value.trim();
-            const grid = document.getElementById('inventory-grid');
-            const info = document.getElementById('inventory-info');
+      // Исправленная функция загрузки инвентаря
+async function loadInventory() {
+    const steamId = document.getElementById('steam-id-field').value.trim();
+    const info = document.getElementById('inventory-info');
+    const grid = document.getElementById('inventory-grid');
 
-            if (!sid) {
-                grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:40px; opacity:0.3; font-size:12px;">ПРИВЯЖИТЕ STEAM ID ДЛЯ ТОРГОВЛИ</p>`;
-                return;
-            }
+    if (!steamId) {
+        tg.showAlert("Сначала введи SteamID64!");
+        return;
+    }
 
-            info.innerText = "СИНХРОНИЗАЦИЯ...";
-            
-            try {
-                const res = await fetch(`${API_BASE}/api/inventory/${sid}`);
-                const data = await res.json();
+    grid.innerHTML = '<div class="loader"></div>';
+    info.innerText = "Связь со Steam...";
 
-                let items = [];
+    try {
+        const response = await fetch(`${API_BASE}/api/inventory/${steamId}`);
+        const data = await response.json();
 
-                // Если API возвращает структуру assets + descriptions (стандарт Steam)
-                if (data.assets && data.descriptions) {
-                    items = data.assets.map(asset => {
-                        const description = data.descriptions.find(d => d.classid === asset.classid);
-                        return {
-    id: asset.assetid,
-    name: description ? description.market_hash_name : 'Предмет Steam',
-    icon_url: description ? description.icon_url : '',
-    type: description ? description.type : '',      // ОШИБКА БЫЛА ТУТ (отсутствовало)
-    tags: description ? description.tags : [],      // И ТУТ
-    price: '---'
-};
-                    });
-                } else {
-                    items = Array.isArray(data) ? data : (data.items || []);
-                }
-
-                if (items.length === 0) {
-                    info.innerText = "ИНВЕНТАРЬ ПУСТ ИЛИ СКРЫТ";
-                    grid.innerHTML = '';
-                } else {
-                    info.innerText = `ПРЕДМЕТОВ НАЙДЕНО: ${items.length}`;
-                    renderItems(items, 'inventory-grid', false);
-                }
-            } catch (err) {
-                info.innerText = "ОШИБКА API STEAM";
-                grid.innerHTML = '';
-            }
+        if (!data.assets || data.assets.length === 0) {
+            grid.innerHTML = "";
+            info.innerText = "Инвентарь пуст или скрыт настройками приватности.";
+            return;
         }
 
-        function handleSteamSync() {
-            const sid = document.getElementById('steam-id-field').value.trim();
-            if (sid.length > 10) {
-                localStorage.setItem('titanium_sid', sid);
-                showToast("Steam ID успешно сохранен");
-                loadInventory();
-                tg.HapticFeedback.notificationOccurred('success');
-            } else {
-                showToast("Некорректный SteamID64");
-            }
-        }
+        const items = data.assets.map(asset => ({
+            assetid: asset.assetid,
+            name: asset.name,
+            price: (Math.random() * 50 + 0.5).toFixed(2), // Временная цена
+            image: asset.image,
+            rarity: asset.rarity || 'Common'
+        }));
+
+        renderItems(items, 'inventory-grid', false);
+        info.innerText = `Найдено предметов: ${items.length}`;
+    } catch (err) {
+        console.error("Ошибка инвентаря:", err);
+        info.innerText = "Ошибка. Проверь ID или попробуй позже.";
+    }
+}
+
+// Мостик для кнопки из HTML
+function handleSteamSync() {
+    tg.HapticFeedback.impactOccurred('medium');
+    loadInventory();
+}
 
         function filterSkins() {
             const query = document.getElementById('market-search').value.toLowerCase();
@@ -888,6 +874,7 @@ function closeSuccessModal() {
     </script>
 </body>
 </html>
+
 
 
 
