@@ -1,349 +1,458 @@
-window.onerror = function(msg, url, lineNo, columnNo, error) {
-    alert("ОШИБКА НАЙДЕНА!\n\nСообщение: " + msg + "\nСтрока: " + lineNo + "\nСимвол: " + columnNo);
-    return false;
-};
-const tg = window.Telegram.WebApp;
-const API_BASE = 'https://stattrakmrkt.onrender.com';
+// telegram-app.js
+console.log('=== Telegram Mini App Initialization ===');
 
-tg.ready();
-tg.expand();
-
-// Принудительное скрытие лоадера
-setTimeout(() => {
-    const loader = document.getElementById('loading-screen');
-    if (loader && loader.style.display !== 'none') {
-        loader.style.display = 'none';
-    }
-}, 5000);
-
-/* ================================================================
-           8. ЯДРО (КОНТРОЛЛЕР ПРИЛОЖЕНИЯ)
-           ================================================================
-        */
+// Проверяем, что мы в Telegram
+function initializeTelegramApp() {
+    // Если Telegram API загружен
+    if (window.Telegram && window.Telegram.WebApp) {
         const tg = window.Telegram.WebApp;
-        const API_BASE = 'https://stattrakmrkt.onrender.com';
-        let cachedMarket = [];
-
-        // --- ДОБАВЛЕНО: ФУНКЦИЯ ОПРЕДЕЛЕНИЯ РЕДКОСТИ ---
-       function getRarityClass(item) {
-    const typeStr = (item.type || "").toLowerCase();
-    const tagStr = item.tags ? JSON.stringify(item.tags).toLowerCase() : "";
-    const full = typeStr + " " + tagStr;
-
-    if (full.includes('covert') || full.includes('тайное')) return 'rare-covert';
-    if (full.includes('classified') || full.includes('засекреченное')) return 'rare-classified';
-    if (full.includes('restricted') || full.includes('запрещенное')) return 'rare-restricted';
-    if (full.includes('mil-spec') || full.includes('армейское')) return 'rare-milspec';
-    if (full.includes('knife') || full.includes('нож') || full.includes('gloves') || full.includes('перчатки')) return 'rare-gold';
-    return 'rare-common';
-}
-        // Старт системы
-        window.addEventListener('DOMContentLoaded', async () => {
-            tg.ready();
+        
+        console.log('✅ Telegram WebApp API detected');
+        console.log('Platform:', tg.platform);
+        console.log('Version:', tg.version);
+        
+        // Расширяем на весь экран
+        try {
             tg.expand();
-            
-            // Настройка темы под ТГ
-            document.body.style.setProperty('--tg-color', tg.themeParams.button_color);
-
-            // Загрузка данных
-            const storedSid = localStorage.getItem('titanium_sid');
-            if (storedSid) document.getElementById('steam-id-field').value = storedSid;
-
-            await loadMarketData();
-
-            // Плавное скрытие загрузки
-            setTimeout(() => {
-                const ls = document.getElementById('loading-screen');
-                ls.style.opacity = '0';
-                setTimeout(() => ls.style.display = 'none', 500);
-            }, 800);
-        });
-
-        // Навигация
-        function appNavigate(page, el) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
-            document.getElementById('page-' + page).classList.add('active');
-            el.classList.add('active');
-
-            // Скрываем поиск в профиле и хабе
-            document.getElementById('search-bar-container').style.display = (page === 'market') ? 'block' : 'none';
-
-            if (page === 'profile') loadInventory();
-            
-            tg.HapticFeedback.impactOccurred('light');
+        } catch (e) {
+            console.log('expand error:', e);
         }
-
-        // Загрузка Маркета
-        async function loadMarketData() {
-            const list = document.getElementById('market-list');
-            try {
-                const response = await fetch(`${API_BASE}/api/market`);
-                cachedMarket = await response.json();
-                renderItems(cachedMarket, 'market-list', true);
-            } catch (err) {
-                list.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:50px; opacity:0.3;">Маркет временно недоступен</p>`;
-            }
+        
+        // Устанавливаем цвета
+        try {
+            tg.setBackgroundColor('#17212b');
+            tg.setHeaderColor('#17212b');
+            tg.enableClosingConfirmation();
+        } catch (e) {
+            console.log('color error:', e);
         }
-
-        // Умный Рендер (Исправляет картинки и undefined + ДОБАВЛЕНА РЕДКОСТЬ)
-        function renderItems(items, containerId, isMarket = false) {
-            const container = document.getElementById(containerId);
-            if (!items || items.length === 0) {
-                container.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:20px; opacity:0.3;">Нет предметов</p>`;
-                return;
-            }
-
-            container.innerHTML = items.map(item => {
-                // ПРАВИЛЬНАЯ ЛОГИКА КАРТИНОК STEAM
-                let imgCode = item.icon_url || item.image || item.img;
-                let fullImg = '';
-
-                if (imgCode) {
-                    if (imgCode.includes('http')) {
-                        fullImg = imgCode;
-                    } else {
-                        fullImg = `https://community.cloudflare.steamstatic.com/economy/image/${imgCode}/330x192`;
+        
+        // Показываем кнопку "Назад" если нужно
+        if (tg.isVersionAtLeast && tg.isVersionAtLeast('6.1')) {
+            if (tg.BackButton && tg.BackButton.show) {
+                try {
+                    tg.BackButton.show();
+                    if (tg.BackButton.onClick) {
+                        tg.BackButton.onClick(() => {
+                            if (tg.close) tg.close();
+                        });
                     }
-                } else {
-                    fullImg = 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVdgYpw23d9dfHldogjSA1BW7mD8v_k_W4RS04_IiH6NBX8j66F8WLY';
+                } catch (e) {
+                    console.log('BackButton error:', e);
                 }
-
-                const itemName = item.name || item.market_hash_name || 'CS2 Item';
-                
-                // --- ДОБАВЛЕНО: ПОЛУЧАЕМ КЛАСС РЕДКОСТИ ---
-                const rClass = getRarityClass(item);
-
-                return `
-                <div class="item-card anim-fade">
-                    <div class="item-img-holder">
-                        <img src="${fullImg}" class="item-img" onerror="this.src='https://community.cloudflare.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVdgYpw23d9dfHldogjSA1BW7mD8v_k_W4RS04_IiH6NBX8j66F8WLY'">
-                    </div>
-                    <div class="item-name">${itemName}</div>
-                    <div class="item-footer">
-                        <div class="price-tag">
-                           <svg width="14" height="14" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right:4px;"><path d="M28 56C43.464 56 56 43.464 56 28C56 12.536 43.464 0 28 0C12.536 0 0 12.536 0 28C0 43.464 12.536 56 28 56ZM14.5607 15.7513C14.7963 15.3979 15.228 15.2158 15.6318 15.2995L27.6318 17.7995C27.8727 17.8497 28.1273 17.8497 28.3682 17.7995L40.3682 15.2995C40.772 15.2158 41.2037 15.3979 41.4393 15.7513C41.6749 16.1047 41.6738 16.5701 41.4367 16.9234L28.9367 35.4234C28.5146 36.0487 27.4854 36.0487 27.0633 35.4234L14.5633 16.9234C14.3262 16.5701 14.3251 16.1047 14.5607 15.7513Z" fill="#00D2FF"/></svg>
-${item.price || '0.00'}
-                        </div>
-                    </div>
-                    <button class="action-btn" onclick="${isMarket ? `itemAction('buy', '${item.id}')` : `itemAction('sell', '${item.id}')`}">
-                        ${isMarket ? 'Купить' : 'Продать'}
-                    </button>
-                    <div class="rarity-line ${rClass}"></div>
-                </div>`;
-            }).join('');
-        }
-
-        // ИСПРАВЛЕННЫЙ ИНВЕНТАРЬ (MAPPER LOGIC)
-        async function loadInventory() {
-            const sid = document.getElementById('steam-id-field').value.trim();
-            const grid = document.getElementById('inventory-grid');
-            const info = document.getElementById('inventory-info');
-
-            if (!sid) {
-                grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:40px; opacity:0.3; font-size:12px;">ПРИВЯЖИТЕ STEAM ID ДЛЯ ТОРГОВЛИ</p>`;
-                return;
-            }
-
-            info.innerText = "СИНХРОНИЗАЦИЯ...";
-            
-            try {
-                const res = await fetch(`${API_BASE}/api/inventory/${sid}`);
-                const data = await res.json();
-
-                let items = [];
-
-                // Если API возвращает структуру assets + descriptions (стандарт Steam)
-                if (data.assets && data.descriptions) {
-                    items = data.assets.map(asset => {
-                        const description = data.descriptions.find(d => d.classid === asset.classid);
-                        return {
-    id: asset.assetid,
-    name: description ? description.market_hash_name : 'Предмет Steam',
-    icon_url: description ? description.icon_url : '',
-    type: description ? description.type : '',      // ОШИБКА БЫЛА ТУТ (отсутствовало)
-    tags: description ? description.tags : [],      // И ТУТ
-    price: '---'
-};
-                    });
-                } else {
-                    items = Array.isArray(data) ? data : (data.items || []);
-                }
-
-                if (items.length === 0) {
-                    info.innerText = "ИНВЕНТАРЬ ПУСТ ИЛИ СКРЫТ";
-                    grid.innerHTML = '';
-                } else {
-                    info.innerText = `ПРЕДМЕТОВ НАЙДЕНО: ${items.length}`;
-                    renderItems(items, 'inventory-grid', false);
-                }
-            } catch (err) {
-                info.innerText = "ОШИБКА API STEAM";
-                grid.innerHTML = '';
             }
         }
-
-        function handleSteamSync() {
-            const sid = document.getElementById('steam-id-field').value.trim();
-            if (sid.length > 10) {
-                localStorage.setItem('titanium_sid', sid);
-                showToast("Steam ID успешно сохранен");
-                loadInventory();
-                tg.HapticFeedback.notificationOccurred('success');
-            } else {
-                showToast("Некорректный SteamID64");
-            }
+        
+        // Говорим Telegram что приложение готово
+        try {
+            tg.ready();
+        } catch (e) {
+            console.log('ready error:', e);
         }
-
-        function filterSkins() {
-            const query = document.getElementById('market-search').value.toLowerCase();
-            const filtered = cachedMarket.filter(i => (i.name || '').toLowerCase().includes(query));
-            renderItems(filtered, 'market-list', true);
+        
+        console.log('✅ Telegram WebApp ready');
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            console.log('User:', tg.initDataUnsafe.user);
         }
-
-        function toggleProfileTab(tab) {
-            document.getElementById('tab-inv').classList.toggle('active', tab === 'inv');
-            document.getElementById('tab-hist').classList.toggle('active', tab === 'hist');
-            
-            const grid = document.getElementById('inventory-grid');
-            const info = document.getElementById('inventory-info');
-
-            if (tab === 'hist') {
-                grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:50px; opacity:0.2;">НЕТ ИСТОРИИ ОПЕРАЦИЙ</p>`;
-                info.innerText = "";
-            } else {
-                loadInventory();
-            }
+        if (tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
+            console.log('StartParam:', tg.initDataUnsafe.start_param);
         }
-
-       let currentSellingItem = null;
-
-/* --- ЛОГИКА ОКНА ПРОДАЖИ (В КОНЕЦ СКРИПТА) --- */
-function itemAction(type, id) {
-    if (type === 'buy') {
-        tg.showConfirm(`Купить этот предмет?`);
+        
+        // Возвращаем объект для использования
+        return tg;
+        
     } else {
-        const itemCard = document.querySelector(`[onclick*="'${id}'"]`).closest('.item-card');
-        document.getElementById('modal-img').src = itemCard.querySelector('.item-img').src;
-        document.getElementById('modal-item-name').innerText = itemCard.querySelector('.item-name').innerText;
-        document.getElementById('floor-val').innerText = (Math.random() * 0.5 + 0.1).toFixed(2);
+        console.warn('⚠️ Not in Telegram. Running in browser mode.');
         
-        // Открываем окно
-        const modal = document.getElementById('sell-modal');
-        modal.style.display = 'flex';
-        setTimeout(() => modal.classList.add('active'), 10);
-        tg.HapticFeedback.impactOccurred('medium');
-    }
-}
-
-function closeSellModal() {
-    const modal = document.getElementById('sell-modal');
-    modal.classList.remove('active');
-    setTimeout(() => { modal.style.display = 'none'; backToInput(); }, 300);
-}
-
-function goToConfirm() {
-    const price = document.getElementById('sell-price-input').value;
-    if (!price || price <= 0) return tg.showAlert("Введите корректную цену!");
-    document.getElementById('confirm-price-val').innerText = price;
-    document.getElementById('step-input').style.display = 'none';
-    document.getElementById('step-confirm').style.display = 'block';
-}
-
-function backToInput() {
-    document.getElementById('step-input').style.display = 'block';
-    document.getElementById('step-confirm').style.display = 'none';
-}
-
-function calculateFee(val) {
-    const p = parseFloat(val);
-    document.getElementById('final-receive').innerText = p ? (p * 0.95).toFixed(2) + " TON" : "0.00 TON";
-}
-
-// РЕШЕНИЕ ПРОБЛЕМЫ С КЛАВИАТУРОЙ
-if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', () => {
-        const modalContent = document.querySelector('.modal-content');
-        const offset = window.innerHeight - window.visualViewport.height;
-        if (offset > 0) {
-            modalContent.style.marginBottom = offset + 'px'; // Поднимаем окно на высоту клавиатуры
-        } else {
-            modalContent.style.marginBottom = '0px';
-        }
-    });
-}
-        // ФУНКЦИЯ ЗАПУСКА АНИМАЦИИ ТЕЛЕЖКИ
-function startCartAnimation() {
-    // 1. Закрываем модальное окно продажи
-    closeSellModal();
-
-    const cart = document.getElementById('cart-anim');
-    const box = document.getElementById('items-box');
-    
-    if (!cart || !box) return; // Защита от ошибок
-
-    box.innerHTML = ''; // Очищаем корзину от старых предметов
-    
-    // 2. Показываем и запускаем тележку
-    cart.classList.add('active');
-    
-    // Вибрация в Telegram (Тяжелый удар при появлении)
-    if(window.Telegram && Telegram.WebApp) {
-        Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
-    }
-
-    // 3. Список легендарных скинов (те самые ссылки, которые всегда грузятся)
-    const premiumSkins = [
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09Kzm7-FmP7mDLfYkWNF18lwmO7Eu4_xiVXg_0s_Ym3xctXAdVBoZlvR-FfsxL3ph5S9v53AmCc17id253_VyxSygBtMcKUx0iC9f_7E/200fx200f',
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35cppQij-qUrN322VbgqBFqYmDycI-RI1A4YVvS8lTole_v08S06Z_MnXUws3Ur7H3ZzAv3309_7A8V7Q/200fx200f',
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0Ob3fDJ95466kYe0m_7zO6-fzj9V7cJ0n_rE89Sk0Vbg-0VpYm_wI4-VclA8ZAuF-1m2wL3og5S6uJ_An3Rru3In-z-DyPTo0YhX/200fx200f',
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0ebcZThQ6tKznJm0mvLwOq7c2G1Qv5Nz3u_E9N2iilG1-RA-NmqhcY-Sdw9rYV_R-gK-x7y605S1u8zMm3p9-n51YV_0no8/200fx200f',
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou7umeldf0Ob3fDxBvYyJh5Saif73N6_um25V4dB8xL2Z8N6tjVax80E-Y273co-SdFNoYAnR_wK4yOi81pC07Zidm3p9-n51pC8f0mU/200fx200f'
-    ];
-
-    // Позиции для создания эффекта "горки"
-    const stackPositions = [
-        { x: '-10px', b: '0px' },
-        { x: '20px', b: '0px' },
-        { x: '5px', b: '25px' },
-        { x: '-15px', b: '45px' },
-        { x: '15px', b: '65px' }
-    ];
-
-    // 4. Начинаем сыпать скины, когда тележка остановится в центре (через 1.8 сек)
-    premiumSkins.forEach((url, i) => {
-        setTimeout(() => {
-            const img = document.createElement('img');
-            img.src = url;
-            img.className = 'skin-drop-final';
-            img.style.left = stackPositions[i].x;
-            img.style.bottom = stackPositions[i].b;
-            
-            box.appendChild(img);
-            
-            // Физический эффект тряски тележки при падении предмета
-            cart.style.transform = 'translateY(5px)';
-            setTimeout(() => cart.style.transform = 'translateY(0)', 80);
-            
-            // Легкая вибрация при каждом падении
-            if(window.Telegram && Telegram.WebApp) {
-                Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+        // Создаем мок-объект для отладки в браузере
+        const mockTg = {
+            initData: '',
+            initDataUnsafe: {
+                user: {
+                    id: 123456789,
+                    first_name: 'Test',
+                    last_name: 'User',
+                    username: 'test_user',
+                    language_code: 'ru'
+                }
+            },
+            platform: 'browser',
+            version: '6.0',
+            expand: function() { 
+                console.log('Mock: expand');
+                return true;
+            },
+            ready: function() { 
+                console.log('Mock: ready');
+                return true;
+            },
+            setBackgroundColor: function(color) { 
+                console.log('Mock: bg color', color);
+                return true;
+            },
+            setHeaderColor: function(color) { 
+                console.log('Mock: header color', color);
+                return true;
+            },
+            enableClosingConfirmation: function() {
+                console.log('Mock: enableClosingConfirmation');
+                return true;
+            },
+            BackButton: {
+                show: function() { console.log('Mock: BackButton.show'); },
+                hide: function() { console.log('Mock: BackButton.hide'); },
+                onClick: function(callback) { 
+                    console.log('Mock: BackButton.onClick');
+                    if (typeof callback === 'function') {
+                        // Сохраняем callback для возможного вызова
+                        this._callback = callback;
+                    }
+                },
+                _callback: null
+            },
+            isVersionAtLeast: function(version) { 
+                console.log('Mock: isVersionAtLeast', version);
+                return true;
+            },
+            close: function() { 
+                console.log('Mock: close');
+                return true;
+            },
+            HapticFeedback: {
+                impactOccurred: function(style) {
+                    console.log('Mock: HapticFeedback.impactOccurred', style);
+                },
+                notificationOccurred: function(type) {
+                    console.log('Mock: HapticFeedback.notificationOccurred', type);
+                },
+                selectionChanged: function() {
+                    console.log('Mock: HapticFeedback.selectionChanged');
+                }
+            },
+            showConfirm: function(message, callback) {
+                console.log('Mock: showConfirm', message);
+                if (typeof callback === 'function') {
+                    callback(true); // По умолчанию подтверждаем
+                }
+                return true;
+            },
+            showAlert: function(message, callback) {
+                console.log('Mock: showAlert', message);
+                alert(message);
+                if (typeof callback === 'function') {
+                    callback();
+                }
+                return true;
+            },
+            showPopup: function(params, callback) {
+                console.log('Mock: showPopup', params);
+                if (typeof callback === 'function') {
+                    callback(params.buttons ? params.buttons[0].id : 'ok');
+                }
+                return true;
             }
-        }, 1800 + (i * 400));
-    });
-
-    // 5. Завершение анимации: убираем тележку и показываем успех
-    setTimeout(() => {
-        cart.classList.remove('active');
-        showToast("✅ Предмет выставлен на маркет!");
+        };
         
-        if(window.Telegram && Telegram.WebApp) {
-            Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-        }
-    }, 5600);
+        return mockTg;
+    }
 }
 
+// Инициализируем Telegram App
+const tg = initializeTelegramApp();
 
-// Запуск при загрузке
-document.addEventListener('DOMContentLoaded', initApp);
+// Экспортируем в глобальную область видимости
+window.TelegramWebApp = tg;
+window.TgApp = tg;
+
+// Функция для получения данных пользователя
+function getUserInfo() {
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        return tg.initDataUnsafe.user;
+    }
+    return null;
+}
+
+// Функция для проверки, в Telegram ли мы
+function isInTelegram() {
+    return !!(window.Telegram && window.Telegram.WebApp);
+}
+
+// Функция для отправки данных в Telegram
+function sendDataToTelegram(data) {
+    if (tg && tg.sendData) {
+        try {
+            tg.sendData(JSON.stringify(data));
+            return true;
+        } catch (e) {
+            console.error('Error sending data to Telegram:', e);
+            return false;
+        }
+    }
+    console.warn('sendData not available');
+    return false;
+}
+
+// Функция для вибрации (Haptic Feedback)
+function triggerHaptic(type, style) {
+    if (tg && tg.HapticFeedback) {
+        try {
+            switch(type) {
+                case 'impact':
+                    if (tg.HapticFeedback.impactOccurred) {
+                        tg.HapticFeedback.impactOccurred(style || 'light');
+                    }
+                    break;
+                case 'notification':
+                    if (tg.HapticFeedback.notificationOccurred) {
+                        tg.HapticFeedback.notificationOccurred(style || 'success');
+                    }
+                    break;
+                case 'selection':
+                    if (tg.HapticFeedback.selectionChanged) {
+                        tg.HapticFeedback.selectionChanged();
+                    }
+                    break;
+            }
+            return true;
+        } catch (e) {
+            console.error('Haptic error:', e);
+            return false;
+        }
+    }
+    return false;
+}
+
+// Функция для показа подтверждения
+function showConfirmDialog(message, callback) {
+    if (tg && tg.showConfirm) {
+        try {
+            tg.showConfirm(message, function(result) {
+                if (typeof callback === 'function') {
+                    callback(result);
+                }
+            });
+            return true;
+        } catch (e) {
+            console.error('Confirm error:', e);
+            // Fallback на стандартный confirm
+            const result = confirm(message);
+            if (typeof callback === 'function') {
+                callback(result);
+            }
+            return false;
+        }
+    } else {
+        // Fallback на стандартный confirm
+        const result = confirm(message);
+        if (typeof callback === 'function') {
+            callback(result);
+        }
+        return false;
+    }
+}
+
+// Функция для показа алерта
+function showAlertDialog(message, callback) {
+    if (tg && tg.showAlert) {
+        try {
+            tg.showAlert(message, function() {
+                if (typeof callback === 'function') {
+                    callback();
+                }
+            });
+            return true;
+        } catch (e) {
+            console.error('Alert error:', e);
+            alert(message);
+            if (typeof callback === 'function') {
+                callback();
+            }
+            return false;
+        }
+    } else {
+        alert(message);
+        if (typeof callback === 'function') {
+            callback();
+        }
+        return false;
+    }
+}
+
+// Функция для закрытия приложения
+function closeApp() {
+    if (tg && tg.close) {
+        try {
+            tg.close();
+            return true;
+        } catch (e) {
+            console.error('Close error:', e);
+            return false;
+        }
+    }
+    console.warn('App cannot be closed - not in Telegram');
+    return false;
+}
+
+// Инициализация при загрузке DOM
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ DOM loaded, initializing app...');
+    
+    // Скрываем лоадер и показываем приложение
+    setTimeout(function() {
+        const loader = document.getElementById('loading-screen');
+        const app = document.getElementById('app');
+        
+        if (loader) {
+            loader.classList.remove('active');
+            setTimeout(function() {
+                loader.style.display = 'none';
+            }, 500);
+        }
+        
+        if (app) {
+            app.style.display = 'block';
+            // Анимация появления
+            setTimeout(function() {
+                app.style.opacity = '1';
+                app.style.transform = 'translateY(0)';
+            }, 50);
+        }
+        
+        console.log('✅ App UI initialized');
+        
+        // Инициализация основного приложения, если есть
+        if (window.appInitialize) {
+            window.appInitialize();
+        }
+        
+        // Запускаем проверку готовности
+        checkAppReady();
+        
+    }, 1000);
+    
+    // Обработчик ошибок изображений
+    document.addEventListener('error', function(e) {
+        if (e.target.tagName === 'IMG') {
+            console.warn('Image failed to load:', e.target.src);
+            // Можно установить заглушку
+            if (!e.target.getAttribute('data-error-handled')) {
+                e.target.setAttribute('data-error-handled', 'true');
+                e.target.src = 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVdgYpw23d9dfHldogjSA1BW7mD8v_k_W4RS04_IiH6NBX8j66F8WLY';
+            }
+        }
+    }, true);
+});
+
+// Функция проверки готовности приложения
+function checkAppReady() {
+    const checkInterval = setInterval(function() {
+        const appContent = document.querySelector('#app .container, #app-content, .page.active');
+        if (appContent && appContent.children.length > 0) {
+            console.log('✅ App content loaded successfully');
+            clearInterval(checkInterval);
+            
+            // Отправляем событие готовности
+            const event = new CustomEvent('appReady', { 
+                detail: { telegramApp: tg, user: getUserInfo() } 
+            });
+            document.dispatchEvent(event);
+            
+            // Вибрация успешной загрузки
+            triggerHaptic('notification', 'success');
+        }
+    }, 100);
+    
+    // Таймаут проверки
+    setTimeout(function() {
+        clearInterval(checkInterval);
+        console.log('⚠️ App content check timeout');
+    }, 10000);
+}
+
+// Экспорт функций для использования в других файлах
+window.TelegramApp = {
+    // Основной объект
+    tg: tg,
+    
+    // Вспомогательные функции
+    getUser: getUserInfo,
+    isInTelegram: isInTelegram,
+    sendData: sendDataToTelegram,
+    haptic: triggerHaptic,
+    confirm: showConfirmDialog,
+    alert: showAlertDialog,
+    close: closeApp,
+    
+    // Информация
+    version: tg.version || '1.0.0',
+    platform: tg.platform || 'unknown',
+    themeParams: tg.themeParams || {},
+    
+    // Инициализация
+    init: function() {
+        console.log('TelegramApp initialized');
+        return this;
+    }
+};
+
+// Автоматическая инициализация
+window.TelegramApp.init();
+
+// Добавляем CSS для анимаций, если их нет
+if (!document.getElementById('telegram-app-styles')) {
+    const style = document.createElement('style');
+    style.id = 'telegram-app-styles';
+    style.textContent = `
+        #loading-screen {
+            transition: opacity 0.5s ease;
+        }
+        
+        #app {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Стили для скинов в корзине */
+        .skin-drop-final {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            animation: dropIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        @keyframes dropIn {
+            0% { transform: translateY(-100px) rotate(-15deg); opacity: 0; }
+            100% { transform: translateY(0) rotate(0deg); opacity: 1; }
+        }
+        
+        /* Анимация тележки */
+        #cart-anim {
+            transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        #cart-anim.active {
+            animation: cartEnter 1s ease;
+        }
+        
+        @keyframes cartEnter {
+            0% { transform: translateX(-100vw); }
+            70% { transform: translateX(20px); }
+            100% { transform: translateX(0); }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+console.log('=== Telegram App Module Loaded ===');
