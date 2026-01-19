@@ -640,36 +640,44 @@ async function loadInventory() {
     const grid = document.getElementById('inventory-grid');
 
     if (!steamId) {
-        tg.showAlert("Сначала введи SteamID64!");
+        tg.showAlert("Введите SteamID64!");
         return;
     }
 
-    grid.innerHTML = '<div class="loader"></div>';
-    info.innerText = "Связь со Steam...";
+    // Сохраняем ID, чтобы не вводить каждый раз
+    localStorage.setItem('steam_id', steamId);
+
+    grid.innerHTML = '<div class="loader-container"><div class="spinner"></div><p>Связь со Steam...</p></div>';
+    if (info) info.innerText = "Загрузка...";
 
     try {
+        // Запрос к твоему серверу Heroku
         const response = await fetch(`${API_BASE}/api/inventory/${steamId}`);
         const data = await response.json();
 
         if (!data.assets || data.assets.length === 0) {
-            grid.innerHTML = "";
-            info.innerText = "Инвентарь пуст или скрыт настройками приватности.";
+            grid.innerHTML = '<div class="error-msg">Инвентарь пуст или скрыт. Проверьте настройки приватности в Steam.</div>';
             return;
         }
 
+        // Превращаем данные от сервера в формат для маркета
         const items = data.assets.map(asset => ({
             assetid: asset.assetid,
             name: asset.name,
-            price: (Math.random() * 50 + 0.5).toFixed(2), // Временная цена
-            image: asset.image,
+            price: (Math.random() * 10 + 1).toFixed(2), // Генерируем цену для теста
+            image: asset.image, // Ссылка на картинку Steam
             rarity: asset.rarity || 'Common'
         }));
 
+        // ВЫЗЫВАЕМ ОТРИСОВКУ (isMarket = false, так как это инвентарь)
         renderItems(items, 'inventory-grid', false);
-        info.innerText = `Найдено предметов: ${items.length}`;
+        
+        if (info) info.innerText = `Найдено предметов: ${items.length}`;
+
     } catch (err) {
-        console.error("Ошибка инвентаря:", err);
-        info.innerText = "Ошибка. Проверь ID или попробуй позже.";
+        console.error("Ошибка загрузки инвентаря:", err);
+        grid.innerHTML = '<div class="error-msg">Ошибка сервера. Попробуйте позже.</div>';
+        tg.showAlert("Не удалось подключиться к серверу.");
     }
 }
 
@@ -886,6 +894,7 @@ function closeSuccessModal() {
     </script>
 </body>
 </html>
+
 
 
 
