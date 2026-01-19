@@ -274,9 +274,11 @@
     inset: 0;
     background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
     z-index: 10000;
     align-items: flex-end; 
     justify-content: center;
+    opacity: 0;
     transition: opacity 0.3s ease;
 }
 
@@ -285,7 +287,8 @@
     background: #0f172a; 
     border-radius: 24px 24px 0 0;
     padding: 20px 20px 40px 20px;
-    transform: translateY(100%);
+    /* Начальное положение — полностью скрыто внизу */
+    transform: translateY(100%); 
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     border-top: 1px solid rgba(0, 210, 255, 0.3);
     display: flex;
@@ -293,9 +296,14 @@
     max-height: 90vh;
 }
 
-.modal-overlay.active { display: flex; opacity: 1; }
-.modal-overlay.active .modal-content { transform: translateY(0); }
-
+/* Когда активен — плавно выезжает и проявляется */
+.modal-overlay.active { 
+    display: flex !important; 
+    opacity: 1; 
+}
+.modal-overlay.active .modal-content { 
+    transform: translateY(0) !important; 
+}
 /* Убираем стрелки у поля ввода цены */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -525,18 +533,19 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         let cachedMarket = [];
 
         // --- ДОБАВЛЕНО: ФУНКЦИЯ ОПРЕДЕЛЕНИЯ РЕДКОСТИ ---
-       function getRarityClass(item) {
-    const typeStr = (item.type || "").toLowerCase();
-    const tagStr = item.tags ? JSON.stringify(item.tags).toLowerCase() : "";
-    const full = typeStr + " " + tagStr;
+        function getRarityClass(item) {
+            const typeStr = (item.type || "").toLowerCase();
+            const tagStr = item.tags ? JSON.stringify(item.tags).toLowerCase() : "";
+            const full = typeStr + " " + tagStr;
 
-    if (full.includes('covert') || full.includes('тайное')) return 'rare-covert';
-    if (full.includes('classified') || full.includes('засекреченное')) return 'rare-classified';
-    if (full.includes('restricted') || full.includes('запрещенное')) return 'rare-restricted';
-    if (full.includes('mil-spec') || full.includes('армейское')) return 'rare-milspec';
-    if (full.includes('knife') || full.includes('нож') || full.includes('gloves') || full.includes('перчатки')) return 'rare-gold';
-    return 'rare-common';
-}
+            if (full.includes('covert') || full.includes('тайное')) return 'rare-covert';
+            if (full.includes('classified') || full.includes('засекреченное')) return 'rare-classified';
+            if (full.includes('restricted') || full.includes('запрещенное')) return 'rare-restricted';
+            if (full.includes('mil-spec') || full.includes('армейское')) return 'rare-milspec';
+            if (full.includes('knife') || full.includes('нож') || full.includes('gloves') || full.includes('перчатки')) return 'rare-gold';
+            return 'rare-common';
+        }
+
         // Старт системы
         window.addEventListener('DOMContentLoaded', async () => {
             tg.ready();
@@ -554,8 +563,10 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
             // Плавное скрытие загрузки
             setTimeout(() => {
                 const ls = document.getElementById('loading-screen');
-                ls.style.opacity = '0';
-                setTimeout(() => ls.style.display = 'none', 500);
+                if (ls) {
+                    ls.style.opacity = '0';
+                    setTimeout(() => ls.style.display = 'none', 500);
+                }
             }, 800);
         });
 
@@ -572,7 +583,7 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
             if (page === 'profile') loadInventory();
             
-            tg.HapticFeedback.impactOccurred('light');
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         }
 
         // Загрузка Маркета
@@ -587,7 +598,7 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
             }
         }
 
-        // Умный Рендер (Исправляет картинки и undefined + ДОБАВЛЕНА РЕДКОСТЬ)
+        // Умный Рендер
         function renderItems(items, containerId, isMarket = false) {
             const container = document.getElementById(containerId);
             if (!items || items.length === 0) {
@@ -596,23 +607,16 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
             }
 
             container.innerHTML = items.map(item => {
-                // ПРАВИЛЬНАЯ ЛОГИКА КАРТИНОК STEAM
                 let imgCode = item.icon_url || item.image || item.img;
                 let fullImg = '';
 
                 if (imgCode) {
-                    if (imgCode.includes('http')) {
-                        fullImg = imgCode;
-                    } else {
-                        fullImg = `https://community.cloudflare.steamstatic.com/economy/image/${imgCode}/330x192`;
-                    }
+                    fullImg = imgCode.includes('http') ? imgCode : `https://community.cloudflare.steamstatic.com/economy/image/${imgCode}/330x192`;
                 } else {
                     fullImg = 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVdgYpw23d9dfHldogjSA1BW7mD8v_k_W4RS04_IiH6NBX8j66F8WLY';
                 }
 
                 const itemName = item.name || item.market_hash_name || 'CS2 Item';
-                
-                // --- ДОБАВЛЕНО: ПОЛУЧАЕМ КЛАСС РЕДКОСТИ ---
                 const rClass = getRarityClass(item);
 
                 return `
@@ -624,7 +628,7 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
                     <div class="item-footer">
                         <div class="price-tag">
                            <svg width="14" height="14" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right:4px;"><path d="M28 56C43.464 56 56 43.464 56 28C56 12.536 43.464 0 28 0C12.536 0 0 12.536 0 28C0 43.464 12.536 56 28 56ZM14.5607 15.7513C14.7963 15.3979 15.228 15.2158 15.6318 15.2995L27.6318 17.7995C27.8727 17.8497 28.1273 17.8497 28.3682 17.7995L40.3682 15.2995C40.772 15.2158 41.2037 15.3979 41.4393 15.7513C41.6749 16.1047 41.6738 16.5701 41.4367 16.9234L28.9367 35.4234C28.5146 36.0487 27.4854 36.0487 27.0633 35.4234L14.5633 16.9234C14.3262 16.5701 14.3251 16.1047 14.5607 15.7513Z" fill="#00D2FF"/></svg>
-${item.price || '0.00'}
+                            ${item.price || '0.00'}
                         </div>
                     </div>
                     <button class="action-btn" onclick="${isMarket ? `itemAction('buy', '${item.id}')` : `itemAction('sell', '${item.id}')`}">
@@ -635,7 +639,6 @@ ${item.price || '0.00'}
             }).join('');
         }
 
-        // ИСПРАВЛЕННЫЙ ИНВЕНТАРЬ (MAPPER LOGIC)
         async function loadInventory() {
             const sid = document.getElementById('steam-id-field').value.trim();
             const grid = document.getElementById('inventory-grid');
@@ -651,21 +654,19 @@ ${item.price || '0.00'}
             try {
                 const res = await fetch(`${API_BASE}/api/inventory/${sid}`);
                 const data = await res.json();
-
                 let items = [];
 
-                // Если API возвращает структуру assets + descriptions (стандарт Steam)
                 if (data.assets && data.descriptions) {
                     items = data.assets.map(asset => {
                         const description = data.descriptions.find(d => d.classid === asset.classid);
                         return {
-    id: asset.assetid,
-    name: description ? description.market_hash_name : 'Предмет Steam',
-    icon_url: description ? description.icon_url : '',
-    type: description ? description.type : '',      // ОШИБКА БЫЛА ТУТ (отсутствовало)
-    tags: description ? description.tags : [],      // И ТУТ
-    price: '---'
-};
+                            id: asset.assetid,
+                            name: description ? description.market_hash_name : 'Предмет Steam',
+                            icon_url: description ? description.icon_url : '',
+                            type: description ? description.type : '',
+                            tags: description ? description.tags : [],
+                            price: '---'
+                        };
                     });
                 } else {
                     items = Array.isArray(data) ? data : (data.items || []);
@@ -690,7 +691,7 @@ ${item.price || '0.00'}
                 localStorage.setItem('titanium_sid', sid);
                 showToast("Steam ID успешно сохранен");
                 loadInventory();
-                tg.HapticFeedback.notificationOccurred('success');
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
             } else {
                 showToast("Некорректный SteamID64");
             }
@@ -705,7 +706,6 @@ ${item.price || '0.00'}
         function toggleProfileTab(tab) {
             document.getElementById('tab-inv').classList.toggle('active', tab === 'inv');
             document.getElementById('tab-hist').classList.toggle('active', tab === 'hist');
-            
             const grid = document.getElementById('inventory-grid');
             const info = document.getElementById('inventory-info');
 
@@ -716,179 +716,131 @@ ${item.price || '0.00'}
                 loadInventory();
             }
         }
-
-       let currentSellingItem = null;
-
-/* --- ЛОГИКА ОКНА ПРОДАЖИ (В КОНЕЦ СКРИПТА) --- */
 function itemAction(type, id) {
     if (type === 'buy') {
         tg.showConfirm(`Купить этот предмет?`);
     } else {
+        // 1. Находим карточку и данные
         const itemCard = document.querySelector(`[onclick*="'${id}'"]`).closest('.item-card');
-        document.getElementById('modal-img').src = itemCard.querySelector('.item-img').src;
-        document.getElementById('modal-item-name').innerText = itemCard.querySelector('.item-name').innerText;
+        const img = itemCard.querySelector('.item-img').src;
+        const name = itemCard.querySelector('.item-name').innerText;
+
+        // 2. Заполняем модалку данными
+        document.getElementById('modal-img').src = img;
+        document.getElementById('modal-item-name').innerText = name;
         document.getElementById('floor-val').innerText = (Math.random() * 0.5 + 0.1).toFixed(2);
         
-        // Открываем окно
+        // 3. ВКЛЮЧАЕМ ОКНО (Жестко)
         const modal = document.getElementById('sell-modal');
-        modal.style.display = 'flex';
-        setTimeout(() => modal.classList.add('active'), 10);
-        tg.HapticFeedback.impactOccurred('medium');
+        modal.style.display = 'flex'; // Показываем блок
+        
+        // 4. Запускаем анимацию выезда через микро-паузу
+        setTimeout(() => {
+            modal.classList.add('active');
+        }, 10);
+
+        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
     }
 }
-        
 
-function closeSellModal() {
-    const modal = document.getElementById('sell-modal');
-    modal.classList.remove('active');
-    setTimeout(() => { modal.style.display = 'none'; backToInput(); }, 300);
-}
-
-function goToConfirm() {
-    const price = document.getElementById('sell-price-input').value;
-    if (!price || price <= 0) return tg.showAlert("Введите корректную цену!");
-    document.getElementById('confirm-price-val').innerText = price;
-    document.getElementById('step-input').style.display = 'none';
-    document.getElementById('step-confirm').style.display = 'block';
-}
-
-function backToInput() {
-    document.getElementById('step-input').style.display = 'block';
-    document.getElementById('step-confirm').style.display = 'none';
-}
-
-function calculateFee(val) {
-    const p = parseFloat(val);
-    document.getElementById('final-receive').innerText = p ? (p * 0.95).toFixed(2) + " TON" : "0.00 TON";
-}
-
-// РЕШЕНИЕ ПРОБЛЕМЫ С КЛАВИАТУРОЙ
-if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', () => {
-        const modalContent = document.querySelector('.modal-content');
-        const offset = window.innerHeight - window.visualViewport.height;
-        if (offset > 0) {
-            modalContent.style.marginBottom = offset + 'px'; // Поднимаем окно на высоту клавиатуры
-        } else {
-            modalContent.style.marginBottom = '0px';
+        function closeSellModal() {
+            const modal = document.getElementById('sell-modal');
+            modal.classList.remove('active');
+            setTimeout(() => { modal.style.display = 'none'; backToInput(); }, 300);
         }
-    });
-}
-function startCartAnimation() {
-    // 1. Прячем окно ввода
-    document.getElementById('sell-modal').classList.remove('active');
-    
-    // 2. Показываем шторку успеха (через класс active для анимации снизу)
-    const successModal = document.getElementById('success-modal');
-    successModal.classList.add('active');
-    
-    // Подставляем имя
-    document.getElementById('success-item-name').innerText = document.getElementById('modal-item-name').innerText;
 
-    const cart = document.getElementById('cart-anim');
-    const box = document.getElementById('items-box');
-    box.innerHTML = '';
-    
-    // 3. Запуск анимации тележки
-    cart.classList.remove('active');
-    void cart.offsetWidth; 
-    cart.classList.add('active');
-
-    // Те же ссылки на скины
-    const skins = [
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09Kzm7-FmP7mDLfYkWNF18lwmO7Eu4_xiVXg_0s_Ym3xctXAdVBoZlvR-FfsxL3ph5S9v53AmCc17id253_VyxSygBtMcKUx0iC9f_7E/120fx120f',
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35cppQij-qUrN322VbgqBFqYmDycI-RI1A4YVvS8lTole_v08S06Z_MnXUws3Ur7H3ZzAv3309_7A8V7Q/120fx120f',
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0ebcZThQ6tKznJm0mvLwOq7c2G1Qv5Nz3u_E9N2iilG1-RA-NmqhcY-Sdw9rYV_R-gK-x7y605S1u8zMm3p9-n51YV_0no8/120fx120f'
-    ];
-
-    // 4. Дождь из скинов СВЕРХУ + Вибрация
-    skins.forEach((src, i) => {
-        setTimeout(() => {
-            const img = document.createElement('img');
-            img.src = src;
-            img.className = 'skin-drop-final';
-            img.style.left = (i * 15) + 'px';
-            img.style.bottom = (i * 10) + 'px';
-            box.appendChild(img);
-            
-            // Вибрация через Telegram API
-            if(window.Telegram && Telegram.WebApp.HapticFeedback) {
-                Telegram.WebApp.HapticFeedback.impactOccurred('medium');
-            }
-        }, 1100 + (i * 400));
-    });
-}
-
-function closeSuccessModal() {
-    const successModal = document.getElementById('success-modal');
-    // Плавный уход вниз
-    successModal.classList.remove('active');
-    
-    // Через 400мс (время анимации CSS) очищаем состояние
-    setTimeout(() => {
-        backToInput(); // Возвращаем модалку продажи в первый шаг
-    }, 400);
-}
-
-    // 3. Список легендарных скинов (те самые ссылки, которые всегда грузятся)
-    const premiumSkins = [
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09Kzm7-FmP7mDLfYkWNF18lwmO7Eu4_xiVXg_0s_Ym3xctXAdVBoZlvR-FfsxL3ph5S9v53AmCc17id253_VyxSygBtMcKUx0iC9f_7E/200fx200f',
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35cppQij-qUrN322VbgqBFqYmDycI-RI1A4YVvS8lTole_v08S06Z_MnXUws3Ur7H3ZzAv3309_7A8V7Q/200fx200f',
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0Ob3fDJ95466kYe0m_7zO6-fzj9V7cJ0n_rE89Sk0Vbg-0VpYm_wI4-VclA8ZAuF-1m2wL3og5S6uJ_An3Rru3In-z-DyPTo0YhX/200fx200f',
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0ebcZThQ6tKznJm0mvLwOq7c2G1Qv5Nz3u_E9N2iilG1-RA-NmqhcY-Sdw9rYV_R-gK-x7y605S1u8zMm3p9-n51YV_0no8/200fx200f',
-        'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou7umeldf0Ob3fDxBvYyJh5Saif73N6_um25V4dB8xL2Z8N6tjVax80E-Y273co-SdFNoYAnR_wK4yOi81pC07Zidm3p9-n51pC8f0mU/200fx200f'
-    ];
-
-    // Позиции для создания эффекта "горки"
-    const stackPositions = [
-        { x: '-10px', b: '0px' },
-        { x: '20px', b: '0px' },
-        { x: '5px', b: '25px' },
-        { x: '-15px', b: '45px' },
-        { x: '15px', b: '65px' }
-    ];
-
-    // 4. Начинаем сыпать скины, когда тележка остановится в центре (через 1.8 сек)
-    premiumSkins.forEach((url, i) => {
-        setTimeout(() => {
-            const img = document.createElement('img');
-            img.src = url;
-            img.className = 'skin-drop-final';
-            img.style.left = stackPositions[i].x;
-            img.style.bottom = stackPositions[i].b;
-            
-            box.appendChild(img);
-            
-            // Физический эффект тряски тележки при падении предмета
-            cart.style.transform = 'translateY(5px)';
-            setTimeout(() => cart.style.transform = 'translateY(0)', 80);
-            
-            // Легкая вибрация при каждом падении
-            if(window.Telegram && Telegram.WebApp) {
-                Telegram.WebApp.HapticFeedback.impactOccurred('medium');
-            }
-        }, 1800 + (i * 400));
-    });
-
-    // 5. Завершение анимации: убираем тележку и показываем успех
-    setTimeout(() => {
-        cart.classList.remove('active');
-        showToast("✅ Предмет выставлен на маркет!");
-        
-        if(window.Telegram && Telegram.WebApp) {
-            Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+        function goToConfirm() {
+            const price = document.getElementById('sell-price-input').value;
+            if (!price || price <= 0) return tg.showAlert("Введите корректную цену!");
+            document.getElementById('confirm-price-val').innerText = price;
+            document.getElementById('step-input').style.display = 'none';
+            document.getElementById('step-confirm').style.display = 'block';
         }
-    }, 5600);
-}
+
+        function backToInput() {
+            document.getElementById('step-input').style.display = 'block';
+            document.getElementById('step-confirm').style.display = 'none';
+        }
+
+        function calculateFee(val) {
+            const p = parseFloat(val);
+            document.getElementById('final-receive').innerText = p ? (p * 0.95).toFixed(2) + " TON" : "0.00 TON";
+        }
+
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => {
+                const modalContent = document.querySelector('.modal-content');
+                if (!modalContent) return;
+                const offset = window.innerHeight - window.visualViewport.height;
+                modalContent.style.marginBottom = offset > 0 ? offset + 'px' : '0px';
+            });
+        }
+
+        function startCartAnimation() {
+            document.getElementById('sell-modal').classList.remove('active');
+            const successModal = document.getElementById('success-modal');
+            successModal.style.display = 'flex'; 
+            successModal.classList.add('active');
+            document.getElementById('success-item-name').innerText = document.getElementById('modal-item-name').innerText;
+
+            const cart = document.getElementById('cart-anim');
+            const box = document.getElementById('items-box');
+            box.innerHTML = '';
+            
+            cart.classList.remove('active');
+            void cart.offsetWidth; 
+            cart.classList.add('active');
+
+            const premiumSkins = [
+                'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09Kzm7-FmP7mDLfYkWNF18lwmO7Eu4_xiVXg_0s_Ym3xctXAdVBoZlvR-FfsxL3ph5S9v53AmCc17id253_VyxSygBtMcKUx0iC9f_7E/120fx120f',
+                'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35cppQij-qUrN322VbgqBFqYmDycI-RI1A4YVvS8lTole_v08S06Z_MnXUws3Ur7H3ZzAv3309_7A8V7Q/120fx120f',
+                'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVdgYpw23d9dfHldogjSA1BW7mD8v_k_W4RS04_IiH6NBX8j66F8WLY/120fx120f'
+            ];
+
+            const stackPositions = [{ x: '-10px', b: '0px' }, { x: '20px', b: '0px' }, { x: '5px', b: '25px' }];
+
+            premiumSkins.forEach((url, i) => {
+                setTimeout(() => {
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.className = 'skin-drop-final';
+                    img.style.left = stackPositions[i] ? stackPositions[i].x : '0px';
+                    img.style.bottom = stackPositions[i] ? stackPositions[i].b : '0px';
+                    box.appendChild(img);
+                    
+                    cart.style.transform = 'translateY(5px)';
+                    setTimeout(() => cart.style.transform = 'translateY(0)', 80);
+                    
+                    if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+                }, 1800 + (i * 400));
+            });
+
+            setTimeout(() => {
+                cart.classList.remove('active');
+                showToast("✅ Предмет выставлен на маркет!");
+                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            }, 5600);
+        }
+
+        function closeSuccessModal() {
+            const successModal = document.getElementById('success-modal');
+            successModal.classList.remove('active');
+            setTimeout(() => { 
+                successModal.style.display = 'none';
+                backToInput(); 
+            }, 400);
+        }
+
+        function showToast(text) {
+            const t = document.createElement('div');
+            t.className = 'toast';
+            t.innerText = text;
+            document.getElementById('toast-container').appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
     </script>
 </body>
 </html>
-
-
-
-
-
-
 
 
 
