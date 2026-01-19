@@ -1,11 +1,15 @@
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
+const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
 app.use(cors());
 app.use(express.json());
+
+// !!! ВАЖНО: Добавляем раздачу статических файлов (чтобы index.html грузился с сервера)
+app.use(express.static(path.join(__dirname)));
 
 // Базы данных в памяти
 let marketItems = [
@@ -20,9 +24,12 @@ let marketItems = [
 ];
 let users = {}; 
 
-app.get('/', (req, res) => res.send('Сервер StatTrakMRKT онлайн!'));
+// Главная страница теперь отдаёт index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
-// --- БАЛАНС ---
+// --- Остальные маршруты API остаются без изменений ---
 app.get('/api/user/:userId', (req, res) => {
     const { userId } = req.params;
     if (!users[userId]) users[userId] = { balance: 0 };
@@ -62,20 +69,17 @@ app.post('/api/market/buy', (req, res) => {
 // --- ИНВЕНТАРЬ (С ОБХОДОМ БЛОКИРОВКИ) ---
 app.get('/api/inventory/:steamId', async (req, res) => {
     const { steamId } = req.params;
-    // Используем прокси AllOrigins с параметром disableCache, чтобы всегда получать свежие данные
     const targetUrl = `https://steamcommunity.com/inventory/${steamId}/730/2?l=russian&count=75`;
     const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}&disableCache=true`;
 
     try {
         const response = await axios.get(proxyUrl);
-        // AllOrigins возвращает данные в строке .contents, парсим её вручную
         const rawData = response.data.contents;
         const steamData = JSON.parse(rawData);
         
         if (steamData && steamData.descriptions) {
             res.json(steamData);
         } else {
-            // Если Steam вернул "null" или ошибку приватности
             res.status(404).json({ error: 'Инвентарь скрыт' });
         }
     } catch (error) {
@@ -89,4 +93,4 @@ app.delete('/api/market/:id', (req, res) => {
     res.json({ success: true });
 });
 
-app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Сервер запущен на порту ${PORT}. Доступен по адресу: http://localhost:${PORT}`));
