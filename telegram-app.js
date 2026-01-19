@@ -1,3 +1,7 @@
+window.onerror = function(msg, url, lineNo, columnNo, error) {
+    alert("ОШИБКА НАЙДЕНА!\n\nСообщение: " + msg + "\nСтрока: " + lineNo + "\nСимвол: " + columnNo);
+    return false;
+};
 const tg = window.Telegram.WebApp;
 const API_BASE = 'https://stattrakmrkt.onrender.com';
 
