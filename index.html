@@ -525,17 +525,13 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         let cachedMarket = [];
 
         // --- ДОБАВЛЕНО: ФУНКЦИЯ ОПРЕДЕЛЕНИЯ РЕДКОСТИ ---
-       function getRarityClass(item) {
-    const typeStr = (item.type || "").toLowerCase();
-    const tagStr = item.tags ? JSON.stringify(item.tags).toLowerCase() : "";
-    const full = typeStr + " " + tagStr;
-
-    if (full.includes('covert') || full.includes('тайное')) return 'rare-covert';
-    if (full.includes('classified') || full.includes('засекреченное')) return 'rare-classified';
-    if (full.includes('restricted') || full.includes('запрещенное')) return 'rare-restricted';
-    if (full.includes('mil-spec') || full.includes('армейское')) return 'rare-milspec';
-    if (full.includes('knife') || full.includes('нож') || full.includes('gloves') || full.includes('перчатки')) return 'rare-gold';
-    return 'rare-common';
+       function getRarityClass(rarity) {
+    if (!rarity) return 'rarity-common';
+    const r = rarity.toLowerCase();
+    if (r.includes('legendary') || r.includes('cover')) return 'rarity-legendary';
+    if (r.includes('mythical') || r.includes('class')) return 'rarity-mythical';
+    if (r.includes('rare') || r.includes('restr')) return 'rarity-rare';
+    return 'rarity-common';
 }
         // Старт системы
         
@@ -874,6 +870,7 @@ function closeSuccessModal() {
     </script>
 </body>
 </html>
+
 
 
 
