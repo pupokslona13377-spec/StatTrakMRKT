@@ -352,31 +352,13 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     0% { transform: translateY(-150px) scale(0) rotate(-20deg); opacity: 0; }
     100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
 }
-        .success-content {
-    text-align: center;
-    padding: 30px 20px;
-    background: #1a1a1a;
-    border-radius: 20px;
-}
-
-.success-icon-container {
-    font-size: 60px;
-    margin-bottom: 20px;
-    /* Если у тебя есть CSS анимация для cart-animation, она сюда применится */
-}
-
-#success-modal h2 {
-    font-size: 22px;
-    color: #fff;
-    margin-bottom: 10px;
-    font-weight: 700;
-}
-
-#success-modal p {
-    color: #aaa;
-    margin-bottom: 25px;
-    font-size: 15px;
-}
+        .success-wrapper {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 25px 15px;
+        }
     </style>
 </head>
 <body>
@@ -516,6 +498,14 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
                 <button class="action-btn" style="background:#1e293b; color:white; border:none; height:55px; border-radius:16px; font-weight:800;" onclick="backToInput()">НАЗАД</button>
                 <button class="action-btn" style="background:var(--accent); color:black; border:none; height:55px; border-radius:16px; font-weight:900;" onclick="startCartAnimation()">ВЫСТАВИТЬ</button>
             </div>
+        </div>
+        <div id="success-view" style="display: none; flex-direction: column; align-items: center; text-align: center; padding: 20px 10px;">
+            <div style="font-size: 70px; margin-bottom: 20px;">🛒</div>
+            <h3 style="color: white; font-weight: 900; margin-bottom: 8px; text-transform: uppercase;">Предмет размещен</h3>
+            <p style="color: rgba(255,255,255,0.5); font-size: 14px; line-height: 1.5; margin-bottom: 30px;">
+                Ваш скин успешно выставлен на маркет!
+            </p>
+            <button class="action-btn" style="background: var(--accent); color: black; border: none; height: 55px; border-radius: 16px; font-weight: 900; width: 100%; box-shadow: 0 4px 15px var(--accent-glow);" onclick="location.reload()">ОТЛИЧНО</button>
         </div>
     </div>
 </div>
@@ -784,23 +774,17 @@ if (window.visualViewport) {
 }
         // ФУНКЦИЯ ЗАПУСКА АНИМАЦИИ ТЕЛЕЖКИ
 function startCartAnimation() {
-    // 1. Закрываем модальное окно продажи
-    closeSellModal();
+    // 1. Прячем блок подтверждения (тот что с кнопкой Выставить)
+    const confirmStep = document.getElementById('step-confirm');
+    if (confirmStep) confirmStep.style.display = 'none';
 
-    const cart = document.getElementById('cart-anim');
-    const box = document.getElementById('items-box');
+    // 2. Показываем наш новый блок успеха с тележкой и кнопкой ОТЛИЧНО
+    const successView = document.getElementById('success-view');
+    if (successView) successView.style.display = 'flex';
     
-    if (!cart || !box) return; // Защита от ошибок
-
-    box.innerHTML = ''; // Очищаем корзину от старых предметов
-    
-    // 2. Показываем и запускаем тележку
-    cart.classList.add('active');
-    
-    // Вибрация в Telegram (Тяжелый удар при появлении)
-    if(window.Telegram && Telegram.WebApp) {
-        Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
-    }
+    // Если у тебя есть сама анимация вылетающей тележки (cart-anim), 
+    // она сработает параллельно, если ты её не удалял.
+}
 
     // 3. Список легендарных скинов (те самые ссылки, которые всегда грузятся)
     const premiumSkins = [
@@ -853,20 +837,11 @@ function startCartAnimation() {
     }, 5600);
 }
     </script>
-    <div id="success-modal" class="modal">
-    <div class="modal-content success-content">
-        <div class="success-icon-container">
-            <div class="cart-animation">🛒</div> 
-        </div>
-        
-        <h2 id="success-title">Предмет выставлен</h2>
-        <p id="success-message">Ваш скин успешно добавлен на торговую площадку!</p>
-        
-        <button class="btn btn-primary" style="width: 100%;" onclick="closeSuccessModal()">Отлично</button>
-    </div>
+ 
 </div>
 </body>
 </html>
+
 
 
 
