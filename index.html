@@ -405,8 +405,8 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
                 <span id="balance-num">0.00</span>
             </div>
             <div class="profile-actions">
-               <div class="p-btn" onclick="depositTON()">ПОПОЛНИТЬ</div>
-<div class="p-btn" onclick="withdrawTON()">ВЫВЕСТИ</div>
+                <div class="p-btn" onclick="showToast('Депозиты TON скоро появятся')">ПОПОЛНИТЬ</div>
+                <div class="p-btn" onclick="showToast('Вывод от 1.5 TON')">ВЫВЕСТИ</div>
             </div>
         </div>
 
@@ -525,16 +525,39 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         let cachedMarket = [];
 
         // --- ДОБАВЛЕНО: ФУНКЦИЯ ОПРЕДЕЛЕНИЯ РЕДКОСТИ ---
-       function getRarityClass(rarity) {
-    if (!rarity) return 'rarity-common';
-    const r = rarity.toLowerCase();
-    if (r.includes('legendary') || r.includes('cover')) return 'rarity-legendary';
-    if (r.includes('mythical') || r.includes('class')) return 'rarity-mythical';
-    if (r.includes('rare') || r.includes('restr')) return 'rarity-rare';
-    return 'rarity-common';
+       function getRarityClass(item) {
+    const typeStr = (item.type || "").toLowerCase();
+    const tagStr = item.tags ? JSON.stringify(item.tags).toLowerCase() : "";
+    const full = typeStr + " " + tagStr;
+
+    if (full.includes('covert') || full.includes('тайное')) return 'rare-covert';
+    if (full.includes('classified') || full.includes('засекреченное')) return 'rare-classified';
+    if (full.includes('restricted') || full.includes('запрещенное')) return 'rare-restricted';
+    if (full.includes('mil-spec') || full.includes('армейское')) return 'rare-milspec';
+    if (full.includes('knife') || full.includes('нож') || full.includes('gloves') || full.includes('перчатки')) return 'rare-gold';
+    return 'rare-common';
 }
         // Старт системы
-        
+        window.addEventListener('DOMContentLoaded', async () => {
+            tg.ready();
+            tg.expand();
+            
+            // Настройка темы под ТГ
+            document.body.style.setProperty('--tg-color', tg.themeParams.button_color);
+
+            // Загрузка данных
+            const storedSid = localStorage.getItem('titanium_sid');
+            if (storedSid) document.getElementById('steam-id-field').value = storedSid;
+
+            await loadMarketData();
+
+            // Плавное скрытие загрузки
+            setTimeout(() => {
+                const ls = document.getElementById('loading-screen');
+                ls.style.opacity = '0';
+                setTimeout(() => ls.style.display = 'none', 500);
+            }, 800);
+        });
 
         // Навигация
         function appNavigate(page, el) {
@@ -551,22 +574,6 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
             
             tg.HapticFeedback.impactOccurred('light');
         }
-        // Функция пополнения баланса
-function depositTON() {
-    tg.HapticFeedback.impactOccurred('medium');
-    // Используем showAlert, так как это стандарт для Telegram WebApp
-    tg.showAlert("Депозиты через TON Wallet временно недоступны. Функция появится в следующем обновлении!");
-}
-
-// Функция вывода средств
-function withdrawTON() {
-    tg.HapticFeedback.selectionChanged();
-    tg.showConfirm("Вы уверены, что хотите вывести доступный баланс на привязанный TON кошелек?", (confirm) => {
-        if (confirm) {
-            tg.showAlert("Ошибка: Баланс 0.00 TON. Пополните счет для активации вывода.");
-        }
-    });
-}
 
         // Загрузка Маркета
         async function loadMarketData() {
@@ -578,7 +585,7 @@ function withdrawTON() {
             } catch (err) {
                 list.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:50px; opacity:0.3;">Маркет временно недоступен</p>`;
             }
-        
+        }
 
         // Умный Рендер (Исправляет картинки и undefined + ДОБАВЛЕНА РЕДКОСТЬ)
         function renderItems(items, containerId, isMarket = false) {
@@ -627,65 +634,67 @@ ${item.price || '0.00'}
                 </div>`;
             }).join('');
         }
-            async function handleSteamSync() {
-    tg.HapticFeedback.impactOccurred('medium'); // Виброотклик
-    await loadInventory(); // Запускаем твою основную функцию
-}
 
         // ИСПРАВЛЕННЫЙ ИНВЕНТАРЬ (MAPPER LOGIC)
-      // Исправленная функция загрузки инвентаря
-async function loadInventory() {
-    const steamId = document.getElementById('steam-id-field').value.trim();
-    const info = document.getElementById('inventory-info');
-    const grid = document.getElementById('inventory-grid');
+        async function loadInventory() {
+            const sid = document.getElementById('steam-id-field').value.trim();
+            const grid = document.getElementById('inventory-grid');
+            const info = document.getElementById('inventory-info');
 
-    if (!steamId) {
-        tg.showAlert("Введите SteamID64!");
-        return;
-    }
+            if (!sid) {
+                grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:40px; opacity:0.3; font-size:12px;">ПРИВЯЖИТЕ STEAM ID ДЛЯ ТОРГОВЛИ</p>`;
+                return;
+            }
 
-    // Сохраняем ID, чтобы не вводить каждый раз
-    localStorage.setItem('steam_id', steamId);
+            info.innerText = "СИНХРОНИЗАЦИЯ...";
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/inventory/${sid}`);
+                const data = await res.json();
 
-    grid.innerHTML = '<div class="loader-container"><div class="spinner"></div><p>Связь со Steam...</p></div>';
-    if (info) info.innerText = "Загрузка...";
+                let items = [];
 
-    try {
-        // Запрос к твоему серверу Heroku
-        const response = await fetch(`${API_BASE}/api/inventory/${steamId}`);
-        const data = await response.json();
+                // Если API возвращает структуру assets + descriptions (стандарт Steam)
+                if (data.assets && data.descriptions) {
+                    items = data.assets.map(asset => {
+                        const description = data.descriptions.find(d => d.classid === asset.classid);
+                        return {
+    id: asset.assetid,
+    name: description ? description.market_hash_name : 'Предмет Steam',
+    icon_url: description ? description.icon_url : '',
+    type: description ? description.type : '',      // ОШИБКА БЫЛА ТУТ (отсутствовало)
+    tags: description ? description.tags : [],      // И ТУТ
+    price: '---'
+};
+                    });
+                } else {
+                    items = Array.isArray(data) ? data : (data.items || []);
+                }
 
-        if (!data.assets || data.assets.length === 0) {
-            grid.innerHTML = '<div class="error-msg">Инвентарь пуст или скрыт. Проверьте настройки приватности в Steam.</div>';
-            return;
+                if (items.length === 0) {
+                    info.innerText = "ИНВЕНТАРЬ ПУСТ ИЛИ СКРЫТ";
+                    grid.innerHTML = '';
+                } else {
+                    info.innerText = `ПРЕДМЕТОВ НАЙДЕНО: ${items.length}`;
+                    renderItems(items, 'inventory-grid', false);
+                }
+            } catch (err) {
+                info.innerText = "ОШИБКА API STEAM";
+                grid.innerHTML = '';
+            }
         }
 
-        // Превращаем данные от сервера в формат для маркета
-        const items = data.assets.map(asset => ({
-            assetid: asset.assetid,
-            name: asset.name,
-            price: (Math.random() * 10 + 1).toFixed(2), // Генерируем цену для теста
-            image: asset.image, // Ссылка на картинку Steam
-            rarity: asset.rarity || 'Common'
-        }));
-
-        // ВЫЗЫВАЕМ ОТРИСОВКУ (isMarket = false, так как это инвентарь)
-        renderItems(items, 'inventory-grid', false);
-        
-        if (info) info.innerText = `Найдено предметов: ${items.length}`;
-
-    } catch (err) {
-        console.error("Ошибка загрузки инвентаря:", err);
-        grid.innerHTML = '<div class="error-msg">Ошибка сервера. Попробуйте позже.</div>';
-        tg.showAlert("Не удалось подключиться к серверу.");
-    }
-}
-
-// Мостик для кнопки из HTML
-function handleSteamSync() {
-    tg.HapticFeedback.impactOccurred('medium');
-    loadInventory();
-}
+        function handleSteamSync() {
+            const sid = document.getElementById('steam-id-field').value.trim();
+            if (sid.length > 10) {
+                localStorage.setItem('titanium_sid', sid);
+                showToast("Steam ID успешно сохранен");
+                loadInventory();
+                tg.HapticFeedback.notificationOccurred('success');
+            } else {
+                showToast("Некорректный SteamID64");
+            }
+        }
 
         function filterSkins() {
             const query = document.getElementById('market-search').value.toLowerCase();
@@ -871,36 +880,9 @@ function closeSuccessModal() {
         }
     }, 5600);
 }
- window.addEventListener('DOMContentLoaded', async () => {
-            tg.ready();
-            tg.expand();
-            
-            // Настройка темы под ТГ
-            document.body.style.setProperty('--tg-color', tg.themeParams.button_color);
-
-            // Загрузка данных
-            const storedSid = localStorage.getItem('titanium_sid');
-            if (storedSid) document.getElementById('steam-id-field').value = storedSid;
-
-            await loadMarketData();
-
-            // Плавное скрытие загрузки
-            setTimeout(() => {
-                const ls = document.getElementById('loading-screen');
-                ls.style.opacity = '0';
-                setTimeout(() => ls.style.display = 'none', 500);
-            }, 800);
-        });  
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
 
 
 
