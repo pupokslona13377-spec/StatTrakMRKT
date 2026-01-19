@@ -454,5 +454,300 @@ if (!document.getElementById('telegram-app-styles')) {
     `;
     document.head.appendChild(style);
 }
+// =============================================
+// ИНИЦИАЛИЗАЦИЯ НАВИГАЦИИ И КНОПОК
+// =============================================
+
+function initializeNavigation() {
+    console.log('🔄 Initializing navigation...');
+    
+    // Находим все кнопки навигации
+    const navButtons = document.querySelectorAll('.nav-item');
+    console.log('Found nav buttons:', navButtons.length);
+    
+    // Добавляем обработчики клика
+    navButtons.forEach(button => {
+        // Удаляем старые обработчики
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+        
+        // Добавляем новый обработчик
+        newButton.addEventListener('click', function() {
+            const pageId = this.getAttribute('data-page') || 
+                          this.getAttribute('onclick')?.match(/appNavigate\('(\w+)'/)?.[1] ||
+                          this.id?.replace('nav-', '');
+            
+            console.log('Navigation clicked:', pageId, this);
+            
+            if (pageId && window.appNavigate) {
+                window.appNavigate(pageId, this);
+            } else if (pageId) {
+                // Резервная навигация
+                navigateToPage(pageId, this);
+            } else {
+                console.error('Cannot determine page for navigation:', this);
+            }
+        });
+    });
+    
+    // Инициализируем первую страницу
+    setTimeout(() => {
+        const firstButton = document.querySelector('.nav-item');
+        if (firstButton) {
+            const pageId = firstButton.getAttribute('data-page') || 'market';
+            if (window.appNavigate) {
+                window.appNavigate(pageId, firstButton);
+            } else {
+                navigateToPage(pageId, firstButton);
+            }
+        }
+    }, 500);
+}
+
+// Резервная функция навигации
+function navigateToPage(page, element) {
+    console.log('Navigating to page:', page);
+    
+    // Скрываем все страницы
+    document.querySelectorAll('.page').forEach(pageEl => {
+        pageEl.classList.remove('active');
+    });
+    
+    // Убираем активность у всех кнопок
+    document.querySelectorAll('.nav-item').forEach(navEl => {
+        navEl.classList.remove('active');
+    });
+    
+    // Показываем нужную страницу
+    const targetPage = document.getElementById('page-' + page);
+    if (targetPage) {
+        targetPage.classList.add('active');
+    } else {
+        console.error('Page not found:', 'page-' + page);
+        // Пробуем найти любую страницу
+        const firstPage = document.querySelector('.page');
+        if (firstPage) firstPage.classList.add('active');
+    }
+    
+    // Активируем кнопку
+    if (element) {
+        element.classList.add('active');
+    }
+    
+    // Вибрация
+    if (window.TelegramApp && window.TelegramApp.haptic) {
+        window.TelegramApp.haptic('impact', 'light');
+    }
+    
+    // Скрываем/показываем поиск
+    const searchBar = document.getElementById('search-bar-container');
+    if (searchBar) {
+        searchBar.style.display = (page === 'market') ? 'block' : 'none';
+    }
+    
+    // Загружаем инвентарь если нужно
+    if (page === 'profile' && window.loadInventory) {
+        setTimeout(() => {
+            window.loadInventory();
+        }, 300);
+    }
+    
+    console.log('✅ Navigation complete to:', page);
+}
+
+// Инициализация после загрузки DOM
+document.addEventListener('DOMContentLoaded', function() {
+    // Ждем немного чтобы все элементы точно загрузились
+    setTimeout(() => {
+        initializeNavigation();
+        
+        // Также добавляем обработчики для других кнопок
+        initializeButtons();
+    }, 1000);
+});
+
+// Инициализация всех кнопок
+function initializeButtons() {
+    console.log('🔄 Initializing buttons...');
+    
+    // Кнопка синхронизации Steam
+    const syncBtn = document.getElementById('sync-steam-btn');
+    if (syncBtn) {
+        syncBtn.addEventListener('click', function() {
+            if (window.handleSteamSync) {
+                window.handleSteamSync();
+            } else {
+                console.warn('handleSteamSync function not found');
+                showToast("Функция синхронизации загружается...");
+            }
+        });
+    }
+    
+    // Кнопки вкладок профиля
+    const tabInv = document.getElementById('tab-inv');
+    const tabHist = document.getElementById('tab-hist');
+    
+    if (tabInv) {
+        tabInv.addEventListener('click', function() {
+            if (window.toggleProfileTab) {
+                window.toggleProfileTab('inv');
+            } else {
+                navigateToPage('profile', document.querySelector('.nav-item[data-page="profile"]'));
+            }
+        });
+    }
+    
+    if (tabHist) {
+        tabHist.addEventListener('click', function() {
+            if (window.toggleProfileTab) {
+                window.toggleProfileTab('hist');
+            } else {
+                // Показываем заглушку для истории
+                const grid = document.getElementById('inventory-grid');
+                if (grid) {
+                    grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:50px; opacity:0.2;">НЕТ ИСТОРИИ ОПЕРАЦИЙ</p>`;
+                }
+                const info = document.getElementById('inventory-info');
+                if (info) info.innerText = "";
+            }
+        });
+    }
+    
+    // Кнопка поиска
+    const searchBtn = document.querySelector('.search-btn');
+    if (searchBtn) {
+        searchBtn.addEventListener('click', function() {
+            if (window.filterSkins) {
+                window.filterSkins();
+            }
+        });
+    }
+    
+    // Поле поиска (при вводе)
+    const searchInput = document.getElementById('market-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            if (window.filterSkins) {
+                window.filterSkins();
+            }
+        });
+    }
+    
+    // Кнопки модального окна продажи
+    initializeModalButtons();
+}
+
+// Инициализация модального окна
+function initializeModalButtons() {
+    // Закрытие модального окна
+    const closeModalBtn = document.querySelector('.close-modal');
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', function() {
+            if (window.closeSellModal) {
+                window.closeSellModal();
+            } else {
+                const modal = document.getElementById('sell-modal');
+                if (modal) {
+                    modal.style.display = 'none';
+                }
+            }
+        });
+    }
+    
+    // Подтверждение цены
+    const confirmBtn = document.querySelector('.confirm-price-btn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', function() {
+            if (window.goToConfirm) {
+                window.goToConfirm();
+            }
+        });
+    }
+    
+    // Назад к вводу цены
+    const backBtn = document.querySelector('.back-btn');
+    if (backBtn) {
+        backBtn.addEventListener('click', function() {
+            if (window.backToInput) {
+                window.backToInput();
+            }
+        });
+    }
+    
+    // Финал продажи
+    const finalSellBtn = document.querySelector('.final-sell-btn');
+    if (finalSellBtn) {
+        finalSellBtn.addEventListener('click', function() {
+            if (window.startCartAnimation) {
+                window.startCartAnimation();
+            } else {
+                showToast("Анимация тележки временно недоступна");
+            }
+        });
+    }
+    
+    // Расчет комиссии
+    const priceInput = document.getElementById('sell-price-input');
+    if (priceInput) {
+        priceInput.addEventListener('input', function() {
+            if (window.calculateFee) {
+                window.calculateFee(this.value);
+            }
+        });
+    }
+}
+
+// Вспомогательная функция для тостов
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 12px;
+        z-index: 10000;
+        font-size: 14px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        animation: toastSlide 0.3s ease;
+    `;
+    
+    // Добавляем CSS анимацию
+    if (!document.getElementById('toast-animation')) {
+        const style = document.createElement('style');
+        style.id = 'toast-animation';
+        style.textContent = `
+            @keyframes toastSlide {
+                from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+                to { transform: translateX(-50%) translateY(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(toast);
+    
+    // Убираем через 2 секунды
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }, 2000);
+}
+
+// Экспортируем функции для глобального использования
+window.initializeNavigation = initializeNavigation;
+window.navigateToPage = navigateToPage;
+window.showToast = showToast;
+
+console.log('✅ Navigation module loaded');
 
 console.log('=== Telegram App Module Loaded ===');
