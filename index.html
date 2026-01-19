@@ -352,6 +352,31 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     0% { transform: translateY(-150px) scale(0) rotate(-20deg); opacity: 0; }
     100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
 }
+        .success-content {
+    text-align: center;
+    padding: 30px 20px;
+    background: #1a1a1a;
+    border-radius: 20px;
+}
+
+.success-icon-container {
+    font-size: 60px;
+    margin-bottom: 20px;
+    /* Если у тебя есть CSS анимация для cart-animation, она сюда применится */
+}
+
+#success-modal h2 {
+    font-size: 22px;
+    color: #fff;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+#success-modal p {
+    color: #aaa;
+    margin-bottom: 25px;
+    font-size: 15px;
+}
     </style>
 </head>
 <body>
@@ -842,6 +867,7 @@ function startCartAnimation() {
 </div>
 </body>
 </html>
+
 
 
 
