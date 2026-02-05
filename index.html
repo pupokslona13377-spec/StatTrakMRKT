@@ -3,414 +3,459 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Massage Ultra MiniApp</title>
-<link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.3/dist/tailwind.min.css" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+<title>Massage SuperApp</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
 <style>
-body {
-    background: linear-gradient(135deg, #1e293b, #0f172a);
-    color: #f9fafb;
-    font-family: 'Inter', sans-serif;
+*{box-sizing:border-box}
+body{
+margin:0;
+font-family:'Inter',sans-serif;
+background:radial-gradient(circle at top,#111,#050505);
+color:white;
+overflow-x:hidden;
 }
-.master-card {
-    transition: transform 0.3s, box-shadow 0.3s;
-    cursor: pointer;
+
+header{
+position:sticky;
+top:0;
+backdrop-filter:blur(20px);
+background:rgba(0,0,0,.55);
+padding:18px;
+font-weight:800;
+text-align:center;
+border-bottom:1px solid rgba(255,255,255,.06);
+z-index:999;
 }
-.master-card:hover {
-    transform: scale(1.05);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+
+.container{
+padding:18px;
+padding-bottom:110px;
+animation:fade .35s ease;
 }
-button {
-    transition: all 0.2s;
+
+@keyframes fade{
+from{opacity:0;transform:translateY(10px)}
+to{opacity:1}
 }
-button:hover {
-    background-color: #4b5563;
+
+.card{
+background:linear-gradient(145deg,#101014,#18181f);
+border-radius:24px;
+padding:18px;
+margin-bottom:18px;
+box-shadow:0 25px 70px rgba(0,0,0,.7);
+transition:.25s;
 }
-.ripple {
-    position: relative;
-    overflow: hidden;
+
+.card:hover{transform:translateY(-4px)}
+
+.hero{
+font-size:32px;
+font-weight:800;
+margin-bottom:6px;
 }
-.ripple:after {
-    content: '';
-    position: absolute;
-    border-radius: 50%;
-    width: 100px;
-    height: 100px;
-    background: rgba(255,255,255,0.3);
-    transform: scale(0);
-    opacity: 0;
-    pointer-events: none;
-    animation: ripple 0.6s linear;
+
+.sub{opacity:.7;margin-bottom:18px}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+gap:16px;
 }
-@keyframes ripple {
-    to { transform: scale(4); opacity: 0; }
+
+.master img{
+width:100%;
+height:210px;
+object-fit:cover;
+border-radius:18px;
 }
-.balance {
-    font-size: 2rem;
-    font-weight: bold;
-    transition: all 0.3s ease;
+
+.price{opacity:.7;margin:6px 0}
+
+button{
+width:100%;
+padding:14px;
+border-radius:14px;
+border:none;
+font-weight:700;
+cursor:pointer;
+background:linear-gradient(135deg,#7c8bff,#6a5cff);
+color:white;
+transition:.25s;
 }
-.modal-bg {
-    position: fixed; top:0; left:0; width:100%; height:100%;
-    background: rgba(0,0,0,0.6); display: none;
-    justify-content: center; align-items: center; z-index: 50;
+
+button:hover{
+transform:translateY(-2px);
+box-shadow:0 10px 30px rgba(120,90,255,.4);
 }
-.modal {
-    background: #1f2937; padding: 2rem;
-    border-radius: 2rem; max-width: 500px;
-    width: 90%; box-shadow: 0 0 20px rgba(0,0,0,0.7);
+
+input,select{
+width:100%;
+padding:13px;
+border-radius:12px;
+border:none;
+background:#1c1c24;
+color:white;
+margin-top:10px;
 }
-.slot {
-    cursor: pointer; padding:0.5rem 1rem; border-radius:1rem;
-    margin:0.25rem; background:#374151; display:inline-block;
-    transition: transform 0.2s, background 0.2s;
+
+.tabs{
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+height:82px;
+background:#0c0c11;
+display:flex;
+border-top:1px solid rgba(255,255,255,.05);
 }
-.slot:hover { transform: scale(1.1); background:#4b5563; }
+
+.tab{
+flex:1;
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:600;
+cursor:pointer;
+color:#888;
+}
+
+.tab.active{color:white;background:#15151d}
+
+.hidden{display:none}
+
+.order{
+background:#14141a;
+padding:14px;
+border-radius:14px;
+margin-bottom:10px;
+}
+
+.balance{
+font-size:34px;
+font-weight:800;
+}
+
+.tag{
+background:#23232c;
+padding:6px 10px;
+border-radius:999px;
+font-size:12px;
+margin-left:6px;
+}
+
+.row{display:flex;gap:8px}
+
+.success{
+background:#1f3d2b;
+padding:10px;
+border-radius:12px;
+margin-top:10px;
+text-align:center;
+}
+
+.calendarSlot{
+padding:10px;
+border-radius:10px;
+background:#1b1b22;
+cursor:pointer;
+text-align:center;
+}
+
+.calendarSlot.active{
+background:#6a5cff;
+}
+
 </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-start p-6">
+<body>
 
-<h1 class="text-4xl font-bold mb-8 animate__animated animate__fadeInDown">💆‍♀️ Massage Ultra Mini App</h1>
+<header>💎 Massage SuperApp</header>
 
-<!-- Мастера -->
-<div class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10" id="masters">
-<!-- Карточки мастеров будут вставляться JS -->
+<!-- HOME -->
+<div class="container" id="home">
+<div class="hero">Премиум массаж</div>
+<div class="sub">Бронирование за 60 секунд</div>
+
+<div class="card">
+Баланс
+<div class="balance"><span id="balance">0</span> ₽</div>
+<button onclick="switchTab('wallet',tabs[3])">Пополнить</button>
 </div>
 
-<!-- Баланс -->
-<div class="w-full max-w-3xl bg-gray-800 p-6 rounded-3xl shadow-lg mb-10 animate__animated animate__fadeInUp">
-<h2 class="text-2xl font-semibold mb-4">💰 Баланс</h2>
-<p id="balance" class="balance mb-4">0 ₽</p>
-<button id="topup-btn" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl font-semibold text-white ripple">Пополнить 10000 ₽ (тест)</button>
+<div class="grid" id="masters"></div>
 </div>
 
-<!-- Активные заказы -->
-<div class="w-full max-w-4xl bg-gray-800 p-6 rounded-3xl shadow-lg animate__animated animate__fadeInUp mb-10">
-<h2 class="text-2xl font-semibold mb-4">📋 Активные заказы</h2>
-<ul id="active-orders" class="list-disc pl-6 mb-6"></ul>
-<h2 class="text-2xl font-semibold mb-4">🕰 История заказов</h2>
-<ul id="history-orders" class="list-disc pl-6"></ul>
+<!-- MASTER PAGE -->
+<div class="container hidden" id="masterPage">
+<button onclick="switchTab('home',tabs[0])">← Назад</button>
+
+<div class="card" id="masterCard"></div>
+
+<div class="card">
+<h3>Выберите время</h3>
+<div class="grid" id="slots"></div>
 </div>
 
-<!-- Модал бронирования -->
-<div class="modal-bg" id="booking-modal">
-<div class="modal animate__animated animate__zoomIn">
-<h2 class="text-xl font-bold mb-4" id="modal-master-name">Выберите время</h2>
-<div id="slots-container" class="flex flex-wrap"></div>
-<button id="close-modal" class="mt-4 px-4 py-2 bg-gray-700 rounded-xl">Закрыть</button>
+<button id="confirmBooking">Подтвердить запись</button>
+</div>
+
+<!-- WALLET -->
+<div class="container hidden" id="wallet">
+<div class="card">
+<h3>Пополнение</h3>
+<select id="payment">
+<option value="sbp">СБП</option>
+<option value="crypto">Crypto</option>
+<option value="card">Карта</option>
+</select>
+
+<input placeholder="Сумма" id="amount">
+<button onclick="fakePay()">Пополнить (тест)</button>
+<div id="payMsg"></div>
 </div>
 </div>
 
-<script>
-const userId = 'demo-user';
-const mastersContainer = document.getElementById('masters');
-const balanceEl = document.getElementById('balance');
-const topupBtn = document.getElementById('topup-btn');
-const activeOrdersEl = document.getElementById('active-orders');
-const historyOrdersEl = document.getElementById('history-orders');
-const bookingModal = document.getElementById('booking-modal');
-const slotsContainer = document.getElementById('slots-container');
-const modalMasterName = document.getElementById('modal-master-name');
-const closeModalBtn = document.getElementById('close-modal');
+<!-- BOOKINGS -->
+<div class="container hidden" id="bookings">
+<h3>Активные</h3>
+<div id="active"></div>
+<h3>История</h3>
+<div id="history"></div>
+</div>
 
-async function fetchMasters() {
-    const res = await fetch('/api/masters');
-    return res.json();
-}
+<!-- PROFILE -->
+<div class="container hidden" id="profile">
+<div class="card">
+<h3>Профиль</h3>
+ID: <span id="uid"></span><br><br>
+Записей: <span id="count"></span>
 
-async function fetchUser() {
-    const res = await fetch(`/api/user/${userId}`);
-    return res.json();
-}
+<button onclick="resetApp()" style="background:#ff5c5c">Сброс</button>
+</div>
+</div>
 
-async function topUp() {
-    navigator.vibrate(100);
-    await fetch(`/api/user/${userId}/topup`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({amount:10000})
-    });
-    updateUser();
-}
+<!-- ADMIN -->
+<div class="container hidden" id="admin">
+<div class="card">
+<h3>Admin panel (demo)</h3>
+<button onclick="seedMoney()">Начислить всем +5000</button>
+</div>
+</div>
 
-async function bookMaster(master) {
-    navigator.vibrate(150);
-    modalMasterName.textContent = `Выберите время для ${master.name}`;
-    slotsContainer.innerHTML = '';
-    const now = new Date();
-    for(let i=9;i<=20;i++){
-        const slot = document.createElement('div');
-        slot.className = 'slot';
-        const slotDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), i,0,0);
-        slot.textContent = slotDate.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-        slot.onclick = async ()=>{
-            await fetch(`/api/user/${userId}/book`,{
-                method:'POST',
-                headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({masterName: master.name})
-            });
-            bookingModal.style.display = 'none';
-            updateUser();
-            alert(`Забронировано ${master.name} на ${slotDate.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`);
-        }
-        slotsContainer.appendChild(slot);
-    }
-    bookingModal.style.display = 'flex';
-}
-
-closeModalBtn.onclick = ()=>{bookingModal.style.display='none';}
-
-function renderMasters(masters){
-    mastersContainer.innerHTML = '';
-    masters.forEach(master=>{
-        const card = document.createElement('div');
-        card.className = 'master-card bg-gray-700 p-4 rounded-3xl flex flex-col items-center shadow-lg animate__animated animate__fadeInUp';
-        card.innerHTML = `
-        <img src='https://via.placeholder.com/180' alt='${master.name}' class='rounded-full mb-3 shadow-md'>
-        <h3 class='text-xl font-bold mb-2'>${master.name}</h3>
-        <p class='mb-2 text-yellow-400'>⭐ ${master.rating}</p>
-        <p class='mb-3 text-gray-300'>Цена: ${master.price} ₽/час</p>
-        <button class='px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl font-semibold text-white ripple' onclick='bookMaster(${JSON.stringify(master)})'>Забронировать</button>
-        `;
-        mastersContainer.appendChild(card);
-    });
-}
-
-function renderOrders(user){
-    balanceEl.textContent = `${user.balance} ₽`;
-    activeOrdersEl.innerHTML='';
-    historyOrdersEl.innerHTML='';
-    user.activeOrders.forEach(order=>{
-        const li=document.createElement('li');
-        li.className='animate__animated animate__fadeIn';
-        li.textContent=`${order.master} — ${order.price} ₽ — ${new Date(order.date).toLocaleString()}`;
-        activeOrdersEl.appendChild(li);
-    });
-    user.historyOrders.forEach(order=>{
-        const li=document.createElement('li');
-        li.className='animate__animated animate__fadeIn';
-        li.textContent=`${order.master} — ${order.price} ₽ — ${new Date(order.date).toLocaleString()}`;
-        historyOrdersEl.appendChild(li);
-    });
-}
-
-async function updateUser(){
-    const user = await fetchUser();
-    renderOrders(user);
-}
-
-topupBtn.addEventListener('click',topUp);
-fetchMasters().then(renderMasters);
-updateUser();
-</script>
-<!-- Часть 2/3 -->
-
-<!-- Admin Panel (Demo) -->
-<div class="w-full max-w-4xl bg-gray-900 p-6 rounded-3xl shadow-lg mb-10 animate__animated animate__fadeInUp">
-  <h2 class="text-2xl font-semibold mb-4">🛠 Admin Panel (Demo)</h2>
-  <p class="mb-4 text-gray-300">Здесь можно видеть всех пользователей и заказы (demo)</p>
-  <div id="admin-users" class="mb-6"></div>
-  <div id="admin-orders"></div>
+<!-- TABS -->
+<div class="tabs">
+<div class="tab active" onclick="switchTab('home',this)">Главная</div>
+<div class="tab" onclick="switchTab('bookings',this)">Записи</div>
+<div class="tab" onclick="switchTab('profile',this)">Профиль</div>
+<div class="tab" onclick="switchTab('wallet',this)">Кошелек</div>
+<div class="tab" onclick="switchTab('admin',this)">Admin</div>
 </div>
 
 <script>
-// Demo Admin data
-async function fetchAdminData() {
-    const res = await fetch(`/api/user/${userId}`);
-    const user = await res.json();
-    const adminUsersDiv = document.getElementById('admin-users');
-    adminUsersDiv.innerHTML = `<p>Пользователь: ${userId}, Баланс: ${user.balance} ₽</p>`;
-    const adminOrdersDiv = document.getElementById('admin-orders');
-    let html = '<h3 class="text-xl font-semibold mb-2">Все заказы:</h3><ul class="list-disc pl-6">';
-    user.activeOrders.forEach(order=>{
-        html+=`<li>${order.master} — ${order.price} ₽ — ${new Date(order.date).toLocaleString()}</li>`;
-    });
-    html+='</ul>';
-    adminOrdersDiv.innerHTML=html;
+////////////////////////////////////////////////////////////
+// STATE
+////////////////////////////////////////////////////////////
+
+const store={
+get:(k,d)=>JSON.parse(localStorage.getItem(k))??d,
+set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))
 }
 
-fetchAdminData();
+let balance=store.get('balance',0)
+let active=store.get('active',[])
+let history=store.get('history',[])
+let uid=store.get('uid',crypto.randomUUID())
+store.set('uid',uid)
+
+let selectedMaster=null
+let selectedSlot=null
+
+const tabs=document.querySelectorAll('.tab')
+
+////////////////////////////////////////////////////////////
+// DATA
+////////////////////////////////////////////////////////////
+
+const masters=[
+{name:'Анастасия',price:2500,img:'https://images.unsplash.com/photo-1594824476967-48c8b964273f',rating:4.9},
+{name:'Полина',price:2300,img:'https://images.unsplash.com/photo-1544005313-94ddf0286df2',rating:4.8},
+{name:'Виктория',price:2800,img:'https://images.unsplash.com/photo-1554151228-14d9def656e4',rating:5.0},
+{name:'Екатерина',price:2600,img:'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e',rating:4.7}
+]
+
+const slots=['10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00']
+
+////////////////////////////////////////////////////////////
+// RENDER
+////////////////////////////////////////////////////////////
+
+function renderBalance(){
+document.getElementById('balance').innerText=balance
+}
+
+function renderMasters(){
+const el=document.getElementById('masters')
+el.innerHTML=''
+
+masters.forEach(m=>{
+const div=document.createElement('div')
+div.className='card master'
+
+div.innerHTML=`
+<img src="${m.img}">
+<b>${m.name}</b>
+<div class='price'>${m.price} ₽ / час</div>
+⭐ ${m.rating}
+<button onclick='openMaster("${m.name}")'>Выбрать</button>
+`
+
+el.appendChild(div)
+})
+}
+
+function openMaster(name){
+selectedMaster=masters.find(m=>m.name===name)
+
+const card=document.getElementById('masterCard')
+card.innerHTML=`
+<img src="${selectedMaster.img}" style="width:100%;border-radius:18px;margin-bottom:10px">
+<h2>${selectedMaster.name}</h2>
+${selectedMaster.price} ₽ / час
+<span class='tag'>⭐ ${selectedMaster.rating}</span>
+`
+
+renderSlots()
+switchTab('masterPage',tabs[0])
+}
+
+function renderSlots(){
+const el=document.getElementById('slots')
+el.innerHTML=''
+
+slots.forEach(s=>{
+const d=document.createElement('div')
+d.className='calendarSlot'
+d.innerText=s
+
+d.onclick=()=>{
+document.querySelectorAll('.calendarSlot').forEach(x=>x.classList.remove('active'))
+d.classList.add('active')
+selectedSlot=s
+}
+
+el.appendChild(d)
+})
+}
+
+function renderOrders(){
+const a=document.getElementById('active')
+const h=document.getElementById('history')
+
+a.innerHTML=''
+h.innerHTML=''
+
+active.forEach((o,i)=>{
+const d=document.createElement('div')
+d.className='order'
+d.innerHTML=`${o.master} — ${o.slot}<br>${o.price} ₽
+<button onclick="finish(${i})">Завершить</button>`
+a.appendChild(d)
+})
+
+history.forEach(o=>{
+const d=document.createElement('div')
+d.className='order'
+d.innerHTML=`${o.master} — ${o.slot}<br>${o.price} ₽`
+h.appendChild(d)
+})
+
+document.getElementById('count').innerText=active.length+history.length
+}
+
+////////////////////////////////////////////////////////////
+// BOOK
+////////////////////////////////////////////////////////////
+
+document.getElementById('confirmBooking').onclick=()=>{
+if(!selectedMaster||!selectedSlot)return alert('Выберите время')
+if(balance<selectedMaster.price)return alert('Недостаточно средств')
+
+balance-=selectedMaster.price
+store.set('balance',balance)
+
+active.push({
+master:selectedMaster.name,
+slot:selectedSlot,
+price:selectedMaster.price
+})
+store.set('active',active)
+
+renderBalance()
+renderOrders()
+
+switchTab('bookings',tabs[1])
+}
+
+function finish(i){
+history.push(active[i])
+active.splice(i,1)
+store.set('active',active)
+store.set('history',history)
+renderOrders()
+}
+
+////////////////////////////////////////////////////////////
+// PAY
+////////////////////////////////////////////////////////////
+
+function fakePay(){
+balance+=10000
+store.set('balance',balance)
+renderBalance()
+
+document.getElementById('payMsg').innerHTML='<div class="success">+10 000 ₽ (тест)</div>'
+}
+
+function seedMoney(){
+balance+=5000
+store.set('balance',balance)
+renderBalance()
+}
+
+////////////////////////////////////////////////////////////
+// NAV
+////////////////////////////////////////////////////////////
+
+function switchTab(id,el){
+document.querySelectorAll('.container').forEach(c=>c.classList.add('hidden'))
+document.getElementById(id).classList.remove('hidden')
+
+tabs.forEach(t=>t.classList.remove('active'))
+el.classList.add('active')
+}
+
+////////////////////////////////////////////////////////////
+// RESET
+////////////////////////////////////////////////////////////
+
+function resetApp(){
+if(!confirm('Удалить все данные?'))return
+localStorage.clear()
+location.reload()
+}
+
+////////////////////////////////////////////////////////////
+// INIT
+////////////////////////////////////////////////////////////
+
+renderBalance()
+renderMasters()
+renderOrders()
+document.getElementById('uid').innerText=uid
+
 </script>
-
-<!-- Rating System -->
-<div class="w-full max-w-6xl mb-10">
-<h2 class="text-2xl font-semibold mb-4 animate__animated animate__fadeInUp">🌟 Рейтинг мастеров</h2>
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="rating-masters">
-<!-- рейтинги через JS -->
-</div>
-</div>
-
-<script>
-function renderRatings(masters){
-    const container = document.getElementById('rating-masters');
-    container.innerHTML='';
-    masters.forEach(master=>{
-        const card=document.createElement('div');
-        card.className='bg-gray-700 p-4 rounded-3xl shadow-lg animate__animated animate__fadeInUp';
-        card.innerHTML=`
-        <h3 class="text-xl font-bold mb-2">${master.name}</h3>
-        <p class="mb-2 text-gray-300">Цена: ${master.price} ₽/час</p>
-        <p class="mb-2 text-yellow-400">Рейтинг: ${master.rating} ⭐</p>
-        <div class="flex space-x-1">
-            ${Array(Math.floor(master.rating)).fill('⭐').join('')}
-            ${master.rating%1? '✰':''}
-        </div>
-        `;
-        container.appendChild(card);
-    });
-}
-
-fetchMasters().then(renderRatings);
-</script>
-
-<!-- Advanced Animations & Micro Vibe -->
-<script>
-// Card hover vibration for mobile
-document.querySelectorAll('.master-card').forEach(card=>{
-    card.addEventListener('touchstart', ()=>{navigator.vibrate(20);});
-});
-
-// Animate balance increment
-const originalBalance = parseInt(balanceEl.textContent);
-function animateBalance(oldVal,newVal){
-    let current = oldVal;
-    const interval = setInterval(()=>{
-        if(current>=newVal){clearInterval(interval); balanceEl.textContent=newVal+' ₽'; return;}
-        current+=Math.ceil((newVal-oldVal)/20);
-        balanceEl.textContent=current+' ₽';
-    },25);
-}
-</script>
-
-<!-- Booking Flow Enhancements -->
-<script>
-function enhanceBookingFlow(){
-    const slots = document.querySelectorAll('.slot');
-    slots.forEach(slot=>{
-        slot.addEventListener('mouseenter',()=>slot.style.transform='scale(1.15)');
-        slot.addEventListener('mouseleave',()=>slot.style.transform='scale(1)');
-    });
-}
-setInterval(enhanceBookingFlow,1000);
-</script>
-
-<!-- Premium UI gradients & hover effects -->
-<style>
-#masters button {
-    background: linear-gradient(90deg,#a855f7,#ec4899);
-    box-shadow: 0 4px 15px rgba(236,72,153,0.4);
-}
-#masters button:hover {
-    box-shadow: 0 6px 20px rgba(236,72,153,0.6);
-}
-</style>
-<!-- Часть 3/3 -->
-
-<!-- Full Mini Calendar -->
-<div class="w-full max-w-4xl bg-gray-800 p-6 rounded-3xl shadow-lg mb-10 animate__animated animate__fadeInUp">
-  <h2 class="text-2xl font-semibold mb-4">📅 Выберите дату</h2>
-  <div id="mini-calendar" class="grid grid-cols-7 gap-2 text-center"></div>
-</div>
-
-<script>
-// Mini Calendar setup
-function renderCalendar(){
-    const container = document.getElementById('mini-calendar');
-    container.innerHTML='';
-    const today = new Date();
-    for(let i=0;i<14;i++){ // показываем 2 недели
-        const date = new Date(today);
-        date.setDate(today.getDate()+i);
-        const dayDiv = document.createElement('div');
-        dayDiv.className='slot bg-gray-700 hover:bg-gray-600 rounded-lg p-2';
-        dayDiv.textContent = date.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
-        dayDiv.onclick = ()=>alert('Вы выбрали '+date.toLocaleDateString('ru-RU'));
-        container.appendChild(dayDiv);
-    }
-}
-renderCalendar();
-</script>
-
-<!-- Booking Confirmation Modal -->
-<div class="modal-bg" id="confirm-modal">
-<div class="modal animate__animated animate__fadeInUp">
-<h2 class="text-xl font-bold mb-4">Подтвердите бронь</h2>
-<p id="confirm-text" class="mb-4"></p>
-<button id="confirm-ok" class="px-4 py-2 bg-green-600 rounded-xl mr-2">Подтвердить</button>
-<button id="confirm-cancel" class="px-4 py-2 bg-red-600 rounded-xl">Отмена</button>
-</div>
-</div>
-
-<script>
-const confirmModal = document.getElementById('confirm-modal');
-const confirmText = document.getElementById('confirm-text');
-const confirmOk = document.getElementById('confirm-ok');
-const confirmCancel = document.getElementById('confirm-cancel');
-
-function showConfirm(masterName, slot){
-    confirmText.textContent=`Вы уверены, что хотите забронировать ${masterName} на ${slot}?`;
-    confirmModal.style.display='flex';
-    confirmOk.onclick = async ()=>{
-        await fetch(`/api/user/${userId}/book`,{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({masterName})
-        });
-        confirmModal.style.display='none';
-        updateUser();
-        alert(`Забронировано ${masterName} на ${slot}`);
-    };
-    confirmCancel.onclick = ()=>{confirmModal.style.display='none';};
-}
-</script>
-
-<!-- Animate Orders -->
-<script>
-function animateOrders(){
-    document.querySelectorAll('#active-orders li, #history-orders li').forEach(li=>{
-        li.classList.add('animate__animated','animate__fadeInUp');
-    });
-}
-setInterval(animateOrders,2000);
-</script>
-
-<!-- Balance Pulse Animation -->
-<script>
-function pulseBalance(){
-    balanceEl.classList.add('animate__animated','animate__pulse');
-    setTimeout(()=>balanceEl.classList.remove('animate__animated','animate__pulse'),700);
-}
-setInterval(pulseBalance,5000);
-</script>
-
-<!-- Admin Panel Enhancements -->
-<script>
-// Admin add/remove masters demo
-function adminEnhancements(){
-    const ratingMasters = document.getElementById('rating-masters');
-    const card = document.createElement('div');
-    card.className='bg-gray-700 p-4 rounded-3xl shadow-lg animate__animated animate__fadeInUp';
-    card.innerHTML=`<h3 class="text-xl font-bold mb-2">New Master</h3><p class="mb-2 text-gray-300">Цена: 2000 ₽/час</p>`;
-    ratingMasters.appendChild(card);
-}
-setInterval(adminEnhancements,15000); // demo adding new master
-</script>
-
-<!-- Advanced Visual Effects -->
-<style>
-#mini-calendar .slot {
-    transition: transform 0.3s, background 0.3s;
-}
-#mini-calendar .slot:hover {
-    transform: scale(1.15);
-    background: #4b5563;
-}
-</style>
-
-<!-- Footer -->
-<footer class="w-full mt-10 text-center text-gray-400">
-<p>&copy; 2026 Massage Ultra MiniApp | Demo Version</p>
-</footer>
-
 </body>
 </html>
